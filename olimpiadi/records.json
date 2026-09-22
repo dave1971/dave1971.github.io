@@ -19,5 +19,6 @@
     "piattello": { "v": 15, "who": "PERFETTO" },
     "arco": { "v": 60, "who": "PERFETTO" }
   },
-  "top": {}
+  "top": {},
+  "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r"
 }
