@@ -1,0 +1,23 @@
+{
+  "rev": 1,
+  "aggiornato": "2026-09-22",
+  "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
+  "wr": {
+    "100m": { "v": 9.58, "who": "BOLT", "nat": "JAM", "anno": 2009 },
+    "200m": { "v": 19.19, "who": "BOLT", "nat": "JAM", "anno": 2009 },
+    "110h": { "v": 12.75, "who": "THARP", "nat": "USA", "anno": 2026 },
+    "lungo": { "v": 8.95, "who": "POWELL", "nat": "USA", "anno": 1991 },
+    "alto": { "v": 2.45, "who": "SOTOMAYOR", "nat": "CUB", "anno": 1993 },
+    "triplo": { "v": 18.29, "who": "EDWARDS", "nat": "GBR", "anno": 1995 },
+    "asta": { "v": 6.31, "who": "DUPLANTIS", "nat": "SWE", "anno": 2026 },
+    "peso": { "v": 23.56, "who": "CROUSER", "nat": "USA", "anno": 2023 },
+    "disco": { "v": 74.35, "who": "ALEKNA", "nat": "LTU", "anno": 2024 },
+    "martello": { "v": 86.74, "who": "SEDYKH", "nat": "URS", "anno": 1986 },
+    "giavellotto": { "v": 98.48, "who": "ZELEZNY", "nat": "CZE", "anno": 1996 },
+    "pesi": { "v": 267, "who": "TALAKHADZE", "nat": "GEO", "anno": 2021 },
+    "50sl": { "v": 20.88, "who": "McEVOY", "nat": "AUS", "anno": 2026 },
+    "piattello": { "v": 15, "who": "PERFETTO" },
+    "arco": { "v": 60, "who": "PERFETTO" }
+  },
+  "top": {}
+}
