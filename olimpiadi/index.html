@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Olimpiadi Retrò</title>
+<style>
+  :root { --bg: #10141f; --panel: rgba(255,255,255,0.06); --line: rgba(255,255,255,0.16); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: #fff; min-height: 100vh;
+    font-family: "Trebuchet MS", Arial, sans-serif; display: flex; justify-content: center; }
+  main { width: 100%; max-width: 680px; padding: 28px 16px 60px; }
+  h1 { font-size: 40px; margin: 18px 0 2px; color: #ffd600; font-style: italic; letter-spacing: 1px; }
+  h1 span { color: #ff5252; display: block; font-size: 30px; }
+  .sub { color: #b0bec5; margin: 10px 0 22px; font-size: 15px; }
+  img.banner { width: 100%; border-radius: 12px; border: 2px solid var(--line); display: block; }
+  a.dl { display: block; text-align: center; margin: 26px 0 10px; padding: 18px;
+    background: #43a047; color: #fff; text-decoration: none; font-size: 22px; font-weight: bold;
+    border-radius: 14px; border: 3px solid rgba(0,0,0,0.45); box-shadow: 0 5px 0 rgba(0,0,0,0.4); }
+  a.dl:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+  .ver { text-align: center; color: #7CFC00; font-size: 14px; min-height: 20px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 18px; margin: 18px 0; }
+  h2 { font-size: 17px; margin: 0 0 8px; color: #ffd600; }
+  p, li { font-size: 15px; line-height: 1.5; color: #e0e0e0; margin: 6px 0; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  footer { color: #78909c; font-size: 13px; text-align: center; margin-top: 30px; }
+  a { color: #90caf9; }
+</style>
+</head>
+<body>
+<main>
+  <h1>OLIMPIADI <span>RETRÒ</span></h1>
+  <div class="sub">18 specialità, decathlon a scelta e una carriera in tre campionati. Per Android, telefono, tablet e televisore.</div>
+  <img class="banner" src="banner.png" alt="Olimpiadi Retrò">
+
+  <a class="dl" href="olimpiadi-retro.apk">SCARICA L'APK</a>
+  <div class="ver" id="ver"></div>
+
+  <section>
+    <h2>Come si installa</h2>
+    <ul>
+      <li>Scarica il file e aprilo: Android chiederà il permesso di installare app da questa origine.</li>
+      <li>Se avevi una versione precedente alla 1.0.6.4, <b>disinstallala prima</b>: la firma è cambiata.</li>
+      <li>Sul televisore, dopo l'installazione, il gioco compare fra le app del menu.</li>
+      <li>Gli aggiornamenti successivi te li propone il gioco stesso, e se li scarica da solo.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Come si gioca</h2>
+    <p>Due tasti, A e B, come nei giochi di atletica di una volta. Si gioca col touch, con una tastiera
+      USB, oppure — se il gioco gira su un televisore — da un telefono o un tablet sulla stessa rete,
+      che diventa il telecomando.</p>
+  </section>
+
+  <footer>Olimpiadi Retrò · <span id="v2"></span></footer>
+</main>
+<script>
+  fetch('version.json', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var t = 'versione ' + d.versionName + (d.note ? ' — ' + d.note : '');
+      document.getElementById('ver').textContent = t;
+      document.getElementById('v2').textContent = 'versione ' + d.versionName;
+    })
+    .catch(function () { });
+</script>
+</body>
+</html>
