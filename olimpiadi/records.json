@@ -1,5 +1,5 @@
 {
-  "rev": 3,
+  "rev": 4,
   "aggiornato": "2026-09-23",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -114,16 +114,8 @@
         "nat": "ITA",
         "il": "2026-09-23"
       }
-    ],
-    "martello": [
-      {
-        "v": 55.5,
-        "who": "PROVA TOKEN",
-        "nat": "ITA",
-        "il": "2026-09-23"
-      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 5
+  "postRev": 6
 }
