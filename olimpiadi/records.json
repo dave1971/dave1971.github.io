@@ -1,5 +1,5 @@
 {
-  "rev": 4,
+  "rev": 5,
   "aggiornato": "2026-09-23",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -114,8 +114,16 @@
         "nat": "ITA",
         "il": "2026-09-23"
       }
+    ],
+    "tuffi": [
+      {
+        "v": 297.25,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-09-23"
+      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 6
+  "postRev": 7
 }
