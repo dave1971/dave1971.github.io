@@ -1,5 +1,5 @@
 {
-  "rev": 11,
+  "rev": 12,
   "aggiornato": "2026-09-24",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -212,8 +212,24 @@
         "nat": "ITA",
         "il": "2026-09-23"
       }
+    ],
+    "piattello": [
+      {
+        "v": 12,
+        "who": "MELLO",
+        "nat": "ITA",
+        "il": "2026-09-24"
+      }
+    ],
+    "peso": [
+      {
+        "v": 18.065529337958743,
+        "who": "MELLO",
+        "nat": "ITA",
+        "il": "2026-09-24"
+      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 20
+  "postRev": 22
 }
