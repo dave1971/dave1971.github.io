@@ -25,6 +25,11 @@
   p, li { font-size: 15px; line-height: 1.5; color: #e0e0e0; margin: 6px 0; }
   ul { margin: 6px 0; padding-left: 20px; }
   footer { color: #78909c; font-size: 13px; text-align: center; margin-top: 30px; }
+  video { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 10px;
+    border: 2px solid var(--line); background: #000; }
+  .lingua { text-align: center; margin-top: 6px; font-size: 14px; color: #78909c; }
+  .lingua button { background: none; border: 0; color: #90caf9; font: inherit; cursor: pointer; padding: 6px 8px; }
+  .lingua button[aria-pressed="true"] { color: #ffd600; font-weight: bold; }
   a { color: #90caf9; }
 </style>
 </head>
@@ -36,6 +41,15 @@
 
   <a class="dl" href="olimpiadi-retro.apk">SCARICA L'APK</a>
   <div class="ver" id="ver"></div>
+
+  <section>
+    <h2>Guarda il trailer</h2>
+    <video id="trailer" controls playsinline preload="none" poster="trailer-it.jpg" src="trailer-it.mp4"></video>
+    <div class="lingua">
+      <button type="button" data-l="it" aria-pressed="true">Italiano</button> ·
+      <button type="button" data-l="en" aria-pressed="false">English</button>
+    </div>
+  </section>
 
   <section>
     <h2>Come si installa</h2>
@@ -65,6 +79,22 @@
       document.getElementById('v2').textContent = 'versione ' + d.versionName;
     })
     .catch(function () { });
+
+  // il trailer nella lingua di chi guarda: italiano se il telefono parla italiano, se no inglese.
+  // preload="none": il video si scarica solo se qualcuno preme play.
+  (function () {
+    var v = document.getElementById('trailer');
+    var tasti = document.querySelectorAll('.lingua button');
+    function lingua(l) {
+      var andava = !v.paused;
+      v.poster = 'trailer-' + l + '.jpg';
+      v.src = 'trailer-' + l + '.mp4';
+      for (var i = 0; i < tasti.length; i++) tasti[i].setAttribute('aria-pressed', tasti[i].getAttribute('data-l') === l ? 'true' : 'false');
+      if (andava) v.play();
+    }
+    for (var i = 0; i < tasti.length; i++) tasti[i].addEventListener('click', function () { lingua(this.getAttribute('data-l')); });
+    lingua((navigator.language || 'it').toLowerCase().indexOf('it') === 0 ? 'it' : 'en');
+  })();
 </script>
 </body>
 </html>
