@@ -1,5 +1,5 @@
 {
-  "rev": 14,
+  "rev": 15,
   "aggiornato": "2026-09-26",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -234,8 +234,16 @@
         "nat": "ITA",
         "il": "2026-09-24"
       }
+    ],
+    "disco": [
+      {
+        "v": 59.871548274339105,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-09-26"
+      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 24
+  "postRev": 25
 }
