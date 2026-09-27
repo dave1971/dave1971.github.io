@@ -1,6 +1,6 @@
 {
-  "rev": 15,
-  "aggiornato": "2026-09-26",
+  "rev": 16,
+  "aggiornato": "2026-09-27",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
     "100m": {
@@ -179,6 +179,12 @@
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-23"
+      },
+      {
+        "v": 15.51816635964746,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-09-27"
       }
     ],
     "alto": [
@@ -201,6 +207,12 @@
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-23"
+      },
+      {
+        "v": 15.893217046087228,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-09-27"
       }
     ],
     "50sl": [
@@ -245,5 +257,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 25
+  "postRev": 27
 }
