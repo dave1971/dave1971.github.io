@@ -1,6 +1,6 @@
 {
-  "rev": 16,
-  "aggiornato": "2026-09-27",
+  "rev": 17,
+  "aggiornato": "2026-09-28",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
     "100m": {
@@ -93,10 +93,10 @@
   "top": {
     "100m": [
       {
-        "v": 9.759773143008648,
+        "v": 9.585289904572617,
         "who": "LAMBO",
         "nat": "ITA",
-        "il": "2026-09-23"
+        "il": "2026-09-28"
       },
       {
         "v": 9.788877150221841,
@@ -107,14 +107,14 @@
     ],
     "lungo": [
       {
-        "v": 6.966884751644264,
-        "who": "LAMBOPC",
+        "v": 8.312408799548097,
+        "who": "LAMBO",
         "nat": "ITA",
-        "il": "2026-09-23"
+        "il": "2026-09-28"
       },
       {
-        "v": 5.777765485804389,
-        "who": "LAMBO",
+        "v": 6.966884751644264,
+        "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-23"
       }
@@ -189,16 +189,16 @@
     ],
     "alto": [
       {
+        "v": 2.45,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-09-28"
+      },
+      {
         "v": 2.35,
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-23"
-      },
-      {
-        "v": 2.35,
-        "who": "LAMBO",
-        "nat": "ITA",
-        "il": "2026-09-24"
       }
     ],
     "triplo": [
@@ -254,8 +254,16 @@
         "nat": "ITA",
         "il": "2026-09-26"
       }
+    ],
+    "volteggio": [
+      {
+        "v": 140.4,
+        "who": "GIOCATORE 1",
+        "nat": "",
+        "il": "2026-09-28"
+      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 27
+  "postRev": 32
 }
