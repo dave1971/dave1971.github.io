@@ -65,9 +65,29 @@ class Cpu {
   }
 }
 
+// Fuori carriera tutti gli atleti hanno lo stesso tetto (quello del livello) e corrono tutti alla
+// velocita' massima: con errori di tempo cosi' piccoli arrivavano quasi tutti allo stesso centimetro
+// (nell'asta al Mondiale sette su sette a 6,20). Ognuno ha allora la sua forma per la gara, secondo
+// quanto e' bravo fra gli atleti del suo livello: il favorito sta a un soffio dal tetto, il piu' debole
+// ne perde un decimo. La perdita viene da errori veri, uno stacco un po' anticipato e la spinta in volo
+// fuori tempo, non da un numero appiccicato. In carriera no: la' i tetti sono gia' diversi (CPU_F).
+function formaBar(c, ev) {
+  if (c.forma !== undefined) return c.forma;
+  if (Game.careerMode) return (c.forma = null);
+  const L = Lv.cur(), r = clamp((c.L.hit - L.hit[0]) / (L.hit[1] - L.hit[0]), 0, 1);
+  const top = ev.baseHeight(ev.vmax, 1, c.p), span = top - ev.baseHeight(ev.vmax, 0, c.p), H = top + ev.maxBonus;
+  const perso = Math.max(0, ((1 - r) * 0.10 + 0.01) * H + (Math.random() + Math.random() + Math.random() - 1.5) * 0.04 * H);
+  const bon = Math.min(ev.maxBonus * 0.9, perso * 0.6), resto = perso - bon;
+  return (c.forma = {
+    push: (0.06 + 0.24 * bon / ev.maxBonus) * (Math.random() < 0.5 ? -1 : 1),
+    take: -clamp(resto / span, 0, 0.9) * ev.tol,
+  });
+}
+
 function cpuBar(ev, dt) {
   const s = ev.S[this.p];
-  const m = this.fresh(s, () => ({ wait: rnd(0.6, 1.4), take: ev.ideal + this.err(ev.tol * 0.55), push: ev.center + this.err(0.14), pushed: false }));
+  const f = formaBar(this, ev) || { take: 0, push: 0 };
+  const m = this.fresh(s, () => ({ wait: rnd(0.6, 1.4), take: ev.ideal + f.take + this.err(ev.tol * 0.55), push: ev.center + f.push + this.err(0.14), pushed: false }));
   if (s.ph === 'ready') { if ((m.wait -= dt) <= 0) this.tap(ev, 0); return; }
   if (s.ph === 'run') { this.mash(ev, dt, 0); if (s.x > m.take) this.tap(ev, 1); return; }
   if (s.ph === 'flight' && !m.pushed && s.ft >= m.push) { this.tap(ev, 1); m.pushed = true; }
@@ -145,10 +165,17 @@ const CPU_AI = {
   pesi(ev, dt) {
     const s = ev.S[this.p];
     const m = this.fresh(s, () => ({ wait: rnd(0.6, 1.3), zone: clamp(0.55 + this.err(0.8), 0.15, 2) }));
+    // Fuori carriera tutti premevano fino alla forza piena e alzavano tutti lo stesso carico, al chilo:
+    // come nel barile, ognuno ha la sua forza massima, secondo quanto e' bravo fra gli atleti del suo
+    // livello (il favorito al pieno, il piu' debole un quinto sotto). In carriera la forza la fa gia' CPU_F.
+    if (this.forza === undefined) {
+      const L = Lv.cur(), r = clamp((this.L.hit - L.hit[0]) / (L.hit[1] - L.hit[0]), 0, 1);
+      this.forza = Game.careerMode ? 100 : clamp(100 - (1 - r) * 20 + (Math.random() + Math.random() + Math.random() - 1.5) * 4, 70, 100);
+    }
     if (s.ph === 'ready') { if ((m.wait -= dt) <= 0) this.tap(ev, 0); return; }
-    if (s.ph === 'pull' || s.ph === 'jerk' || s.ph === 'hold') { this.mash(ev, dt, 0); return; }
+    if (s.ph === 'pull' || s.ph === 'jerk' || s.ph === 'hold') { if (s.P < this.forza) this.mash(ev, dt, 0); return; }
     if (s.ph === 'rack') {
-      this.mash(ev, dt, 0, 0.6);
+      if (s.P < this.forza) this.mash(ev, dt, 0, 0.6);
       if (s.t > 0.35 && Math.abs(s.needle - 0.5) < ev.zone(s.W) * m.zone) this.tap(ev, 1);
     }
   },

@@ -27,8 +27,10 @@ class Weightlifting extends EventBase {
    */
   zone() { return 0.16; }
   needleSpeed(W) { return 1.1 + (W - 140) * 0.008; }
-  // the loads already lifted at this level can be passed, exactly like the bar events
+  // the loads already lifted at this level can be passed, exactly like the bar events (in carriera
+  // quelli dei campionati, nelle gare singole quelli delle gare singole di prima)
   skipLimit(p) {
+    if (Superate.conta(p)) return Superate.get(this.meta.id, p);
     if (!Game.careerMode || p !== 0 || !Career.data) return null;
     const b = Career.bestMap()[this.meta.id];
     return b == null ? null : b;
@@ -87,6 +89,7 @@ class Weightlifting extends EventBase {
           if (s.t > 0.25 && s.P < need * 0.6) this.fail(p, s, 'cedimento');
           else if (s.t >= 1.6) {
             s.ph = 'show'; s.t = 0; s.ok = true; s.lights = [1, 1, 1]; s.best = s.W; s.fails = 0;
+            Superate.metti(this.meta.id, p, s.W);
             this.say(p, 'ALZATA VALIDA!', '#7CFC00', 2, Fmt.kg(s.W));
             Snd.applause();
           }
@@ -187,6 +190,6 @@ registerEvent({
   id: 'pesi', name: 'SOLLEVAMENTO PESI', cls: Weightlifting, lowerBetter: false,
   labels: ['FORZA', 'SLANCIO'],
   help: ['A: premi velocemente per portare il bilanciere al petto', 'B: slancio sopra la testa quando l\'indicatore è nel verde,', 'poi continua con A per tenerlo. 3 errori consecutivi = fine.',
-    'In carriera B passa i pesi già sollevati.'],
+    'A gara ferma B passa i pesi che hai già sollevato.'],
   fmt: Fmt.kg, pts: Pts.field(1.5, 50, 1.25),
 });

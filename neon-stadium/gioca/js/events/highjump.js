@@ -16,8 +16,10 @@ class BarEvent extends EventBase {
   }
   // In career you may pass every mark you have already cleared at this level and go straight to the
   // first one you have never made — the one you actually have to attempt. A passed mark counts as
-  // cleared, since you proved it in an earlier meeting.
+  // cleared, since you proved it in an earlier meeting. Nelle gare singole vale lo stesso con le
+  // misure superate nelle gare singole di prima (Superate, in base.js).
   skipLimit(p) {
+    if (Superate.conta(p)) return Superate.get(this.meta.id, p);
     if (!Game.careerMode || p !== 0 || !Career.data) return null;
     const b = Career.bestMap()[this.meta.id];
     return b == null ? null : b;
@@ -93,6 +95,7 @@ class BarEvent extends EventBase {
     Snd.thud();
     if (s.ok) {
       s.best = s.bar; s.fails = 0;
+      Superate.metti(this.meta.id, p, s.bar);
       this.say(p, 'VALIDO!', '#7CFC00', 1.9, Fmt.m(s.bar));
       Snd.applause();
     } else {
@@ -218,6 +221,6 @@ registerEvent({
   id: 'alto', name: 'SALTO IN ALTO', cls: HighJump, lowerBetter: false,
   labels: ['CORRI', 'SALTA'],
   help: ['A: rincorsa  •  B: stacca vicino al segno bianco', 'B di nuovo in volo, quando sei sopra l\'asticella,', 'per inarcare la schiena. 3 errori consecutivi = fine.',
-    'In carriera B passa le misure già superate.'],
+    'A gara ferma B passa le misure che hai già superato.'],
   fmt: Fmt.m, pts: (f => m => f(m == null ? null : m * 100))(Pts.field(0.8465, 75, 1.42)),
 });

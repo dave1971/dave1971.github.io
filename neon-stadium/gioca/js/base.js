@@ -153,6 +153,27 @@ const RecordsTorneo = Object.assign(Object.create(Records), { key: 'olimpiadi_to
 RecordsTorneo.load();
 function recordsOf(meta) { return meta && meta.medievo ? RecordsTorneo : Records; }
 
+// Le misure superate nelle gare singole di alto, asta e pesi: per ogni giocatore (G1, G2) e per ogni
+// livello, la piu' alta asticella passata o il carico piu' pesante sollevato. Ricominciando la gara,
+// B a gara ferma passa le misure fino a quella, come in carriera si passano quelle gia' fatte in un
+// campionato: si riparte dalla prima mai superata invece di rifare tutta la salita.
+const Superate = {
+  key: 'olimpiadi_superate_v1',
+  data: {},
+  load() { try { this.data = JSON.parse(localStorage.getItem(this.key)) || {}; } catch (e) { this.data = {}; } },
+  save() { try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) { /* storage unavailable */ } },
+  k(id, p) { return id + '@' + Lv.id() + '#' + p; },
+  // vale solo per chi gioca davvero, nelle gare singole (non in carriera, che ha la sua, ne' nel decathlon)
+  conta(p) { return !Game.careerMode && !Game.deca && !Game.special && p < Game.humans; },
+  get(id, p) { const v = this.data[this.k(id, p)]; return typeof v === 'number' ? v : null; },
+  metti(id, p, v) {
+    if (!this.conta(p) || v == null) return;
+    const k = this.k(id, p);
+    if (!(this.data[k] >= v)) { this.data[k] = v; this.save(); }
+  },
+};
+Superate.load();
+
 // ---------- base class for all events ----------
 // Labels of the A and B buttons for one player. Most events use the same pair for everybody; an event
 // whose two actions are tied to the side of the screen (skeet) swaps them with the dominant hand.

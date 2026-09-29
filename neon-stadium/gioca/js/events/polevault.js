@@ -145,6 +145,6 @@ registerEvent({
   id: 'asta', name: 'SALTO CON L\'ASTA', cls: PoleVault, lowerBetter: false,
   labels: ['CORRI', 'ASTA'],
   help: ['A: rincorsa  •  B: pianta l\'asta vicino al segno bianco', 'B di nuovo quando sei capovolto in cima: lasci l\'asta, pieghi', 'le gambe oltre l\'asticella e cadi di schiena. 3 errori = fine.',
-    'In carriera B passa le misure già superate.'],
+    'A gara ferma B passa le misure che hai già superato.'],
   fmt: Fmt.m, pts: (f => m => f(m == null ? null : m * 100))(Pts.field(0.2797, 100, 1.35)),
 });
