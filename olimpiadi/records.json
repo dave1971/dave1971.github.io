@@ -1,5 +1,5 @@
 {
-  "rev": 21,
+  "rev": 22,
   "aggiornato": "2026-09-29",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -99,6 +99,12 @@
         "il": "2026-09-28"
       },
       {
+        "v": 9.59103295096451,
+        "who": "LAMBOWEB",
+        "nat": "ITA",
+        "il": "2026-09-29"
+      },
+      {
         "v": 9.756704610219103,
         "who": "MELLO",
         "nat": "ITA",
@@ -112,6 +118,12 @@
       }
     ],
     "lungo": [
+      {
+        "v": 8.446777109583403,
+        "who": "LAMBOWEB",
+        "nat": "ITA",
+        "il": "2026-09-29"
+      },
       {
         "v": 8.312408799548097,
         "who": "LAMBO",
@@ -327,5 +339,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 42
+  "postRev": 44
 }
