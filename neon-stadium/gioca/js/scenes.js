@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.4.0.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.4.0.1'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
