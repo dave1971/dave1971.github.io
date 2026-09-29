@@ -20,6 +20,7 @@
   a.dl:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
   a.dl.web { background: #6a1b9a; margin-top: 14px; }
   a.dl small { display: block; font-size: 13px; font-weight: normal; opacity: 0.85; margin-top: 4px; }
+  a.dl.win { background: #1565c0; margin-top: 14px; }
   .ver { text-align: center; color: #7CFC00; font-size: 14px; min-height: 20px; }
   section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
     padding: 14px 18px; margin: 18px 0; }
@@ -38,10 +39,11 @@
 <body>
 <main>
   <h1>NEON <span>STADIUM</span></h1>
-  <div class="sub">18 specialità, decathlon a scelta e una carriera in tre campionati. Per Android, telefono, tablet e televisore.</div>
+  <div class="sub">18 specialità, decathlon a scelta e una carriera in tre campionati. Per Android — telefono, tablet e televisore — e per Windows.</div>
   <img class="banner" src="banner.png" alt="Neon Stadium">
 
-  <a class="dl" href="neon-stadium.apk">SCARICA L'APK</a>
+  <a class="dl" href="neon-stadium.apk">SCARICA PER ANDROID<small>telefono, tablet, televisore · .apk</small></a>
+  <a class="dl win" href="neon-stadium.exe">SCARICA PER WINDOWS<small>un file solo, niente da installare · .exe</small></a>
   <a class="dl web" href="../neon-stadium/gioca/">GIOCA NEL BROWSER<small>subito, senza installare niente · PC e telefono</small></a>
   <div class="ver" id="ver"></div>
 
@@ -62,12 +64,23 @@
   </section>
 
   <section>
-    <h2>Come si installa</h2>
+    <h2>Come si installa su Android</h2>
     <ul>
       <li>Scarica il file e aprilo: Android chiederà il permesso di installare app da questa origine.</li>
       <li>Se avevi una versione precedente alla 1.0.6.4, <b>disinstallala prima</b>: la firma è cambiata.</li>
       <li>Sul televisore, dopo l'installazione, il gioco compare fra le app del menu.</li>
       <li>Gli aggiornamenti successivi te li propone il gioco stesso, e se li scarica da solo.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Come si installa su Windows</h2>
+    <ul>
+      <li>Non si installa: è un file solo, lo metti dove vuoi e lo apri.</li>
+      <li>La prima volta Windows avvisa che non conosce il programma: <i>Ulteriori informazioni</i> → <i>Esegui comunque</i>. Succede a tutti i programmi senza firma commerciale.</li>
+      <li>Ti chiede subito se questo computer deve farsi comandare da un telefono o un tablet: se rispondi no, non apre nessuna porta.</li>
+      <li>F11 passa da schermo intero a finestra, Esc torna indietro e dal titolo chiude.</li>
+      <li>Serve Windows 10 o 11 a 64 bit. Gli aggiornamenti se li scarica e se li mette a posto da solo.</li>
     </ul>
   </section>
 
