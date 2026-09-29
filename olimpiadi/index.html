@@ -52,6 +52,13 @@
   </section>
 
   <section>
+    <h2>Il torneo del regno</h2>
+    <p>Dentro il gioco c'è un torneo medievale segreto: 13 prove fra orsi, maiali unti, arieti e mangiafuoco,
+      con la sua carriera e il guardaroba dei costumi. Per entrare serve la parola d'ordine.</p>
+    <video id="torneo" controls playsinline preload="none" poster="torneo-it.jpg" src="torneo-it.mp4"></video>
+  </section>
+
+  <section>
     <h2>Come si installa</h2>
     <ul>
       <li>Scarica il file e aprilo: Android chiederà il permesso di installare app da questa origine.</li>
@@ -80,17 +87,22 @@
     })
     .catch(function () { });
 
-  // il trailer nella lingua di chi guarda: italiano se il telefono parla italiano, se no inglese.
-  // preload="none": il video si scarica solo se qualcuno preme play.
+  // i video nella lingua di chi guarda: italiano se il telefono parla italiano, se no inglese; la
+  // scelta sotto il trailer vale anche per quello del torneo.
+  // preload="none": un video si scarica solo se qualcuno preme play.
   (function () {
-    var v = document.getElementById('trailer');
+    var video = [document.getElementById('trailer'), document.getElementById('torneo')];
     var tasti = document.querySelectorAll('.lingua button');
     function lingua(l) {
-      var andava = !v.paused;
-      v.poster = 'trailer-' + l + '.jpg';
-      v.src = 'trailer-' + l + '.mp4';
+      for (var j = 0; j < video.length; j++) {
+        var v = video[j];
+        if (!v) continue;
+        var andava = !v.paused;
+        v.poster = v.id + '-' + l + '.jpg';
+        v.src = v.id + '-' + l + '.mp4';
+        if (andava) v.play();
+      }
       for (var i = 0; i < tasti.length; i++) tasti[i].setAttribute('aria-pressed', tasti[i].getAttribute('data-l') === l ? 'true' : 'false');
-      if (andava) v.play();
     }
     for (var i = 0; i < tasti.length; i++) tasti[i].addEventListener('click', function () { lingua(this.getAttribute('data-l')); });
     lingua((navigator.language || 'it').toLowerCase().indexOf('it') === 0 ? 'it' : 'en');
