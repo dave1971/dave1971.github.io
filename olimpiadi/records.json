@@ -1,5 +1,5 @@
 {
-  "rev": 20,
+  "rev": 21,
   "aggiornato": "2026-09-29",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -127,6 +127,12 @@
     ],
     "200m": [
       {
+        "v": 19.43221826303862,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-09-29"
+      },
+      {
         "v": 19.527313707519436,
         "who": "LAMBO",
         "nat": "ITA",
@@ -149,6 +155,12 @@
     ],
     "trampolino": [
       {
+        "v": 237,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-09-29"
+      },
+      {
         "v": 200.3,
         "who": "LAMBO",
         "nat": "ITA",
@@ -157,6 +169,12 @@
     ],
     "giavellotto": [
       {
+        "v": 97.07907863102803,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-09-29"
+      },
+      {
         "v": 93.04426811474053,
         "who": "LAMBO",
         "nat": "ITA",
@@ -164,6 +182,12 @@
       }
     ],
     "arco": [
+      {
+        "v": 58,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-09-29"
+      },
       {
         "v": 57,
         "who": "LAMBOTV",
@@ -259,6 +283,12 @@
     ],
     "peso": [
       {
+        "v": 21.421254329392223,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-09-29"
+      },
+      {
         "v": 18.065529337958743,
         "who": "MELLO",
         "nat": "ITA",
@@ -286,8 +316,16 @@
         "nat": "",
         "il": "2026-09-28"
       }
+    ],
+    "martello": [
+      {
+        "v": 80.86936958380399,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-09-29"
+      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 36
+  "postRev": 42
 }
