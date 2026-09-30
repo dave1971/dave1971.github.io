@@ -1,5 +1,5 @@
 {
-  "rev": 25,
+  "rev": 26,
   "aggiornato": "2026-09-30",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -165,6 +165,12 @@
     ],
     "tuffi": [
       {
+        "v": 309.55,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-09-30"
+      },
+      {
         "v": 297.25,
         "who": "LAMBO",
         "nat": "ITA",
@@ -213,10 +219,10 @@
     ],
     "arco": [
       {
-        "v": 58,
+        "v": 59,
         "who": "LAMBOPC",
         "nat": "ITA",
-        "il": "2026-09-29"
+        "il": "2026-09-30"
       },
       {
         "v": 57,
@@ -247,16 +253,16 @@
     ],
     "110h": [
       {
-        "v": 13.15449628518804,
-        "who": "ILAMB",
+        "v": 13.097642009449647,
+        "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-30"
       },
       {
-        "v": 14.135590676277916,
-        "who": "LAMBOPC",
+        "v": 13.15449628518804,
+        "who": "ILAMB",
         "nat": "ITA",
-        "il": "2026-09-23"
+        "il": "2026-09-30"
       },
       {
         "v": 15.51816635964746,
@@ -279,10 +285,10 @@
         "il": "2026-09-30"
       },
       {
-        "v": 2.4,
+        "v": 2.45,
         "who": "LAMBOPC",
         "nat": "ITA",
-        "il": "2026-09-29"
+        "il": "2026-09-30"
       }
     ],
     "triplo": [
@@ -307,10 +313,10 @@
     ],
     "50sl": [
       {
-        "v": 24.11666666666594,
+        "v": 21.541666666666085,
         "who": "LAMBOPC",
         "nat": "ITA",
-        "il": "2026-09-23"
+        "il": "2026-09-30"
       }
     ],
     "pesi": [
@@ -337,10 +343,10 @@
     ],
     "peso": [
       {
-        "v": 21.421254329392223,
+        "v": 22.29752843323659,
         "who": "LAMBOPC",
         "nat": "ITA",
-        "il": "2026-09-29"
+        "il": "2026-09-30"
       },
       {
         "v": 18.065529337958743,
@@ -351,13 +357,19 @@
     ],
     "disco": [
       {
-        "v": 59.871548274339105,
+        "v": 72.76225981362776,
         "who": "LAMBOPC",
         "nat": "ITA",
-        "il": "2026-09-26"
+        "il": "2026-09-30"
       }
     ],
     "volteggio": [
+      {
+        "v": 193.7,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-09-30"
+      },
       {
         "v": 164,
         "who": "LAMBO",
@@ -381,5 +393,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 54
+  "postRev": 62
 }
