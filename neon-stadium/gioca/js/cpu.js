@@ -84,6 +84,22 @@ function formaBar(c, ev) {
   });
 }
 
+// Il tetto di piattelli di ogni avversario, deciso una volta per gara: vale solo al Trials (negli altri
+// livelli nessun tetto). I piu' bravi del campo sono quelli con la bravura (Game.cpuSkill) piu' alta.
+function cpuTettoPiattello(ev, p) {
+  if (clamp(Lv.i, 1, 3) !== 2) return Infinity;
+  if (!ev.tettiCpu) {
+    const cpu = [];
+    for (let q = 0; q < ev.n; q++) if (Game.isCpu(q)) cpu.push(q);
+    const sk = q => (Game.cpuSkill && Game.cpuSkill[q] != null ? Game.cpuSkill[q] : q / ev.n);
+    cpu.sort((a, b) => sk(b) - sk(a));
+    const quanti = Math.random() < 0.5 ? 1 : 2;
+    ev.tettiCpu = {};
+    cpu.forEach((q, i) => { ev.tettiCpu[q] = i < quanti ? 14 : 13; });
+  }
+  return ev.tettiCpu[p] != null ? ev.tettiCpu[p] : Infinity;
+}
+
 function cpuBar(ev, dt) {
   const s = ev.S[this.p];
   const f = formaBar(this, ev) || { take: 0, push: 0 };
@@ -149,6 +165,10 @@ const CPU_AI = {
   asta(ev, dt) { cpuBar.call(this, ev, dt); },
   piattello(ev) {
     const s = ev.S[this.p], w = s.dim[0];
+    // Al Trials i piu' bravi arrivavano in tre a 15/15 e con 14 non si prendeva una medaglia. Qui c'e'
+    // un tetto per la gara: uno o due avversari (i piu' bravi del campo) al massimo 14, gli altri al
+    // massimo 13. Raggiunto il tetto si spara fuori tempo, come chi ha perso la concentrazione.
+    const tetto = cpuTettoPiattello(ev, this.p);
     for (const c of s.clays) {
       if (!c.alive) continue;
       const u = ev.clayPos(c)[0];
@@ -158,6 +178,8 @@ const CPU_AI = {
         if (d < -80 || d > 60) continue;
         const k = c.cpu[b] || (c.cpu[b] = {
           off: Math.random() < this.L.hit ? rnd(-7, 7) : (Math.random() < 0.5 ? -1 : 1) * (ev.Rp[this.p] + rnd(6, 16)), fired: false });
+        // arrivato al tetto, il colpo che stava per partire va fuori tempo (troppo tardi: il piattello e' passato)
+        if (s.hits >= tetto && !k.fired && k.off < ev.Rp[this.p]) k.off = ev.Rp[this.p] + rnd(6, 16);
         if (!k.fired && d >= k.off && s.shells > 0 && s.reload[b] <= 0) { k.fired = true; this.tap(ev, ev.btnFor(this.p, b)); }
       }
     }
