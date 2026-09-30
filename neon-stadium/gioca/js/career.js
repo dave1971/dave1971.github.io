@@ -75,8 +75,8 @@ const GEAR = GEAR_TUTTI.map(g => Object.assign({}, g, { evs: g.evs.filter(id => 
 
 // Gli oggetti leggendari: roba da collezione, con una storia (inventata) dietro, che vale il 10% in piu'
 // dell'atleta che la usa, anche oltre il tetto del livello. Solo per la carriera delle Olimpiadi, e si
-// comprano solo pagando: 250.000 in gara o 10 euro. Si possono avere solo nella versione per Windows
-// (legAttivi); altrove si vedono nel negozio ma non si comprano. I risultati fatti con uno di questi
+// comprano solo pagando: 250.000 in gara (i 10 euro per ora sono solo scritti), e solo da chi sa la
+// parola d'ordine del torneo, in tutte le versioni. I risultati fatti con uno di questi
 // vanno in classifica con l'asterisco. I nomi alludono senza nominare: sono in vendita.
 const LEG_PREZZO = 250000, LEG_EURO = 10, LEG_BONUS = 1.10;
 const LEG_TESTA = 34, LEG_RIGA = 52;      // nel negozio: la testata della sezione e l'altezza di una riga
@@ -95,8 +95,22 @@ const LEGGENDARI_TUTTI = [
   { k: 'saltimbanco', name: 'LE MOLLE DEL SALTIMBANCO DI CORTE', evs: ['volteggio'], col: '#f06292', battuta: 'fanno boing anche da sole, di notte' },
 ];
 const LEGGENDARI = LEGGENDARI_TUTTI.map(g => Object.assign({}, g, { evs: g.evs.filter(id => EVENTS.some(e => e.id === id)) })).filter(g => g.evs.length);
-// si comprano (e valgono) solo nell'exe: nell'apk e sul web si vedono e basta
-function legAttivi() { return typeof window !== 'undefined' && window.OLIMPIADI_PLATFORM === 'win'; }
+// Servono la parola d'ordine del torneo: detta una volta (nel negozio o alla porta del torneo), vale per
+// sempre su quel dispositivo. Senza, gli oggetti non si comprano e quelli gia' presi non valgono.
+// Nel codice c'e' solo l'impronta della parola: la versione web, che del torneo non sa niente, non
+// deve poterla mostrare a chi ne legge i file.
+const PAROLA_IMPRONTA = 'd78ca0ebc1b35fdf';
+function parolaGiusta(s) {
+  const t = String(s).toUpperCase(), h = seme => {
+    let x = seme >>> 0;
+    for (let i = 0; i < t.length; i++) { x ^= t.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; }
+    return x.toString(16).padStart(8, '0');
+  };
+  return h(2166136261) + h(0x9e3779b9) === PAROLA_IMPRONTA;
+}
+const LEG_CHIAVE = 'olimpiadi_leg_ok';
+function legSbloccati() { try { return localStorage.getItem(LEG_CHIAVE) === '1'; } catch (e) { return false; } }
+function legSblocca() { try { localStorage.setItem(LEG_CHIAVE, '1'); } catch (e) { /* storage unavailable */ } }
 
 // Prize money by finishing place, multiplied by the tier.
 const PRIZE = [2200, 1500, 1100, 800, 680, 600, 540, 480];
@@ -281,12 +295,12 @@ const Career = {
   },
   // l'oggetto leggendario che vale per questa gara, se c'e' e se in questa versione gli oggetti valgono
   legPer(id) {
-    if (!legAttivi() || !this.data || !this.C.leggendari) return null;
+    if (!legSbloccati() || !this.data || !this.C.leggendari) return null;
     const L = this.data.leggendari || {};
     return this.C.leggendari.find(g => L[g.k] && g.evs.indexOf(id) >= 0) || null;
   },
   hasLeg(k) { return !!(this.data && this.data.leggendari && this.data.leggendari[k]); },
-  canBuyLeg(k) { return legAttivi() && !this.hasLeg(k) && this.data.money >= LEG_PREZZO; },
+  canBuyLeg(k) { return legSbloccati() && !this.hasLeg(k) && this.data.money >= LEG_PREZZO; },
   buyLeg(k) {
     if (!this.canBuyLeg(k)) return false;
     this.data.money -= LEG_PREZZO;

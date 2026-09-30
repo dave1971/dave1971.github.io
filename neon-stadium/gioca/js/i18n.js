@@ -644,9 +644,11 @@ Object.assign(EN, { 'nuovo dall\'ultima volta': 'new since last time' });
 
 // ---------- gli oggetti leggendari (1.4.4) ----------
 Object.assign(EN, {
-  'LEGGENDARI': 'LEGENDARY', 'TUO': 'YOURS', 'PRESTO SU PC': 'SOON ON PC', 'in gara': 'in game', 'veri': 'real',
+  'LEGGENDARI': 'LEGENDARY', 'TUO': 'YOURS', 'in gara': 'in game', 'veri': 'real',
   '+10% oltre il tetto': '+10% beyond the ceiling', '+10% oltre il tetto  •  in classifica con l\'asterisco': '+10% beyond the ceiling  •  starred in the rankings',
-  'gli oggetti leggendari arrivano con la versione per Windows': 'legendary items come with the Windows version',
+  'solo chi conosce la parola d\'ordine usa gli oggetti leggendari': 'only those who know the password may use legendary items',
+  'SBLOCCA': 'UNLOCK', 'SBLOCCA ›': 'UNLOCK ›', 'parola d\'ordine': 'password', 'serve la parola d\'ordine': 'password needed',
+  'PAROLA SBAGLIATA': 'WRONG PASSWORD',
   'il pagamento in euro non e\' ancora aperto: presto': 'paying in euros is not open yet: soon',
   '* con un oggetto leggendario': '* with a legendary item',
   'LE SCARPE DEL FULMINE GIAMAICANO': 'THE JAMAICAN LIGHTNING\'S SHOES', 'ancora calde dal 2009: non lavarle, mai': 'still warm since 2009: never wash them',
@@ -663,4 +665,3 @@ Object.assign(EN, {
   'LE MOLLE DEL SALTIMBANCO DI CORTE': 'THE COURT ACROBAT\'S SPRINGS', 'fanno boing anche da sole, di notte': 'they go boing on their own, at night',
 });
 EN_RULES.push([/^(.+) in gara o (\d+) € veri$/, '$1 in game or $2 € real'], [/^servono (.+): ne hai (.+)$/, 'you need $1: you have $2']);
-Object.assign(EN, { 'solo su Windows': 'Windows only' });

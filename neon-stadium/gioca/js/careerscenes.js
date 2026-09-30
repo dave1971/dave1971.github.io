@@ -236,16 +236,23 @@ class ShopScene extends Screen {
         },
       };
     });
-    // Gli oggetti leggendari, sotto gli attrezzi. Nell'exe si comprano coi soldi della carriera (il
-    // pagamento in euro non c'e' ancora); nell'apk e sul web si vedono soltanto: arrivano su PC.
+    // Gli oggetti leggendari, sotto gli attrezzi: si comprano coi soldi della carriera (il pagamento in
+    // euro non c'e' ancora), ma prima bisogna dire la parola d'ordine.
     const gy0 = top + Career.C.gear.length * RH + LEG_TESTA;
     LG.forEach((g, i) => {
       const y0 = gy0 + i * LEG_RIGA, h = LEG_RIGA - 6, suo = Career.hasLeg(g.k);
       const nota = testo => { Snd.click(); this.nota = { testo, t: 3.5 }; };
-      if (suo) { this.righe.push({ g, y0, x: x + 430, y: 0, w: 170, h, buy: true, label: 'TUO', sub: '+10% oltre il tetto', size: 15, color: '#b8860b', fn: () => Snd.click() }); return; }
-      if (!legAttivi()) {
-        this.righe.push({ g, y0, x: x + 430, y: 0, w: 170, h, buy: true, label: 'PRESTO SU PC', sub: 'solo su Windows', size: 14, color: '#455a64',
-          fn: () => nota('gli oggetti leggendari arrivano con la versione per Windows') });
+      // finche' non si dice la parola d'ordine, ogni riga porta alla tastiera per dirla
+      const chiusi = !legSbloccati();
+      const torna = () => G.setScene(new ShopScene());
+      const sblocca = () => {
+        Snd.click();
+        G.setScene(new PasswordScene({ titolo: 'LEGGENDARI', riga: 'solo chi conosce la parola d\'ordine usa gli oggetti leggendari',
+          medievo: false, ok: torna, indietro: torna }));
+      };
+      if (suo) { this.righe.push({ g, y0, x: x + 430, y: 0, w: 170, h, buy: true, label: 'TUO', sub: chiusi ? 'serve la parola d\'ordine' : '+10% oltre il tetto', size: 15, color: '#b8860b', fn: chiusi ? sblocca : () => Snd.click() }); return; }
+      if (chiusi) {
+        this.righe.push({ g, y0, x: x + 430, y: 0, w: 170, h, buy: true, label: 'SBLOCCA', sub: 'parola d\'ordine', size: 15, color: '#6a1b9a', fn: sblocca });
         return;
       }
       const can = Career.canBuyLeg(g.k);
@@ -522,5 +529,67 @@ class LangScene extends Screen {
     }
     // on a television this is the first thing on screen and there is nothing to click with yet
     if (Remote.url) txt(ctx, 'TELECOMANDO  ' + Remote.url, cx, G.H - 40, 18, '#7CFC00', 'center', { italic: false });
+  }
+}
+
+// La parola d'ordine. Senza argomenti e' la porta del torneo medievale (js/specials/, che sul web non
+// c'e'); con { titolo, riga, medievo, ok, indietro } la stessa tastiera fa da porta agli oggetti
+// leggendari, con la stessa parola. Detta giusta, apre sempre anche i leggendari.
+class PasswordScene extends Screen {
+  constructor(o) {
+    super(); this.o = o || null; this.medievo = !o || o.medievo !== false; this.v = ''; this.errore = 0;
+  }
+  back() { if (this.o) this.o.indietro(); else Specials.esci(); return true; }
+  type(ch) {
+    if (ch === 'DEL') { this.v = this.v.slice(0, -1); Snd.click(); return; }
+    if (ch === 'OK') { this.prova(); return; }
+    if (this.v.length >= 16) { Snd.tone(140, 0.08, 'square', 0.05); return; }
+    this.v += ch; Snd.click();
+  }
+  prova() {
+    if (parolaGiusta(this.v)) {
+      legSblocca();
+      Snd.fanfare();
+      if (this.o) this.o.ok(); else { Specials.aperto = true; G.setScene(new SpecialsScene(1)); }
+      return;
+    }
+    this.errore = 1.2; this.v = '';
+    Snd.fail();
+  }
+  // dalla tastiera vera: lettere, il punto esclamativo, cancella e invio
+  textKey(k) {
+    if (k === 'Backspace') { this.type('DEL'); return true; }
+    if (k === 'Enter') { this.type('OK'); return true; }
+    if (/^[A-Za-z!]$/.test(k)) { this.type(k.toUpperCase()); return true; }
+    return false;
+  }
+  update(dt) { super.update(dt); if (this.errore > 0) this.errore -= dt; }
+  layout() {
+    const W = G.W, cx = W / 2, righe = ['QWERTYUIOP', 'ASDFGHJKL!', 'ZXCVBNM'];
+    const kw = Math.min(56, (W - 120) / 10 - 6), kh = 46, gap = 6;
+    this.btns = [{ x: 20, y: G.H - 64, w: 150, h: 48, label: '‹ INDIETRO', size: 16, color: '#546e7a', fn: () => this.back() }];
+    righe.forEach((r, i) => {
+      const x0 = cx - (r.length * (kw + gap) - gap) / 2;
+      [...r].forEach((ch, j) => this.btns.push({ x: x0 + j * (kw + gap), y: 210 + i * (kh + gap), w: kw, h: kh, label: ch, size: 18,
+        color: '#4e342e', fn: () => this.type(ch) }));
+    });
+    const y = 210 + 3 * (kh + gap);
+    this.btns.push({ x: cx - 210, y, w: 200, h: kh, label: '← CANCELLA', size: 15, color: '#6d4c41', fn: () => this.type('DEL') });
+    this.btns.push({ x: cx + 10, y, w: 200, h: kh, label: this.o ? 'SBLOCCA ›' : 'ENTRA ›', size: 18, color: '#b71c1c', fn: () => this.type('OK') });
+  }
+  draw(ctx) {
+    menuBg(ctx, this.t);
+    const W = G.W, cx = W / 2;
+    panel(ctx, 24, 8, W - 48, G.H - 84);
+    txt(ctx, this.o ? this.o.titolo : '1245 A.D.', cx, 44, 34, '#ffd54f');
+    txt(ctx, this.o ? this.o.riga : 'solo chi conosce la parola d\'ordine entra nel torneo', cx, 78, 15, '#fff', 'center', { italic: false });
+    // il campo: le lettere non si vedono, si vedono i pallini
+    const fw = 360, fx = cx - fw / 2, fy = 110;
+    const shake = this.errore > 0 ? Math.sin(this.errore * 60) * 8 * this.errore : 0;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; rrect(ctx, fx + shake, fy, fw, 56, 10); ctx.fill();
+    ctx.strokeStyle = this.errore > 0 ? '#ff5252' : '#ffd54f'; ctx.lineWidth = 2; ctx.stroke();
+    txt(ctx, this.v ? '•'.repeat(this.v.length) : 'PAROLA D\'ORDINE', cx + shake, fy + 28, this.v ? 30 : 16, this.v ? '#fff' : 'rgba(255,255,255,0.4)', 'center', { italic: false });
+    if (this.errore > 0) txt(ctx, this.o ? 'PAROLA SBAGLIATA' : 'PAROLA SBAGLIATA: le guardie ti rimandano indietro', cx, fy + 76, 15, '#ff8a80', 'center', { italic: false });
+    this.drawButtons(ctx);
   }
 }
