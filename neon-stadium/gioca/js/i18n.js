@@ -638,3 +638,6 @@ EN_RULES.push(
 Object.assign(EN, {
   'LAVORI IN CORSO': 'WORK IN PROGRESS', 'ci stiamo ancora lavorando: torna presto!': 'we are still working on it: come back soon!',
 });
+
+// ---------- i record nuovi evidenziati (1.4.2) ----------
+Object.assign(EN, { 'nuovo dall\'ultima volta': 'new since last time' });

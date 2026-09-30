@@ -165,8 +165,38 @@ const Snd = {
       const d = this.noiseBuf.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    // 'suspended' all'inizio, 'interrupted' su iPhone dopo una telefonata o tornando all'app
+    if (this.ctx.state !== 'running') { try { this.ctx.resume(); } catch (e) { /* ci riprova al prossimo tocco */ } }
+    this.apple();
     if (typeof Music !== 'undefined') Music.resume();
+  },
+  // Su iPhone e iPad Safari tratta l'audio delle pagine come i suoni di sistema: con la levetta del
+  // silenzioso abbassata non si sente niente, anche col volume al massimo (e' successo a Davide con la
+  // versione web). Si dice a Safari che il gioco suona come un lettore musicale: nei Safari recenti c'e'
+  // navigator.audioSession apposta; nei vecchi basta far girare, dentro un tocco, un <audio> di silenzio.
+  // Fuori da iPhone e iPad (Android, Windows, i computer) non serve e non si fa niente.
+  apple() {
+    if (this.appleOk) return;
+    const ua = navigator.userAgent || '';
+    const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!ios) { this.appleOk = true; return; }
+    try { if (navigator.audioSession) { navigator.audioSession.type = 'playback'; this.appleOk = true; return; } } catch (e) { /* si prova col silenzio */ }
+    try {
+      if (!this.muto) {
+        // mezzo secondo di silenzio in un WAV fatto qui: nessun file da scaricare
+        const n = 4000, b = new Uint8Array(44 + n), dv = new DataView(b.buffer);
+        const s = (o, t) => { for (let i = 0; i < t.length; i++) b[o + i] = t.charCodeAt(i); };
+        s(0, 'RIFF'); dv.setUint32(4, 36 + n, true); s(8, 'WAVE'); s(12, 'fmt ');
+        dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+        dv.setUint32(24, 8000, true); dv.setUint32(28, 8000, true); dv.setUint16(32, 1, true); dv.setUint16(34, 8, true);
+        s(36, 'data'); dv.setUint32(40, n, true); b.fill(128, 44);
+        this.muto = new Audio(URL.createObjectURL(new Blob([b], { type: 'audio/wav' })));
+        this.muto.loop = true;
+        this.muto.setAttribute('playsinline', '');
+      }
+      const pr = this.muto.play();
+      if (pr && pr.then) pr.then(() => { this.appleOk = true; }).catch(() => { /* al prossimo tocco */ });
+    } catch (e) { /* niente da fare: si resta come prima */ }
   },
   tone(f, d, type, v, slide, delay) {
     if (!this.on || !this.ctx) return;
@@ -363,6 +393,8 @@ G.init = function () {
   };
   const up = e => {
     e.preventDefault();
+    // Safari su iPhone accende l'audio solo quando il dito si alza, non quando scende
+    Snd.unlock();
     if (G.scene && G.scene.pointerUp) G.scene.pointerUp(e.pointerId);
   };
   // il dito che si sposta serve solo agli elenchi che scorrono: chi non lo vuole non lo sente
@@ -376,6 +408,8 @@ G.init = function () {
   c.addEventListener('pointerup', up);
   c.addEventListener('pointercancel', up);
   c.addEventListener('contextmenu', e => e.preventDefault());
+  // e per i Safari vecchi il gesto che conta e' touchend (pointerup non basta sempre)
+  c.addEventListener('touchend', () => Snd.unlock(), { passive: true });
   // la rotella del mouse: su Windows e con una tastiera USB è il modo naturale di scorrere
   window.addEventListener('wheel', e => {
     if (!G.scene || !G.scene.wheel) return;

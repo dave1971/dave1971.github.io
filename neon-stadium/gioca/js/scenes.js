@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.4.1.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.4.2.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -910,15 +910,20 @@ class RecordsScene extends Screen {
   cella(id, i, n) {
     const meta = EVENTS.find(e => e.id === id), fmt = v => meta ? meta.fmt(v) : v + ' pt';
     const mio = this.voce(Records.get(id), fmt, '#ffcc80');
-    const mondo = this.voce(World.wr(id), fmt, '#a5d6a7', !this.corto);
-    if (n === 3) return [mio, this.voce(World.top(id)[0], fmt, '#90caf9'), mondo][i];
+    const mondo = this.nuovo(this.voce(World.wr(id), fmt, '#a5d6a7', !this.corto), id, 'wr');
+    if (n === 3) return [mio, this.nuovo(this.voce(World.top(id)[0], fmt, '#90caf9'), id, 'top'), mondo][i];
     return [mio, mondo][i];
+  }
+  // una casella arrivata nuova col file dall'ultima volta che si e' guardata la schermata
+  nuovo(c, id, cosa) {
+    if (c.who && this.nuovi && this.nuovi[id] && this.nuovi[id][cosa]) { c.col = '#ffd600'; c.nuovo = true; }
+    return c;
   }
   cellaDeca(i, n) {
     const fmt = v => v + ' pt';
     const mio = this.voce(Records.get('decathlon'), fmt, '#ffd600');
     const niente = { v: '—', who: '', nat: '', col: '#a5d6a7' };
-    if (n === 3) return [mio, this.voce(World.top('decathlon')[0], fmt, '#90caf9'), niente][i];
+    if (n === 3) return [mio, this.nuovo(this.voce(World.top('decathlon')[0], fmt, '#90caf9'), 'decathlon', 'top'), niente][i];
     return [mio, niente][i];
   }
   // quanto e' larga una casella a quella grandezza, senza il nome: misura, spazio, bandiera, spazio
@@ -954,6 +959,10 @@ class RecordsScene extends Screen {
       x -= s * 0.6;
     }
     txt(ctx, c.v, x, y, s, c.col, 'right', { italic: false });
+    if (c.nuovo) {
+      ctx.font = 'bold ' + s + 'px ' + FONT;
+      drawStar(ctx, x - ctx.measureText(T(c.v)).width - s * 0.75, y, s * 0.45, '#ffd600');
+    }
   }
   back() { G.setScene(new TitleScene()); return true; }
   // Aprire questa schermata vuol dire chiedere i record aggiornati: è il momento giusto, perché è
@@ -961,7 +970,14 @@ class RecordsScene extends Screen {
   enter() {
     super.enter();
     this.wait = true;
-    World.pull(() => { this.wait = false; World.seen(); this.layout(); });
+    World.pull(() => {
+      this.wait = false;
+      this.nuovi = World.novita();
+      World.seen();
+      this.layout();
+      const i = EVENTS.map(e => e.id).concat(['decathlon']).findIndex(id => this.nuovi[id]);
+      if (i >= 0) this.sc.by(Math.max(0, i * ROW_H + 12 - this.sc.box.h / 2));
+    });
   }
   update(dt) { super.update(dt); this.sc.update(dt); }
   // il dito trascina l'elenco, la rotella lo fa girare: i pulsanti restano per il telecomando
@@ -986,6 +1002,10 @@ class RecordsScene extends Screen {
     panel(ctx, 70, 12, W - 140, G.H - 90);
     txt(ctx, 'RECORD', cx, 40, 26, '#ffd600');
     txt(ctx, Lv.cur().name, cx, 64, 15, Lv.cur().col, 'center', { italic: false });
+    if (Object.keys(this.nuovi || {}).length) {
+      drawStar(ctx, 96, 40, 8, '#ffd600');
+      txt(ctx, 'nuovo dall\'ultima volta', 110, 40, 13, '#ffd600', 'left', { italic: false });
+    }
     const capi = C.n === 3
       ? [['IL TUO RECORD', '#ffcc80'], ['I GIOCATORI', '#90caf9'], ['IL MONDO', '#a5d6a7']]
       : [['IL TUO RECORD', '#ffcc80'], ['RECORD DEL MONDO', '#a5d6a7']];
@@ -993,6 +1013,13 @@ class RecordsScene extends Screen {
 
     const y0 = this.sc.clip(ctx) + 12;
     const sz = this.sz || [16, 16, 16];
+    const nuovi = this.nuovi || {};
+    const sfondo = (y, id) => {
+      if (!nuovi[id]) return;
+      ctx.fillStyle = 'rgba(255,214,0,' + (0.13 + 0.05 * Math.sin(this.t * 4)).toFixed(3) + ')';
+      rrect(ctx, C.L - 22, y - ROW_H / 2 + 1, W - 94 - C.L + 30, ROW_H - 2, 6); ctx.fill();
+      drawStar(ctx, C.L - 11, y, 7, '#ffd600');
+    };
     const riga = (y, nome, prendi, nomeCol) => {
       txt(ctx, nome, C.L, y, this.szNome || 16, nomeCol || '#fff', 'left', { italic: !!nomeCol });
       for (let i = 0; i < C.n; i++) this.casella(ctx, prendi(i), C.x[i], y, sz[i], C.colW - 8);
@@ -1000,11 +1027,12 @@ class RecordsScene extends Screen {
     EVENTS.forEach((e, i) => {
       const y = y0 + i * ROW_H;
       if (!this.sc.shows(y, ROW_H)) return;
+      sfondo(y, e.id);
       riga(y, e.name, k => this.cella(e.id, k, C.n));
     });
     // il decathlon chiude l'elenco, e scorre con gli altri invece di stare a una riga fissa
     const yd = y0 + EVENTS.length * ROW_H + 6;
-    if (this.sc.shows(yd, ROW_H)) riga(yd, 'DECATHLON', k => this.cellaDeca(k, C.n), '#ffd600');
+    if (this.sc.shows(yd, ROW_H)) { sfondo(yd, 'decathlon'); riga(yd, 'DECATHLON', k => this.cellaDeca(k, C.n), '#ffd600'); }
     ctx.restore();
 
     this.sc.fade(ctx);

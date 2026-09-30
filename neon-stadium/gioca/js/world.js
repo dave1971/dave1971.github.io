@@ -34,6 +34,32 @@ const World = {
   isFresh() { return this.rev() > this.seenRev(); },
   seen() { this.write(this.SEEN, String(this.rev())); },
 
+  // La stellina dice solo che il file e' cambiato; per sapere COSA e' cambiato si tiene l'impronta di
+  // quello che la schermata dei record mostrava l'ultima volta: per ogni gara il primo dei giocatori e
+  // il record del mondo. Aprendo la schermata si confronta con quella nuova, e le gare diverse si
+  // evidenziano (una volta sola: poi l'impronta nuova diventa quella vista).
+  VISTI: 'olimpiadi_world_visti',
+  impronta() {
+    const o = {}, voce = r => r && typeof r.v === 'number' ? r.v + '|' + (r.who || '') + '|' + (r.nat || '') : '';
+    for (const id of EVENTS.map(e => e.id).concat(['decathlon'])) o[id] = [voce(this.top(id)[0]), voce(this.d && this.d.wr && this.d.wr[id])];
+    return o;
+  },
+  /** Le gare con qualcosa di nuovo dall'ultima volta: { id: { top: true, wr: true } }. Poi le segna viste. */
+  novita() {
+    if (!this.d) return {};
+    let prima = null;
+    try { prima = JSON.parse(this.read(this.VISTI)); } catch (e) { prima = null; }
+    const ora = this.impronta(), nuovi = {};
+    // la prima volta non c'e' niente con cui confrontare: si prende nota e basta
+    if (prima) for (const id in ora) {
+      const p = prima[id] || ['', ''];
+      if (ora[id][0] && ora[id][0] !== p[0]) (nuovi[id] = nuovi[id] || {}).top = true;
+      if (ora[id][1] && ora[id][1] !== p[1]) (nuovi[id] = nuovi[id] || {}).wr = true;
+    }
+    this.write(this.VISTI, JSON.stringify(ora));
+    return nuovi;
+  },
+
   /** Il record vero della disciplina: quello scaricato se c'è, se no quello scritto nel codice. */
   wr(id) { return (this.d && this.d.wr && this.d.wr[id]) || WR[id] || null; },
   /** I migliori giocatori di quella disciplina, dal più forte in giù. */
