@@ -134,12 +134,13 @@ const Records = {
   k(id, lvl) { return id + '@' + (lvl || Lv.id()); },
   get(id, lvl) { return this.data[this.k(id, lvl)] || null; },
   // returns true if value is a new record (lvl: il livello, se non e' quello in corso)
-  submit(id, value, lowerBetter, who, nat, lvl) {
+  submit(id, value, lowerBetter, who, nat, lvl, leg) {
     if (value == null) return false;
     const key = this.k(id, lvl);
     const r = this.data[key];
     if (!r || (lowerBetter ? value < r.v : value > r.v)) {
       this.data[key] = { v: value, who: who, nat: nat || '' };
+      if (leg) this.data[key].leg = true;     // fatto con un oggetto leggendario: l'asterisco
       this.save();
       return true;
     }

@@ -206,7 +206,8 @@ class ShopScene extends Screen {
       return;
     }
     const top = 84, bot = G.H - 76;
-    this.sc.set({ x, y: top, w: 600, h: bot - top }, Career.C.gear.length * RH);
+    const LG = Career.C.leggendari || [];
+    this.sc.set({ x, y: top, w: 600, h: bot - top }, Career.C.gear.length * RH + (LG.length ? LEG_TESTA + LG.length * LEG_RIGA : 0));
     this.btns = [{ x: 20, y: G.H - 62, w: 150, h: 46, label: '‹ CARRIERA', size: 16, color: '#546e7a', fn: () => G.setScene(new CareerScene()) }];
     // Tutto indietro a quanto e' stato pagato, per riprovare le gare con attrezzi piu' bassi
     const rientro = Career.gearSpent();
@@ -234,6 +235,29 @@ class ShopScene extends Screen {
           this.layout();
         },
       };
+    });
+    // Gli oggetti leggendari, sotto gli attrezzi. Nell'exe si comprano coi soldi della carriera (il
+    // pagamento in euro non c'e' ancora); nell'apk e sul web si vedono soltanto: arrivano su PC.
+    const gy0 = top + Career.C.gear.length * RH + LEG_TESTA;
+    LG.forEach((g, i) => {
+      const y0 = gy0 + i * LEG_RIGA, h = LEG_RIGA - 6, suo = Career.hasLeg(g.k);
+      const nota = testo => { Snd.click(); this.nota = { testo, t: 3.5 }; };
+      if (suo) { this.righe.push({ g, y0, x: x + 430, y: 0, w: 170, h, buy: true, label: 'TUO', sub: '+10% oltre il tetto', size: 15, color: '#b8860b', fn: () => Snd.click() }); return; }
+      if (!legAttivi()) {
+        this.righe.push({ g, y0, x: x + 430, y: 0, w: 170, h, buy: true, label: 'PRESTO SU PC', sub: 'solo su Windows', size: 14, color: '#455a64',
+          fn: () => nota('gli oggetti leggendari arrivano con la versione per Windows') });
+        return;
+      }
+      const can = Career.canBuyLeg(g.k);
+      this.righe.push({ g, y0, x: x + 430, y: 0, w: 82, h, buy: true, label: Money(LEG_PREZZO), sub: 'in gara', size: 14, color: can ? '#43a047' : '#455a64',
+        fn: () => {
+          if (!Career.buyLeg(g.k)) { nota('servono ' + Money(LEG_PREZZO) + ': ne hai ' + Money(Career.data.money)); return; }
+          Snd.cashIn(); Snd.fanfare();
+          this.nota = { testo: g.battuta, t: 4 };
+          this.layout();
+        } });
+      this.righe.push({ g, y0, x: x + 518, y: 0, w: 82, h, buy: true, label: LEG_EURO + ' €', sub: 'veri', size: 15, color: '#6a1b9a',
+        fn: () => nota('il pagamento in euro non e\' ancora aperto: presto') });
     });
     this.aggiorna();
   }
@@ -301,6 +325,27 @@ class ShopScene extends Screen {
         txt(ctx, t ? (g.gradi ? '' : Career.C.tiers[t - 1].n + '  ') + '+' + Math.round(Career.C.tiers[t - 1].b * 100) + '%' : 'niente',
           x + 424, y + 15, 12, t ? '#7CFC00' : '#90a4ae', 'right', { italic: false });
       });
+      const LG = Career.C.leggendari || [];
+      if (LG.length) {
+        const yt = y0 + Career.C.gear.length * RH + 2;
+        if (this.sc.shows(yt, LEG_TESTA)) {
+          drawStar(ctx, x + 12, yt + LEG_TESTA / 2, 8, '#ffd600');
+          txt(ctx, 'LEGGENDARI', x + 26, yt + LEG_TESTA / 2, 17, '#ffd600', 'left');
+          txt(ctx, '+10% oltre il tetto  •  in classifica con l\'asterisco', x + 600, yt + LEG_TESTA / 2, 12, '#ffcc80', 'right', { italic: false });
+        }
+        LG.forEach((g, i) => {
+          const y = yt + LEG_TESTA + i * LEG_RIGA - 2, suo = Career.hasLeg(g.k);
+          if (!this.sc.shows(y, LEG_RIGA)) return;
+          ctx.fillStyle = suo ? 'rgba(255,214,0,0.16)' : 'rgba(255,214,0,0.07)'; rrect(ctx, x, y, 600, LEG_RIGA - 4, 6); ctx.fill();
+          ctx.strokeStyle = 'rgba(255,214,0,' + (suo ? 0.9 : 0.45) + ')'; ctx.lineWidth = 1.5; ctx.stroke();
+          ctx.fillStyle = g.col; ctx.fillRect(x + 6, y + 6, 5, LEG_RIGA - 16);
+          fitTxt(ctx, g.name, x + 20, y + 11, 13, legAttivi() || suo ? 400 : 280, '#ffd600', 'left');
+          // nella vetrina (apk e web) il prezzo sta nella riga: il pulsante dice solo dove si compra
+          if (!legAttivi() && !suo) fitTxt(ctx, Money(LEG_PREZZO) + ' in gara o ' + LEG_EURO + ' € veri', x + 424, y + 11, 11, 130, '#ffcc80', 'right');
+          fitTxt(ctx, g.evs.map(e => T(SHORT[e])).join(' · ').toLowerCase(), x + 20, y + 25, 10, 400, '#b0bec5', 'left');
+          fitTxt(ctx, '« ' + T(g.battuta) + ' »', x + 20, y + 38, 10, 400, '#ffcc80', 'left');
+        });
+      }
       for (const b of this.righe) if (this.sc.shows(b.y, b.h)) drawBtn(ctx, b);
       ctx.restore();
       this.sc.fade(ctx, 16);

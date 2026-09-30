@@ -641,3 +641,26 @@ Object.assign(EN, {
 
 // ---------- i record nuovi evidenziati (1.4.2) ----------
 Object.assign(EN, { 'nuovo dall\'ultima volta': 'new since last time' });
+
+// ---------- gli oggetti leggendari (1.4.4) ----------
+Object.assign(EN, {
+  'LEGGENDARI': 'LEGENDARY', 'TUO': 'YOURS', 'PRESTO SU PC': 'SOON ON PC', 'in gara': 'in game', 'veri': 'real',
+  '+10% oltre il tetto': '+10% beyond the ceiling', '+10% oltre il tetto  •  in classifica con l\'asterisco': '+10% beyond the ceiling  •  starred in the rankings',
+  'gli oggetti leggendari arrivano con la versione per Windows': 'legendary items come with the Windows version',
+  'il pagamento in euro non e\' ancora aperto: presto': 'paying in euros is not open yet: soon',
+  '* con un oggetto leggendario': '* with a legendary item',
+  'LE SCARPE DEL FULMINE GIAMAICANO': 'THE JAMAICAN LIGHTNING\'S SHOES', 'ancora calde dal 2009: non lavarle, mai': 'still warm since 2009: never wash them',
+  'MEZZA BARBA DEL SALTATORE MARCHIGIANO': 'HALF A BEARD OF THE HIGH JUMPER FROM THE MARCHE', 'l\'altra meta\' la tiene lui, per scaramanzia': 'he keeps the other half, for luck',
+  'LE ALETTE AI TALLONI DI HERMES': 'HERMES\'S HEEL WINGS', 'consegna garantita, anche oltre gli ostacoli': 'delivery guaranteed, even over the hurdles',
+  'LE MOLLE DEL CANGURO BOXEUR': 'THE BOXING KANGAROO\'S SPRINGS', 'il canguro le rivuole per il ring del sabato': 'the kangaroo wants them back for Saturday\'s fight',
+  'L\'ASTA DEL VICHINGO VOLANTE': 'THE FLYING VIKING\'S POLE', 'rinforzata col corno di un vichingo, dicono': 'reinforced with a Viking\'s horn, they say',
+  'L\'OCCHIO DI GUGLIELMO TELL': 'WILLIAM TELL\'S EYE', 'la mela non e\' compresa nel prezzo': 'the apple is not included',
+  'LA CINTURA DI ERCOLE': 'HERCULES\'S BELT', 'le dodici fatiche sono a parte': 'the twelve labours are sold separately',
+  'LA PINNA DELLO SQUALO DI BALTIMORA': 'THE BALTIMORE SHARK\'S FIN', 'si mette sulla schiena: le corsie vicine si spostano': 'wear it on your back: the next lanes move away',
+  'LA MOLLETTA DA NASO DI NETTUNO': 'NEPTUNE\'S NOSE CLIP', 'Nettuno giura che non entra una goccia': 'Neptune swears not a drop gets in',
+  'IL BRACCIO BIONICO DEL CICLOPE': 'THE CYCLOPS\'S BIONIC ARM', 'l\'altro braccio il ciclope lo tiene, per ora': 'the cyclops is keeping the other arm, for now',
+  'LA SAETTA DI ZEUS': 'ZEUS\'S THUNDERBOLT', 'da lanciare solo col bel tempo': 'throw it in fine weather only',
+  'LE MOLLE DEL SALTIMBANCO DI CORTE': 'THE COURT ACROBAT\'S SPRINGS', 'fanno boing anche da sole, di notte': 'they go boing on their own, at night',
+});
+EN_RULES.push([/^(.+) in gara o (\d+) € veri$/, '$1 in game or $2 € real'], [/^servono (.+): ne hai (.+)$/, 'you need $1: you have $2']);
+Object.assign(EN, { 'solo su Windows': 'Windows only' });

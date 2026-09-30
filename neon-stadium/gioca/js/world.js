@@ -184,7 +184,7 @@ const Share = {
       const who = pulisciNome(r.who), nat = (typeof FLAGS !== 'undefined' && FLAGS[r.nat]) ? r.nat : '';
       if (!who) continue;
       this.d.coda = this.d.coda.filter(x => x.ev !== id);
-      this.d.coda.push({ ev: id, v: r.v, who, nat });
+      this.d.coda.push(r.leg ? { ev: id, v: r.v, who, nat, leg: true } : { ev: id, v: r.v, who, nat });
     }
     this.d.coda = this.d.coda.slice(-12);
   },
@@ -193,7 +193,7 @@ const Share = {
    * Finita una gara: se è un record personale che entrerebbe in classifica, si mette in coda.
    * Mandarlo subito no: il giocatore sta guardando il risultato, e la domanda va fatta con calma.
    */
-  offer(id, v, p) {
+  offer(id, v, p, leg) {
     if (!this.attivo() || this.d.ok === false) return;
     if (Lv.id() !== 'olympic') return;
     if (!World.wouldEnter(id, v)) return;
@@ -203,7 +203,8 @@ const Share = {
     const nat = (typeof FLAGS !== 'undefined' && FLAGS[pr.code]) ? pr.code : '';
     if (!who) return;
     this.d.coda = this.d.coda.filter(x => x.ev !== id);
-    this.d.coda.push({ ev: id, v, who, nat });
+    // fatto con un oggetto leggendario: va in classifica con l'asterisco
+    this.d.coda.push(leg ? { ev: id, v, who, nat, leg: true } : { ev: id, v, who, nat });
     this.d.coda = this.d.coda.slice(-12);
     this.save();
   },
@@ -218,10 +219,12 @@ const Share = {
     const uno = () => {
       const r = this.d.coda[0];
       if (!r) return this.fine(mandati, primi, false, fermo);
+      // col leggendario la firma porta anche il segno: il server lo accetta oltre il record vero
       const corpo = {
         ev: r.ev, v: r.v, who: r.who, nat: r.nat,
-        s: firmaRecord(r.ev + '|' + r.v + '|' + r.who + '|' + r.nat),
+        s: firmaRecord(r.ev + '|' + r.v + '|' + r.who + '|' + r.nat + (r.leg ? '|L' : '')),
       };
+      if (r.leg) corpo.leg = 1;
       let late = false;
       const timer = setTimeout(() => { late = true; this.fine(mandati, primi, true); }, 8000);
       window.fetch(url, {

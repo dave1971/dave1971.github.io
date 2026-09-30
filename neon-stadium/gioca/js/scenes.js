@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.4.3.2'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.4.4.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -67,10 +67,12 @@ const Game = {
     // ("un atleta in crescita"), ma chi gioca solo in carriera non vedeva mai un record.
     // i record del torneo stanno per conto loro, separati da quelli delle Olimpiadi
     const R = recordsOf(meta);
-    const rec = res.map((r, p) => this.isCpu(p) ? false : R.submit(meta.id, r.value, meta.lowerBetter, PCOL[p].name, PCOL[p].short));
+    // una gara di carriera fatta con un oggetto leggendario: il record porta l'asterisco (anche in classifica)
+    const leg = p => !!(this.careerMode && p === 0 && Career.legPer && Career.legPer(meta.id));
+    const rec = res.map((r, p) => this.isCpu(p) ? false : R.submit(meta.id, r.value, meta.lowerBetter, PCOL[p].name, PCOL[p].short, undefined, leg(p)));
     // un record personale al livello olimpico può valere la classifica mondiale: si mette in coda,
     // la domanda si fa dal titolo, con calma
-    if (!this.special) rec.forEach((ok, p) => { if (ok) Share.offer(meta.id, res[p].value, p); });
+    if (!this.special) rec.forEach((ok, p) => { if (ok) Share.offer(meta.id, res[p].value, p, leg(p)); });
     res.forEach((r, p) => { this.totals[p] += r.pts; });
     const order = rankResults(res, meta.lowerBetter);
     if (this.n > 1) order.forEach(o => { if (o.place && o.place <= 3) this.medals[o.p][o.place - 1]++; });
@@ -909,7 +911,9 @@ class RecordsScene extends Screen {
   voce(r, fmt, col, anno) {
     if (!r || typeof r.v !== 'number') return { v: '—', who: '', nat: '', col };
     const who = nomeCorto(r.who || '') + (anno && r.anno ? ' ' + r.anno : '');
-    return { v: fmt(r.v), who, nat: FLAGS[r.nat] ? r.nat : '', col };
+    // * = fatto con un oggetto leggendario (vale il 10% in piu' dell'atleta)
+    if (r.leg) this.conLeg = true;
+    return { v: fmt(r.v) + (r.leg ? '*' : ''), who, nat: FLAGS[r.nat] ? r.nat : '', col };
   }
   cella(id, i, n) {
     const meta = EVENTS.find(e => e.id === id), fmt = v => meta ? meta.fmt(v) : v + ' pt';
@@ -1043,6 +1047,7 @@ class RecordsScene extends Screen {
     this.sc.drawBar(ctx, W - 84, 6);
     this.drawButtons(ctx);
     if (this.wait) txt(ctx, 'scarico i record...', cx, G.H - 44, 14, '#90caf9', 'center', { italic: false });
+    else if (this.conLeg) txt(ctx, '* con un oggetto leggendario', cx, G.H - 82, 12, '#ffd54f', 'center', { italic: false });
   }
 }
 

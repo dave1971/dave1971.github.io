@@ -73,6 +73,31 @@ const GEAR_TUTTI = [
 // attrezzi delle gare nascoste spariscono del tutto.
 const GEAR = GEAR_TUTTI.map(g => Object.assign({}, g, { evs: g.evs.filter(id => EVENTS.some(e => e.id === id)) })).filter(g => g.evs.length);
 
+// Gli oggetti leggendari: roba da collezione, con una storia (inventata) dietro, che vale il 10% in piu'
+// dell'atleta che la usa, anche oltre il tetto del livello. Solo per la carriera delle Olimpiadi, e si
+// comprano solo pagando: 250.000 in gara o 10 euro. Si possono avere solo nella versione per Windows
+// (legAttivi); altrove si vedono nel negozio ma non si comprano. I risultati fatti con uno di questi
+// vanno in classifica con l'asterisco. I nomi alludono senza nominare: sono in vendita.
+const LEG_PREZZO = 250000, LEG_EURO = 10, LEG_BONUS = 1.10;
+const LEG_TESTA = 34, LEG_RIGA = 52;      // nel negozio: la testata della sezione e l'altezza di una riga
+const LEGGENDARI_TUTTI = [
+  { k: 'fulmine', name: 'LE SCARPE DEL FULMINE GIAMAICANO', evs: ['100m', '200m'], col: '#fdd835', battuta: 'ancora calde dal 2009: non lavarle, mai' },
+  { k: 'barba', name: 'MEZZA BARBA DEL SALTATORE MARCHIGIANO', evs: ['alto'], col: '#8d6e63', battuta: 'l\'altra meta\' la tiene lui, per scaramanzia' },
+  { k: 'hermes', name: 'LE ALETTE AI TALLONI DI HERMES', evs: ['110h'], col: '#e0e0e0', battuta: 'consegna garantita, anche oltre gli ostacoli' },
+  { k: 'canguro', name: 'LE MOLLE DEL CANGURO BOXEUR', evs: ['lungo', 'triplo'], col: '#d4a373', battuta: 'il canguro le rivuole per il ring del sabato' },
+  { k: 'vichingo', name: 'L\'ASTA DEL VICHINGO VOLANTE', evs: ['asta'], col: '#90caf9', battuta: 'rinforzata col corno di un vichingo, dicono' },
+  { k: 'tell', name: 'L\'OCCHIO DI GUGLIELMO TELL', evs: ['piattello', 'arco'], col: '#66bb6a', battuta: 'la mela non e\' compresa nel prezzo' },
+  { k: 'ercole', name: 'LA CINTURA DI ERCOLE', evs: ['pesi'], col: '#ff7043', battuta: 'le dodici fatiche sono a parte' },
+  { k: 'squalo', name: 'LA PINNA DELLO SQUALO DI BALTIMORA', evs: ['50sl'], col: '#29b6f6', battuta: 'si mette sulla schiena: le corsie vicine si spostano' },
+  { k: 'nettuno', name: 'LA MOLLETTA DA NASO DI NETTUNO', evs: ['tuffi', 'trampolino'], col: '#26c6da', battuta: 'Nettuno giura che non entra una goccia' },
+  { k: 'ciclope', name: 'IL BRACCIO BIONICO DEL CICLOPE', evs: ['peso', 'disco', 'martello'], col: '#a1887f', battuta: 'l\'altro braccio il ciclope lo tiene, per ora' },
+  { k: 'zeus', name: 'LA SAETTA DI ZEUS', evs: ['giavellotto'], col: '#ffee58', battuta: 'da lanciare solo col bel tempo' },
+  { k: 'saltimbanco', name: 'LE MOLLE DEL SALTIMBANCO DI CORTE', evs: ['volteggio'], col: '#f06292', battuta: 'fanno boing anche da sole, di notte' },
+];
+const LEGGENDARI = LEGGENDARI_TUTTI.map(g => Object.assign({}, g, { evs: g.evs.filter(id => EVENTS.some(e => e.id === id)) })).filter(g => g.evs.length);
+// si comprano (e valgono) solo nell'exe: nell'apk e sul web si vedono e basta
+function legAttivi() { return typeof window !== 'undefined' && window.OLIMPIADI_PLATFORM === 'win'; }
+
 // Prize money by finishing place, multiplied by the tier.
 const PRIZE = [2200, 1500, 1100, 800, 680, 600, 540, 480];
 const LVL_MUL = [1, 1.8, 3];
@@ -132,7 +157,7 @@ const CPU_F_ADJ = { asta: [-0.085, 0, 0] };
 // js/specials/carriera.js, con un salvataggio a parte.
 const CIRCUITO_BASE = {
   key: 'olimpiadi_career_v2', oldKey: 'olimpiadi_career_v1',
-  events: EVENTS, attrs: ATTRS, evAttr: EV_ATTR, gear: GEAR, tiers: GEAR_TIERS, std: STD, need: PROMO_NEED,
+  events: EVENTS, attrs: ATTRS, evAttr: EV_ATTR, gear: GEAR, tiers: GEAR_TIERS, std: STD, need: PROMO_NEED, leggendari: LEGGENDARI,
   idx: i => i,                          // l'indice di gara che capisce Game
   livello: l => LEVELS[clamp(l, 1, 3)],  // nome, sigla e colore di ogni campionato
   valuta: ' €',
@@ -155,7 +180,7 @@ const Career = {
     return {
       lvl: 1, money: 0, races: 0,
       attr: this.C.attrs.reduce((o, a) => { o[a.k] = ATTR_MIN; return o; }, {}),
-      gear: {}, done: {}, best: {}, place: {}, medals: [0, 0, 0], champion: false, spent: 0,
+      gear: {}, done: {}, best: {}, place: {}, medals: [0, 0, 0], champion: false, spent: 0, leggendari: {},
     };
   },
   fix(d) {
@@ -250,7 +275,24 @@ const Career = {
     const a = this.data.attr, w = this.C.evAttr[id] || {};
     let v = 0;
     for (const k in w) v += w[k] * (a[k] || 0);
-    return clamp(0.80 + 0.17 * Math.pow(clamp(v, 0, 100) / 100, 0.6) + this.gearBonus(id), 0.5, 1);
+    const f = clamp(0.80 + 0.17 * Math.pow(clamp(v, 0, 100) / 100, 0.6) + this.gearBonus(id), 0.5, 1);
+    // l'oggetto leggendario va oltre il tetto: e' per questo che i suoi risultati hanno l'asterisco
+    return this.legPer(id) ? f * LEG_BONUS : f;
+  },
+  // l'oggetto leggendario che vale per questa gara, se c'e' e se in questa versione gli oggetti valgono
+  legPer(id) {
+    if (!legAttivi() || !this.data || !this.C.leggendari) return null;
+    const L = this.data.leggendari || {};
+    return this.C.leggendari.find(g => L[g.k] && g.evs.indexOf(id) >= 0) || null;
+  },
+  hasLeg(k) { return !!(this.data && this.data.leggendari && this.data.leggendari[k]); },
+  canBuyLeg(k) { return legAttivi() && !this.hasLeg(k) && this.data.money >= LEG_PREZZO; },
+  buyLeg(k) {
+    if (!this.canBuyLeg(k)) return false;
+    this.data.money -= LEG_PREZZO;
+    this.data.leggendari = Object.assign({}, this.data.leggendari, { [k]: true });
+    this.save();
+    return true;
   },
   factorFor(p, id) {
     if (!Game.careerMode || !this.data) return 1; // free play: everybody runs at the tier ceiling
