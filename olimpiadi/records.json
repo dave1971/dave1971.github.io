@@ -1,5 +1,5 @@
 {
-  "rev": 24,
+  "rev": 25,
   "aggiornato": "2026-09-30",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -105,14 +105,14 @@
         "il": "2026-09-29"
       },
       {
-        "v": 9.756704610219103,
-        "who": "MELLO",
+        "v": 9.660757227128947,
+        "who": "ILAMB",
         "nat": "ITA",
-        "il": "2026-09-29"
+        "il": "2026-09-30"
       },
       {
-        "v": 9.786806098237026,
-        "who": "ILAMB",
+        "v": 9.756704610219103,
+        "who": "MELLO",
         "nat": "ITA",
         "il": "2026-09-29"
       },
@@ -129,6 +129,12 @@
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-29"
+      },
+      {
+        "v": 8.552386451635163,
+        "who": "ILAMB",
+        "nat": "ITA",
+        "il": "2026-09-30"
       },
       {
         "v": 8.446777109583403,
@@ -172,6 +178,12 @@
       }
     ],
     "trampolino": [
+      {
+        "v": 241.5,
+        "who": "ILAMB",
+        "nat": "ITA",
+        "il": "2026-09-30"
+      },
       {
         "v": 237,
         "who": "LAMBOPC",
@@ -234,6 +246,12 @@
       }
     ],
     "110h": [
+      {
+        "v": 13.15449628518804,
+        "who": "ILAMB",
+        "nat": "ITA",
+        "il": "2026-09-30"
+      },
       {
         "v": 14.135590676277916,
         "who": "LAMBOPC",
@@ -363,5 +381,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 50
+  "postRev": 54
 }
