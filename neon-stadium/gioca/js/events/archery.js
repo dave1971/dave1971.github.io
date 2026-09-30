@@ -96,7 +96,29 @@ class Archery extends EventBase {
   hud(p) { const s = this.S[p]; return 'Freccia ' + Math.min(s.k + 1, this.arrows) + '/' + this.arrows + '  •  Totale ' + s.total; }
 
   // ---------- drawing ----------
-  drawTarget(ctx, cx, cy, R, s) {
+  // Una freccia da (tx,ty), la punta, a (cx,cy), la cocca: l'asta chiara, la punta di ferro se si
+  // vede, e le piume nel colore del giocatore in coda. Piantata nel bersaglio la punta non si vede (e'
+  // dentro): resta un forellino scuro e l'asta sporge verso l'arciere, con le piume all'estremita' libera.
+  // Prima l'asta usciva dalla parte opposta all'arciere, senza piume, e il punto rosso dell'impatto
+  // sembrava l'impennaggio: pareva piantata al contrario.
+  drawArrow(ctx, tx, ty, cx, cy, col, dentro) {
+    const L = Math.hypot(cx - tx, cy - ty) || 1, ux = (cx - tx) / L, uy = (cy - ty) / L, nx = -uy, ny = ux;
+    const piuma = Math.max(5, L * 0.28), larga = Math.max(2.5, L * 0.07);
+    ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(cx, cy); ctx.stroke();
+    if (dentro) { ctx.fillStyle = '#263238'; ctx.beginPath(); ctx.arc(tx, ty, 2.2, 0, TAU); ctx.fill(); }
+    else {
+      ctx.fillStyle = '#90a4ae';
+      ctx.beginPath(); ctx.moveTo(tx - ux * 3, ty - uy * 3); ctx.lineTo(tx + ux * 5 + nx * 2.5, ty + uy * 5 + ny * 2.5); ctx.lineTo(tx + ux * 5 - nx * 2.5, ty + uy * 5 - ny * 2.5); ctx.fill();
+    }
+    // le piume: due alette ai lati dell'asta, dalla cocca verso la punta
+    ctx.fillStyle = col;
+    for (const k of [1, -1]) {
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + nx * larga * k, cy + ny * larga * k);
+      ctx.lineTo(cx - ux * piuma + nx * larga * 0.4 * k, cy - uy * piuma + ny * larga * 0.4 * k); ctx.lineTo(cx - ux * piuma, cy - uy * piuma); ctx.closePath(); ctx.fill();
+    }
+  }
+  drawTarget(ctx, cx, cy, R, s, col) {
     const rings = [['#f5f5f5', 2], ['#212121', 4], ['#29b6f6', 6], ['#e53935', 8], ['#ffd600', 10]];
     for (const [col, top] of rings) {
       ctx.fillStyle = col;
@@ -108,13 +130,10 @@ class Archery extends EventBase {
     }
     ctx.strokeStyle = 'rgba(0,0,0,0.5)';
     ctx.beginPath(); ctx.arc(cx, cy, R * this.R10 * 1, 0, Math.PI * 2); ctx.stroke();
-    // arrows already in the face
+    // arrows already in the face: sporgono verso l'arciere (a sinistra) e un po' in alto, come arrivano
     for (const a of s.stuck) {
       const x = cx + a.x * R, y = cy + a.y * R;
-      ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + R * 0.16, y - R * 0.1); ctx.stroke();
-      ctx.fillStyle = '#e53935';
-      ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill();
+      this.drawArrow(ctx, x, y, x - R * 0.24, y - R * 0.09, col, true);
     }
   }
   drawSight(ctx, cx, cy, R, s, col) {
@@ -220,7 +239,7 @@ class Archery extends EventBase {
     ctx.fillRect(cx - 4, cy + R * 0.7, 8, h - (cy + R * 0.7));
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath(); ctx.ellipse(cx, h * 0.97, R * 0.5, R * 0.08, 0, 0, Math.PI * 2); ctx.fill();
-    this.drawTarget(ctx, cx, cy, R, s);
+    this.drawTarget(ctx, cx, cy, R, s, PCOL[p].ui);
     const grip = this.drawArcher(ctx, w, h, s, p);
     if (s.ph === 'draw') {
       const d = Math.hypot(s.ax, s.ay) / this.R10;
@@ -234,8 +253,7 @@ class Archery extends EventBase {
     if (s.ph === 'fly') {
       // the arrow crosses to the face
       const x = lerp(grip[0], cx + s.hx * R, s.ft), y = lerp(grip[1], cy + s.hy * R, s.ft) - Math.sin(s.ft * Math.PI) * h * 0.06;
-      ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 26, y - 10); ctx.stroke();
+      this.drawArrow(ctx, x, y, x - 30, y - 11, PCOL[p].ui, false);
     }
     txt(ctx, s.total + '', w - 16, h * 0.12, clamp(h * 0.11, 18, 36), '#fff', 'right');
     if (s.ph === 'ready' && !this.msg[p]) {

@@ -452,7 +452,11 @@ G.back = function () {
 G.resize = function () {
   const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   const iw = window.innerWidth, ih = window.innerHeight;
+  // una finestra ancora senza misura (una scheda aperta in secondo piano, un pannello nascosto, una
+  // rotazione a meta'): 0/0 dava NaN a tutte le misure e il primo disegno si fermava per sempre, con lo
+  // schermo nero. Si tengono le misure di prima; al prossimo resize, con la finestra vera, si rifa'.
   G.dpr = dpr;
+  if (!(iw > 0) || !(ih > 0)) return;
   G.H = 540;
   G.W = Math.round(clamp(540 * iw / ih, 760, 1280));
   const s = Math.min(iw / G.W, ih / G.H);
