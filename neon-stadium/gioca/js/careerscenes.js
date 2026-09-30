@@ -249,15 +249,14 @@ class ShopScene extends Screen {
         return;
       }
       const can = Career.canBuyLeg(g.k);
-      this.righe.push({ g, y0, x: x + 430, y: 0, w: 82, h, buy: true, label: Money(LEG_PREZZO), sub: 'in gara', size: 14, color: can ? '#43a047' : '#455a64',
+      this.righe.push({ g, y0, x: x + 430, y: 0, w: 170, h, buy: true, label: Money(LEG_PREZZO), sub: 'in gara', size: 15, color: can ? '#43a047' : '#455a64',
         fn: () => {
           if (!Career.buyLeg(g.k)) { nota('servono ' + Money(LEG_PREZZO) + ': ne hai ' + Money(Career.data.money)); return; }
           Snd.cashIn(); Snd.fanfare();
           this.nota = { testo: g.battuta, t: 4 };
           this.layout();
         } });
-      this.righe.push({ g, y0, x: x + 518, y: 0, w: 82, h, buy: true, label: LEG_EURO + ' €', sub: 'veri', size: 15, color: '#6a1b9a',
-        fn: () => nota('il pagamento in euro non e\' ancora aperto: presto') });
+      // i 10 euro per ora sono solo scritti nella riga: non c'e' un pulsante per pagarli
     });
     this.aggiorna();
   }
@@ -339,9 +338,9 @@ class ShopScene extends Screen {
           ctx.fillStyle = suo ? 'rgba(255,214,0,0.16)' : 'rgba(255,214,0,0.07)'; rrect(ctx, x, y, 600, LEG_RIGA - 4, 6); ctx.fill();
           ctx.strokeStyle = 'rgba(255,214,0,' + (suo ? 0.9 : 0.45) + ')'; ctx.lineWidth = 1.5; ctx.stroke();
           ctx.fillStyle = g.col; ctx.fillRect(x + 6, y + 6, 5, LEG_RIGA - 16);
-          fitTxt(ctx, g.name, x + 20, y + 11, 13, legAttivi() || suo ? 400 : 280, '#ffd600', 'left');
-          // nella vetrina (apk e web) il prezzo sta nella riga: il pulsante dice solo dove si compra
-          if (!legAttivi() && !suo) fitTxt(ctx, Money(LEG_PREZZO) + ' in gara o ' + LEG_EURO + ' € veri', x + 424, y + 11, 11, 130, '#ffcc80', 'right');
+          fitTxt(ctx, g.name, x + 20, y + 11, 13, suo ? 400 : 280, '#ffd600', 'left');
+          // il prezzo sta nella riga (i 10 euro sono solo scritti); nella vetrina il pulsante dice dove si compra
+          if (!suo) fitTxt(ctx, Money(LEG_PREZZO) + ' in gara o ' + LEG_EURO + ' € veri', x + 424, y + 11, 11, 130, '#ffcc80', 'right');
           fitTxt(ctx, g.evs.map(e => T(SHORT[e])).join(' · ').toLowerCase(), x + 20, y + 25, 10, 400, '#b0bec5', 'left');
           fitTxt(ctx, '« ' + T(g.battuta) + ' »', x + 20, y + 38, 10, 400, '#ffcc80', 'left');
         });

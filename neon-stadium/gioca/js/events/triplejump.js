@@ -4,12 +4,12 @@
 
 class TripleJump extends LongJump {
   // Dove comincia la sabbia dipende dal livello, come nelle gare vere (la battuta si sposta): i primi
-  // due appoggi devono cadere sulla pista e il salto finale nella sabbia. Misurati col pilota piu' forte:
-  // secondo appoggio fino a 8,8 / 9,8 / 11,0 m e misure da 14 / 16 / 18 m, quindi sabbia da 10, 12 e 13 m
-  // (alle Olimpiadi vere la battuta degli uomini sta a 13 m). Prima era a 11 m per tutti, e al Mondiale
-  // il secondo appoggio finiva nella sabbia.
+  // due appoggi cadono sulla pista e il salto finale nella sabbia. Col pilota piu' forte il secondo
+  // appoggio arriva fino a 8,8 / 9,8 / 11,0 m e le misure a 14 / 16 / 18 m: sabbia da 10 e 12 m
+  // all'University e al Trials, da 15 m al Mondiale (scelta di Davide: li' si salta dai 16 m in su, e
+  // cosi' tutta la pedana resta rossa). A 15 m per tutti, all'University si atterrava sulla pista.
   cfg() {
-    const da = [10, 12, 13][clamp(Lv.i, 1, 3) - 1];
+    const da = [10, 12, 15][clamp(Lv.i, 1, 3) - 1];
     this.runup = 40; this.pit = [da, da + 9]; this.showAngle = false; this.attempts = 3;
     this.signs = [];
     for (let d = da + 1; d <= da + 8; d++) this.signs.push(d);
