@@ -2,7 +2,8 @@
 // ===== Core engine: canvas, main loop, input, audio, drawing utilities =====
 
 const G = { W: 960, H: 540, scene: null, t: 0, view: { s: 1, ox: 0, oy: 0 } };
-const HUD_H = 36, CTRL_H = 118;
+// la barra dei pulsanti A e B in fondo alle gare: dalla 1.4.3 un po' piu' alta, per pulsanti piu' grandi
+const HUD_H = 36, CTRL_H = 128;
 
 const HUMAN_COLS = [
   { name: 'GIOCATORE 1', short: 'G1', shirt: '#e8322d', shorts: '#1c2a6b', skin: '#f1c27d', hair: '#3b2412', ui: '#ff5145' },

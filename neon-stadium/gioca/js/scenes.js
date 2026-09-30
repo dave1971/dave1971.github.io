@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.4.2.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.4.3.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -577,6 +577,9 @@ class EventScene {
   enter() { Snd.startTune(); }
   // Right-handers press action 1 (A) with the right hand, action 2 (B) with the left; lefties swap.
   // With two players each holds one half: for G1 the dominant hand is the inner button, for G2 the outer one.
+  // Tutta la striscia di schermo di un pulsante lo preme, non solo il cerchio. In due giocatori il confine
+  // fra i due tasti di uno stesso giocatore sta a meta' strada fra i due cerchi: prima stava a un quarto
+  // dello schermo, cioe' sopra il cerchio interno, e toccandone il bordo si premeva l'altro tasto.
   zones() {
     const W = G.W;
     const L = p => (PCOL[p] && PCOL[p].lefty ? [0, 1] : [1, 0]); // [button on the left, button on the right]
@@ -586,8 +589,8 @@ class EventScene {
     }
     const b = L(1);
     return [
-      { p: 0, b: a[0], x0: 0, x1: W / 4, cx: W * 0.09 }, { p: 0, b: a[1], x0: W / 4, x1: W / 2, cx: W * 0.28 },
-      { p: 1, b: b[0], x0: W / 2, x1: W * 3 / 4, cx: W * 0.72 }, { p: 1, b: b[1], x0: W * 3 / 4, x1: W, cx: W * 0.91 },
+      { p: 0, b: a[0], x0: 0, x1: W * 0.185, cx: W * 0.09 }, { p: 0, b: a[1], x0: W * 0.185, x1: W / 2, cx: W * 0.28 },
+      { p: 1, b: b[0], x0: W / 2, x1: W * 0.815, cx: W * 0.72 }, { p: 1, b: b[1], x0: W * 0.815, x1: W, cx: W * 0.91 },
     ];
   }
   down(p, b) { if (this.held[p][b]++ === 0 && !this.paused) this.ev.press(p, b); }
@@ -719,7 +722,8 @@ class EventScene {
     ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(0, y0, W, 2);
     if (this.humans > 1) { ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fillRect(W / 2 - 1, y0 + 10, 2, CTRL_H - 20); }
     for (const z of this.zones()) {
-      const on = this.held[z.p][z.b] > 0, r = on ? 43 : 47;
+      // piu' grandi dalla 1.4.3 (prima 47): sui telefoni si prendevano male
+      const on = this.held[z.p][z.b] > 0, r = on ? 51 : 55;
       const base = z.b === 0 ? PCOL[z.p].ui : '#607d8b';
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
       ctx.beginPath(); ctx.arc(z.cx + 3, cy + 5, r, 0, Math.PI * 2); ctx.fill();
@@ -729,8 +733,8 @@ class EventScene {
       ctx.beginPath(); ctx.arc(z.cx, cy, r, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = on ? '#fff' : 'rgba(255,255,255,0.35)'; ctx.lineWidth = on ? 4 : 2; ctx.stroke();
       const lab = this.ev.labels(z.p)[z.b];
-      txt(ctx, z.b ? 'B' : 'A', z.cx, cy - 11, 28, '#fff');
-      txt(ctx, lab, z.cx, cy + 18, lab.length > 9 ? 11 : 13, '#fff', 'center', { italic: false });
+      txt(ctx, z.b ? 'B' : 'A', z.cx, cy - 13, 32, '#fff');
+      txtFit(ctx, lab, z.cx, cy + 20, lab.length > 9 ? 12 : 14, '#fff', 'center', r * 1.8, { italic: false });
     }
     if (this.humans > 1) {
       txt(ctx, PCOL[0].short, W * 0.185, cy, 16, PCOL[0].ui);

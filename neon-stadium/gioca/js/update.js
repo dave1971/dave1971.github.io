@@ -8,7 +8,7 @@
 
 const UPDATE_URL = 'https://dave1971.github.io/olimpiadi/version.json';
 const GAME_PAGE = 'https://dave1971.github.io/olimpiadi/';
-const GAME_BUILD = 86; // must match versionCode in app/build.gradle (the build fails if it drifts)
+const GAME_BUILD = 87; // must match versionCode in app/build.gradle (the build fails if it drifts)
 
 const Updater = {
   info: null, started: false,
