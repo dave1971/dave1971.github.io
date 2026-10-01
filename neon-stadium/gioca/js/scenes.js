@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.4.5.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.4.5.1'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -457,7 +457,7 @@ class IntroScene extends Screen {
       txt(ctx, 'ABC'[b], x - 60, y + 1, 26, '#fff');
       txt(ctx, labels[b], x - 24, y, 20, '#fff', 'left');
     }
-    if (nb > 2 && window.OLIMPIADI_PLATFORM) txt(ctx, 'Tastiera: il tasto C è ' + keyName(KEY_TERZO[0]) + ' per G1, ' + keyName(KEY_TERZO[1]) + ' per G2', cx, m.medievo ? 394 : 350, 14, '#b3e5fc', 'center', { italic: false });
+    if (nb > 2 && window.OLIMPIADI_PLATFORM) txt(ctx, 'Tastiera: il tasto C è ' + T(Keys.name(keyIdx(0, 2))) + ' per G1, ' + T(Keys.name(keyIdx(1, 2))) + ' per G2', cx, m.medievo ? 394 : 350, 14, '#b3e5fc', 'center', { italic: false });
     txt(ctx, 'IL TUO RECORD: ' + recText(m.id), cx, 368, 17, '#ffcc80', 'center', { italic: false });
     if (!m.medievo) txt(ctx, 'RECORD DEL MONDO: ' + wrText(m.id), cx, 392, 17, '#a5d6a7', 'center', { italic: false });   // il torneo non ha record del mondo
     let y = 420;
@@ -1084,10 +1084,12 @@ class KeysScene extends Screen {
   layout() {
     const cx = G.W / 2;
     this.btns = [];
-    for (let j = 0; j < 2; j++) for (let b = 0; b < 2; b++) {
-      const i = j * 2 + b, listen = this.wait === i;
-      this.btns.push({ x: this.col(j) - 60, y: 165 + b * 76, w: 190, h: 54, act: i,
+    // tre azioni per giocatore: A, B e il C delle gare che hanno tre tasti
+    for (let j = 0; j < 2; j++) for (let b = 0; b < 3; b++) {
+      const i = keyIdx(j, b), listen = this.wait === i;
+      this.btns.push({ x: this.col(j) - 60, y: 142 + b * 62, w: 190, h: 54, act: i,
         label: listen ? 'PREMI UN TASTO' : Keys.name(i), size: listen ? 15 : 24,
+        sub: b === 2 && !listen ? 'gare a tre tasti' : '',
         color: listen ? '#ffb300' : (j ? '#1565c0' : '#c62828'), sel: listen,
         fn: () => { this.wait = listen ? null : i; this.layout(); } });
     }
@@ -1102,12 +1104,12 @@ class KeysScene extends Screen {
     txt(ctx, 'TASTI', cx, 46, 34, '#ffd600');
     txt(ctx, 'tocca un\'azione e premi il tasto che vuoi usare', cx, 82, 16, '#fff', 'center', { italic: false });
     for (let j = 0; j < 2; j++) {
-      txt(ctx, 'GIOCATORE ' + (j + 1), this.col(j) + 20, 130, 20, HUMAN_COLS[j].ui);
-      for (let b = 0; b < 2; b++) {
-        const y = 165 + b * 76 + 27;
-        ctx.fillStyle = b ? '#546e7a' : '#e53935';
+      txt(ctx, 'GIOCATORE ' + (j + 1), this.col(j) + 20, 120, 20, HUMAN_COLS[j].ui);
+      for (let b = 0; b < 3; b++) {
+        const y = 142 + b * 62 + 27;
+        ctx.fillStyle = TASTO_COL[b];
         ctx.beginPath(); ctx.arc(this.col(j) - 95, y, 23, 0, Math.PI * 2); ctx.fill();
-        txt(ctx, b ? 'B' : 'A', this.col(j) - 95, y + 1, 23, '#fff');
+        txt(ctx, 'ABC'[b], this.col(j) - 95, y + 1, 23, '#fff');
       }
     }
     this.drawButtons(ctx);

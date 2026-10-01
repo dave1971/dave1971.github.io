@@ -620,7 +620,7 @@ Object.assign(EN, {
 // ---------- birra a go go (1.4.5) ----------
 Object.assign(EN, {
   // la caccia al maiale col terzo tasto
-  'GIRATI': 'TURN', 'C: GIRATI!': 'C: TURN!',
+  'GIRATI': 'TURN', 'C: GIRATI!': 'C: TURN!', 'gare a tre tasti': 'three-button events',
   'quando lampeggia la freccia il maiale scarta: C per girarti dall\'altra parte': 'when the arrow flashes the pig swerves: C turns you around',
   'Freccia lampeggiante: il maiale scarta. C ti gira dall\'altra parte.': 'Flashing arrow: the pig swerves. C turns you around.',
   'Da vicino compare un cerchio: B quando e\' sulla tacca, e l\'hai preso!': 'Up close a ring appears: B when it is on the mark, and you\'ve got it!',

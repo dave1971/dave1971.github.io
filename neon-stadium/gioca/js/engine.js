@@ -316,12 +316,14 @@ const Snd = {
 };
 
 // ---------- input ----------
-// One key per action: G1 A, G1 B, G2 A, G2 B. The defaults put the two players on opposite sides of
-// the keyboard; each key can be remapped from the title screen and the choice stays on the device.
-const KEY_DEF = ['KeyM', 'KeyX', 'KeyK', 'KeyL'];
+// One key per action: G1 A, G1 B, G2 A, G2 B, and then the third button (C) of the events that have
+// three: G1 C, G2 C. The defaults put the two players on opposite sides of the keyboard; each key can
+// be remapped from the title screen and the choice stays on the device.
+const KEY_DEF = ['KeyM', 'KeyX', 'KeyK', 'KeyL', 'KeyC', 'KeyJ'];
 const KEY_EXTRA = { Space: [0, 0], Enter: [0, 1] }; // always spare keys for player 1, unless he binds them elsewhere
-// il terzo tasto (C) delle gare che ne hanno tre: uno per giocatore, fisso, di fianco ai predefiniti
-const KEY_TERZO = ['KeyC', 'KeyJ'];
+// l'azione numero i: [giocatore, pulsante]. Le prime quattro sono A e B dei due giocatori, poi i due C.
+const keyAct = i => (i < 4 ? [i >> 1, i & 1] : [i - 4, 2]);
+const keyIdx = (p, b) => (b === 2 ? 4 + p : p * 2 + b);
 const KEY_LOCKED = ['Escape', 'Backspace']; // reserved for back / pause, never bindable
 const KEY_NAMES = {
   Space: 'SPAZIO', Enter: 'INVIO', Tab: 'TAB', CapsLock: 'BLOC MAIUSC',
@@ -342,13 +344,20 @@ function keyName(code) {
 }
 const Keys = {
   store: 'olimpiadi_keys_v1',
-  codes: KEY_DEF.slice(), // index = player * 2 + button
+  codes: KEY_DEF.slice(), // index: see keyAct / keyIdx
   map: {},
   load() {
     try {
       const d = JSON.parse(localStorage.getItem(this.store));
-      if (Array.isArray(d)) d.forEach((c, i) => { if (i < 4 && typeof c === 'string' && c && KEY_LOCKED.indexOf(c) < 0) this.codes[i] = c; });
+      if (Array.isArray(d)) d.forEach((c, i) => { if (i < KEY_DEF.length && typeof c === 'string' && c && KEY_LOCKED.indexOf(c) < 0) this.codes[i] = c; });
     } catch (e) { /* storage unavailable */ }
+    // Chi aveva scelto i suoi tasti prima che ci fosse il C puo' aver gia' dato C o J a un'altra azione:
+    // il terzo tasto prende allora il primo libero, cosi' nessun tasto serve due azioni.
+    const liberi = ['KeyC', 'KeyJ', 'KeyV', 'KeyN', 'KeyB', 'KeyH', 'KeyG', 'KeyF'];
+    for (let i = 4; i < this.codes.length; i++) {
+      if (this.codes.indexOf(this.codes[i]) === i) continue;
+      this.codes[i] = liberi.find(c => this.codes.indexOf(c) < 0);
+    }
     this.build();
   },
   save() {
@@ -357,8 +366,7 @@ const Keys = {
   },
   build() {
     this.map = Object.assign({}, KEY_EXTRA); // a binding of the player's own always wins over the spares
-    this.codes.forEach((c, i) => { this.map[c] = [i >> 1, i & 1]; });
-    KEY_TERZO.forEach((c, p) => { if (!this.map[c]) this.map[c] = [p, 2]; });   // se non se l'e' gia' preso il giocatore
+    this.codes.forEach((c, i) => { this.map[c] = keyAct(i); });
   },
   name(i) { return keyName(this.codes[i]); },
   isDefault() { return this.codes.every((c, i) => c === KEY_DEF[i]); },
