@@ -617,6 +617,29 @@ Object.assign(EN, {
   'profuma di pere cotte': 'it smells of stewed pears', 'il fabbro giura che non si spezza': 'the blacksmith swears it won\'t break',
   'il caprone di bronzo sembra sorridere': 'the bronze goat seems to smile',
 });
+// ---------- birra a go go (1.4.5) ----------
+Object.assign(EN, {
+  // la caccia al maiale col terzo tasto
+  'GIRATI': 'TURN', 'C: GIRATI!': 'C: TURN!',
+  'quando lampeggia la freccia il maiale scarta: C per girarti dall\'altra parte': 'when the arrow flashes the pig swerves: C turns you around',
+  'Freccia lampeggiante: il maiale scarta. C ti gira dall\'altra parte.': 'Flashing arrow: the pig swerves. C turns you around.',
+  'Da vicino compare un cerchio: B quando e\' sulla tacca, e l\'hai preso!': 'Up close a ring appears: B when it is on the mark, and you\'ve got it!',
+  'BIRRA A GO GO': 'BEER A GO GO', 'BEVI': 'DRINK', 'BOCCALE': 'MUG', 'BOCCALI': 'MUGS', 'GOLA': 'GULLET', 'B: CAMBIA!': 'B: SWAP!',
+  'B prende il boccale, A veloce per bere, B lo butta e ne prende un altro': 'B grabs the mug, A fast to drink, B tosses it and grabs another',
+  'B: afferra il boccale. A: premi velocemente per bere. B: buttalo e prendi il prossimo.': 'B: grab the mug. A: tap fast to drink. B: toss it and grab the next one.',
+  'Il fondo va giu\' piano, e chi lo vuota rutta: buttalo quando resta il fondo.': 'The dregs go down slowly, and draining it makes you burp: toss it when only dregs are left.',
+  'Dieci boccali, mezzo minuto: chi li butta troppo pieni resta senza birra.': 'Ten mugs, half a minute: toss them too full and you run out of beer.',
+  'VUOTO!': 'EMPTY!', 'B: un altro boccale': 'B: another mug', 'È L\'ULTIMO!': 'LAST ONE!', 'bevilo fino in fondo': 'drink it to the bottom',
+  'SPRECONE!': 'WASTER!', 'mezzo boccale buttato': 'half a mug thrown away', 'l\'oste ti guarda male': 'the innkeeper glares at you',
+  'la birra non cresce sugli alberi': 'beer doesn\'t grow on trees',
+  'TEMPO!': 'TIME!', 'l\'oste presenta il conto': 'the innkeeper brings the bill', 'chi lo riporta a casa?': 'who\'s carrying him home?', 'e adesso chi paga?': 'and now who pays?',
+  'TAVOLO VUOTO!': 'TABLE CLEARED!', 'l\'oste piange': 'the innkeeper weeps', 'dieci boccali, dieci': 'ten mugs, all ten', 'ne porti altri dieci?': 'bring ten more?',
+  'fino all\'ultima goccia': 'to the last drop', 'il fondo va giu\' piano': 'the dregs go down slowly', 'e intanto il tempo passa': 'and meanwhile time flies',
+  'ARNESI DA OSTERIA': 'TAVERN TOOLS', 'IMBUTO DI LATTA': 'TIN FUNNEL', 'CORNO DEL BIRRAIO': 'BREWER\'S HORN', 'GOLA DI NANO (IN PRESTITO)': 'DWARF\'S GULLET (ON LOAN)',
+  'ne va meta\' sulla camicia, ma l\'altra meta\' scende': 'half ends up on your shirt, but the other half goes down',
+  'il birraio dice che un corno non si posa mai': 'the brewer says a horn is never put down',
+  'il nano la rivuole prima della prossima sete': 'the dwarf wants it back before his next thirst',
+});
 EN_RULES.push(
   [/^Sfidanti in acqua: /, 'Rivals in the water: '], [/^(◀ )?ORSO (?=\d)/, '$1BEAR '], [/^Bersaglio a (\d+) m/, 'Target at $1 m'], [/^Colpito (\d)\/3$/, 'Hit $1/3'], [/^Maiali presi (\d)\/3$/, 'Pigs caught $1/3'],
   [/^(\S+) PARATE$/, '$1 BLOCKS'],
@@ -665,3 +688,4 @@ Object.assign(EN, {
   'LE MOLLE DEL SALTIMBANCO DI CORTE': 'THE COURT ACROBAT\'S SPRINGS', 'fanno boing anche da sole, di notte': 'they go boing on their own, at night',
 });
 EN_RULES.push([/^(.+) in gara o (\d+) € veri$/, '$1 in game or $2 € real'], [/^servono (.+): ne hai (.+)$/, 'you need $1: you have $2']);
+EN_RULES.push([/^Tastiera: il tasto C è (.+) per G1, (.+) per G2$/, 'Keyboard: the C button is $1 for P1, $2 for P2']);

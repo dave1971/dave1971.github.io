@@ -320,6 +320,8 @@ const Snd = {
 // the keyboard; each key can be remapped from the title screen and the choice stays on the device.
 const KEY_DEF = ['KeyM', 'KeyX', 'KeyK', 'KeyL'];
 const KEY_EXTRA = { Space: [0, 0], Enter: [0, 1] }; // always spare keys for player 1, unless he binds them elsewhere
+// il terzo tasto (C) delle gare che ne hanno tre: uno per giocatore, fisso, di fianco ai predefiniti
+const KEY_TERZO = ['KeyC', 'KeyJ'];
 const KEY_LOCKED = ['Escape', 'Backspace']; // reserved for back / pause, never bindable
 const KEY_NAMES = {
   Space: 'SPAZIO', Enter: 'INVIO', Tab: 'TAB', CapsLock: 'BLOC MAIUSC',
@@ -356,6 +358,7 @@ const Keys = {
   build() {
     this.map = Object.assign({}, KEY_EXTRA); // a binding of the player's own always wins over the spares
     this.codes.forEach((c, i) => { this.map[c] = [i >> 1, i & 1]; });
+    KEY_TERZO.forEach((c, p) => { if (!this.map[c]) this.map[c] = [p, 2]; });   // se non se l'e' gia' preso il giocatore
   },
   name(i) { return keyName(this.codes[i]); },
   isDefault() { return this.codes.every((c, i) => c === KEY_DEF[i]); },

@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.4.4.3'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.4.5.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -448,14 +448,16 @@ class IntroScene extends Screen {
     txt(ctx, m.name, cx, 108, 50, '#ffd600');
     const help = typeof m.help === 'function' ? m.help() : m.help;
     help.forEach((l, i) => txt(ctx, l, cx, 170 + i * 30, 20, '#fff', 'center', { italic: false }));
-    const labels = metaLabels(m, 0);
-    for (let b = 0; b < 2; b++) {
-      const x = cx + (b ? 110 : -110), y = 320;
-      ctx.fillStyle = b ? '#546e7a' : '#e53935';
+    // due tasti, o tre nelle gare che hanno anche il C (la caccia al maiale)
+    const labels = metaLabels(m, 0), nb = labels.length, passo = nb > 2 ? 205 : 220;
+    for (let b = 0; b < nb; b++) {
+      const x = cx + (b - (nb - 1) / 2) * passo, y = 320;
+      ctx.fillStyle = TASTO_COL[b];
       ctx.beginPath(); ctx.arc(x - 60, y, 26, 0, Math.PI * 2); ctx.fill();
-      txt(ctx, b ? 'B' : 'A', x - 60, y + 1, 26, '#fff');
+      txt(ctx, 'ABC'[b], x - 60, y + 1, 26, '#fff');
       txt(ctx, labels[b], x - 24, y, 20, '#fff', 'left');
     }
+    if (nb > 2 && window.OLIMPIADI_PLATFORM) txt(ctx, 'Tastiera: il tasto C è ' + keyName(KEY_TERZO[0]) + ' per G1, ' + keyName(KEY_TERZO[1]) + ' per G2', cx, m.medievo ? 394 : 350, 14, '#b3e5fc', 'center', { italic: false });
     txt(ctx, 'IL TUO RECORD: ' + recText(m.id), cx, 368, 17, '#ffcc80', 'center', { italic: false });
     if (!m.medievo) txt(ctx, 'RECORD DEL MONDO: ' + wrText(m.id), cx, 392, 17, '#a5d6a7', 'center', { italic: false });   // il torneo non ha record del mondo
     let y = 420;
@@ -564,6 +566,7 @@ class Tabellone {
 }
 
 // ---------- gameplay ----------
+const TASTO_COL = ['#e53935', '#546e7a', '#ef6c00'];     // A, B e il C delle gare che ne hanno tre
 class EventScene {
   constructor(evIdx) {
     this.evIdx = evIdx; this.meta = evMeta(evIdx); this.n = Game.n; this.humans = Game.humans;
@@ -572,7 +575,7 @@ class EventScene {
     if (Game.cpu) for (let p = this.humans; p < this.n; p++) this.cpus.push(new Cpu(this.meta.id, clamp(Game.cpuSkill[p] + rnd(-0.06, 0.06), 0, 1), p));
     // il tabellone serve solo quando c'è qualcuno che non si vede in campo
     this.tab = this.n > this.humans ? new Tabellone(this.ev) : null;
-    this.held = [[0, 0], [0, 0]]; this.ptr = {}; this.paused = false; this.btns = []; this.sent = false;
+    this.held = [[0, 0, 0], [0, 0, 0]]; this.ptr = {}; this.paused = false; this.btns = []; this.sent = false;
     // il breaking porta la sua musica, a tempo con le note: quella della gara la coprirebbe
     this.music = this.meta.music || 'race';
   }
@@ -582,14 +585,23 @@ class EventScene {
   // Tutta la striscia di schermo di un pulsante lo preme, non solo il cerchio. In due giocatori il confine
   // fra i due tasti di uno stesso giocatore sta a meta' strada fra i due cerchi: prima stava a un quarto
   // dello schermo, cioe' sopra il cerchio interno, e toccandone il bordo si premeva l'altro tasto.
+  // Le gare con un terzo tasto (C: la caccia al maiale) lo dicono con una terza etichetta. Da soli il C sta
+  // di fianco a B, dalla parte della mano che non batte A; in due sta in mezzo fra i due tasti di ognuno.
   zones() {
-    const W = G.W;
+    const W = G.W, tre = this.ev.labels(0).length > 2;
     const L = p => (PCOL[p] && PCOL[p].lefty ? [0, 1] : [1, 0]); // [button on the left, button on the right]
     const a = L(0);
     if (this.humans === 1) {
+      if (tre) return a[0] === 1
+        ? [{ p: 0, b: 1, x0: 0, x1: W * 0.2, cx: W * 0.1 }, { p: 0, b: 2, x0: W * 0.2, x1: W / 2, cx: W * 0.3 }, { p: 0, b: 0, x0: W / 2, x1: W, cx: W * 0.9 }]
+        : [{ p: 0, b: 0, x0: 0, x1: W / 2, cx: W * 0.1 }, { p: 0, b: 2, x0: W / 2, x1: W * 0.8, cx: W * 0.7 }, { p: 0, b: 1, x0: W * 0.8, x1: W, cx: W * 0.9 }];
       return [{ p: 0, b: a[0], x0: 0, x1: W / 2, cx: W * 0.1 }, { p: 0, b: a[1], x0: W / 2, x1: W, cx: W * 0.9 }];
     }
     const b = L(1);
+    if (tre) return [
+      { p: 0, b: a[0], x0: 0, x1: W * 0.14, cx: W * 0.07 }, { p: 0, b: 2, x0: W * 0.14, x1: W * 0.285, cx: W * 0.21 }, { p: 0, b: a[1], x0: W * 0.285, x1: W / 2, cx: W * 0.36 },
+      { p: 1, b: b[0], x0: W / 2, x1: W * 0.715, cx: W * 0.64 }, { p: 1, b: 2, x0: W * 0.715, x1: W * 0.86, cx: W * 0.79 }, { p: 1, b: b[1], x0: W * 0.86, x1: W, cx: W * 0.93 },
+    ];
     return [
       { p: 0, b: a[0], x0: 0, x1: W * 0.185, cx: W * 0.09 }, { p: 0, b: a[1], x0: W * 0.185, x1: W / 2, cx: W * 0.28 },
       { p: 1, b: b[0], x0: W / 2, x1: W * 0.815, cx: W * 0.72 }, { p: 1, b: b[1], x0: W * 0.815, x1: W, cx: W * 0.91 },
@@ -619,7 +631,7 @@ class EventScene {
   }
   pause() {
     if (this.paused || this.sent) return;
-    for (let p = 0; p < this.humans; p++) for (let b = 0; b < 2; b++) if (this.held[p][b] > 0) { this.held[p][b] = 0; this.ev.release(p, b); }
+    for (let p = 0; p < this.humans; p++) for (let b = 0; b < 3; b++) if (this.held[p][b] > 0) { this.held[p][b] = 0; this.ev.release(p, b); }
     this.ptr = {};
     this.paused = true;
     const cx = G.W / 2;
@@ -726,7 +738,7 @@ class EventScene {
     for (const z of this.zones()) {
       // piu' grandi dalla 1.4.3 (prima 47): sui telefoni si prendevano male
       const on = this.held[z.p][z.b] > 0, r = on ? 51 : 55;
-      const base = z.b === 0 ? PCOL[z.p].ui : '#607d8b';
+      const base = z.b === 0 ? PCOL[z.p].ui : z.b === 2 ? '#ef6c00' : '#607d8b';
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
       ctx.beginPath(); ctx.arc(z.cx + 3, cy + 5, r, 0, Math.PI * 2); ctx.fill();
       const gr = ctx.createRadialGradient(z.cx - r * 0.3, cy - r * 0.4, 4, z.cx, cy, r);
@@ -735,10 +747,10 @@ class EventScene {
       ctx.beginPath(); ctx.arc(z.cx, cy, r, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = on ? '#fff' : 'rgba(255,255,255,0.35)'; ctx.lineWidth = on ? 4 : 2; ctx.stroke();
       const lab = this.ev.labels(z.p)[z.b];
-      txt(ctx, z.b ? 'B' : 'A', z.cx, cy - 13, 32, '#fff');
+      txt(ctx, 'ABC'[z.b], z.cx, cy - 13, 32, '#fff');
       txtFit(ctx, lab, z.cx, cy + 20, lab.length > 9 ? 12 : 14, '#fff', 'center', r * 1.8, { italic: false });
     }
-    if (this.humans > 1) {
+    if (this.humans > 1 && this.zones().length < 6) {       // coi tre tasti li' c'e' il C
       txt(ctx, PCOL[0].short, W * 0.185, cy, 16, PCOL[0].ui);
       txt(ctx, PCOL[1].short, W * 0.815, cy, 16, PCOL[1].ui);
     }

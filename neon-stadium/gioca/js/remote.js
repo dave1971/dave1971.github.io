@@ -13,7 +13,7 @@
 const Remote = {
   url: '',        // indirizzo da digitare sul tablet, vuoto se il server non è partito
   peers: 0,       // telecomandi che si sono fatti vivi negli ultimi secondi
-  held: [[false, false], [false, false]],   // cosa tiene premuto ogni telecomando, per giocatore
+  held: [[false, false, false], [false, false, false]],   // cosa tiene premuto ogni telecomando, per giocatore
   seq: [0, 0],    // numero di serie dei messaggi: uno vecchio che arriva tardi va buttato
   sc: null,
   srv: -1,        // server: -1 non siamo nell'app, 0 spento, 1 acceso
@@ -23,14 +23,14 @@ const Remote = {
   sig: '',        // com'era la schermata all'ultimo giro
   shotOf: null, shotAt: 0,
 
-  // mask: bit 0 = tasto A, bit 1 = tasto B. Arriva lo stato completo, non il cambiamento, così
+  // mask: bit 0 = tasto A, bit 1 = tasto B, bit 2 = tasto C (le gare che ce l'hanno). Arriva lo stato completo, non il cambiamento, così
   // un messaggio perso non lascia il gioco con un tasto incastrato giù.
   keys(p, mask, n) {
     p = clamp(p | 0, 0, 1); mask = mask | 0; n = n | 0;
     if (n && n <= this.seq[p]) return;          // sorpassato da uno più recente: ignoralo
     this.seq[p] = n;
     const h = this.held[p];
-    for (let b = 0; b < 2; b++) {
+    for (let b = 0; b < 3; b++) {
       const want = !!(mask & (1 << b));
       if (want === h[b]) continue;
       h[b] = want;
@@ -116,7 +116,7 @@ const Remote = {
     this.peers = peers | 0;
     this.srv = server == null ? -1 : (server ? 1 : 0);
     if (this.want < 0) this.want = this.srv;    // prima volta: si parte da com'è messo adesso
-    if (G.scene !== this.sc) { this.sc = G.scene; this.held = [[false, false], [false, false]]; }
+    if (G.scene !== this.sc) { this.sc = G.scene; this.held = [[false, false, false], [false, false, false]]; }
     try {
       const o = this.snapshot();
       this.sig = JSON.stringify(o);        // la firma non comprende il numero della foto,
