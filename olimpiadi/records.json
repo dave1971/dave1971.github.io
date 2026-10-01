@@ -1,6 +1,6 @@
 {
-  "rev": 26,
-  "aggiornato": "2026-09-30",
+  "rev": 27,
+  "aggiornato": "2026-10-01",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
     "100m": {
@@ -151,30 +151,30 @@
     ],
     "200m": [
       {
+        "v": 19.337380364210116,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-01"
+      },
+      {
         "v": 19.43221826303862,
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-29"
-      },
-      {
-        "v": 19.527313707519436,
-        "who": "LAMBO",
-        "nat": "ITA",
-        "il": "2026-09-23"
       }
     ],
     "tuffi": [
+      {
+        "v": 311.6,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-01"
+      },
       {
         "v": 309.55,
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-30"
-      },
-      {
-        "v": 297.25,
-        "who": "LAMBO",
-        "nat": "ITA",
-        "il": "2026-09-23"
       },
       {
         "v": 292.55,
@@ -185,22 +185,22 @@
     ],
     "trampolino": [
       {
+        "v": 253.5,
+        "who": "LAMBOPC",
+        "nat": "ITA",
+        "il": "2026-10-01"
+      },
+      {
+        "v": 243,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-01"
+      },
+      {
         "v": 241.5,
         "who": "ILAMB",
         "nat": "ITA",
         "il": "2026-09-30"
-      },
-      {
-        "v": 237,
-        "who": "LAMBOPC",
-        "nat": "ITA",
-        "il": "2026-09-29"
-      },
-      {
-        "v": 200.3,
-        "who": "LAMBO",
-        "nat": "ITA",
-        "il": "2026-09-23"
       }
     ],
     "giavellotto": [
@@ -211,10 +211,10 @@
         "il": "2026-09-29"
       },
       {
-        "v": 93.04426811474053,
+        "v": 94.99009689146936,
         "who": "LAMBO",
         "nat": "ITA",
-        "il": "2026-09-23"
+        "il": "2026-10-01"
       }
     ],
     "arco": [
@@ -223,6 +223,12 @@
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-30"
+      },
+      {
+        "v": 59,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-01"
       },
       {
         "v": 57,
@@ -253,10 +259,10 @@
     ],
     "110h": [
       {
-        "v": 13.097642009449647,
+        "v": 12.89470332900281,
         "who": "LAMBOPC",
         "nat": "ITA",
-        "il": "2026-09-30"
+        "il": "2026-10-01"
       },
       {
         "v": 13.15449628518804,
@@ -349,6 +355,12 @@
         "il": "2026-09-30"
       },
       {
+        "v": 22.292764738680457,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-01"
+      },
+      {
         "v": 18.065529337958743,
         "who": "MELLO",
         "nat": "ITA",
@@ -356,6 +368,12 @@
       }
     ],
     "disco": [
+      {
+        "v": 72.77886633792328,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-01"
+      },
       {
         "v": 72.76225981362776,
         "who": "LAMBOPC",
@@ -371,10 +389,10 @@
         "il": "2026-09-30"
       },
       {
-        "v": 164,
+        "v": 180.7,
         "who": "LAMBO",
-        "nat": "",
-        "il": "2026-09-29"
+        "nat": "ITA",
+        "il": "2026-10-01"
       },
       {
         "v": 140.4,
@@ -389,9 +407,15 @@
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-29"
+      },
+      {
+        "v": 71.43797295280281,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-01"
       }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 62
+  "postRev": 73
 }
