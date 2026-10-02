@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.5.0.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.6.0.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -41,7 +41,8 @@ const Game = {
       // the rivals are spread over the whole field of this tier, from the weakest entrant to the favourite
       for (let i = 0; i < k; i++) sk.push(clamp(lerp(0.08, 1, k > 1 ? i / (k - 1) : 0.6) + rnd(-0.04, 0.04), 0, 1));
       shuffle(sk);
-      for (let i = 0; i < k; i++) { PCOL.push(rivals[i]); this.cpuSkill[n + i] = sk[i]; }
+      // uomini e donne insieme: il sesso di ogni avversario viene dal nome (e' solo da vedere)
+      for (let i = 0; i < k; i++) { PCOL.push(Object.assign({ sex: sessoDalNome(rivals[i].name) }, rivals[i])); this.cpuSkill[n + i] = sk[i]; }
     } else if (n === 1) PCOL.push(Object.assign({}, HUMAN_COLS[1])); // menus draw two athletes
     this.deca = deca; this.order = order; this.idx = 0;
     this.reset();
@@ -1188,6 +1189,10 @@ const Profiles = {
         if (p && i < 2) {
           const q = { name: String(p.name || this.data[i].name).slice(0, NOME_MAX), code: FLAGS[p.code] ? p.code : this.data[i].code, lefty: !!p.lefty };
           KIT_KEYS.forEach(k => { if (typeof p[k] === 'string' && /^#[0-9a-f]{6}$/i.test(p[k])) q[k] = p[k]; });
+          // uomo o donna, i capelli e la divisa: solo da vedere, le gare sono le stesse per tutti
+          if (p.sex === 'f') q.sex = 'f';
+          if (Number.isInteger(p.capelli) && CAPELLI[p.capelli]) q.capelli = p.capelli;
+          if (Number.isInteger(p.tenuta) && p.tenuta >= 0 && p.tenuta < 3) q.tenuta = p.tenuta;
           this.data[i] = q;
         }
       });
@@ -1195,9 +1200,10 @@ const Profiles = {
     return this.data;
   },
   save() { try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) { /* ignore */ } },
-  set(i, name, code, lefty, cols) {
+  set(i, name, code, lefty, cols, aspetto) {
     const q = { name: (name.trim() || ('GIOCATORE ' + (i + 1))).slice(0, NOME_MAX), code, lefty: !!lefty };
     if (cols) KIT_KEYS.forEach(k => { if (cols[k]) q[k] = cols[k]; });
+    if (aspetto) { if (aspetto.sex === 'f') q.sex = 'f'; q.capelli = aspetto.capelli; q.tenuta = aspetto.tenuta | 0; }
     this.data[i] = q;
     this.save();
   },
@@ -1208,6 +1214,9 @@ const Profiles = {
     if (p.code) c.short = p.code;
     c.lefty = !!p.lefty;
     KIT_KEYS.forEach(k => { if (p[k]) c[k] = p[k]; });
+    c.sex = p.sex === 'f' ? 'f' : 'm';
+    if (p.capelli != null) c.capelli = p.capelli;
+    c.tenuta = p.tenuta | 0;
     // il costume del torneo (lo si vede solo nelle prove medievali)
     if (typeof Guardaroba !== 'undefined') Object.assign(c, Guardaroba.di(i));
     return c;
@@ -1311,6 +1320,9 @@ class PlayerSetupScene extends Screen {
     const p = Profiles.data[this.i];
     this.name = p.name; this.code = p.code; this.lefty = !!p.lefty;
     this.col = Profiles.kitOf(this.i);
+    // l'aspetto: chi non ha mai scelto i capelli ha quelli che gli da' il nome
+    const c0 = Profiles.colOf(this.i);
+    this.sex = c0.sex; this.tenuta = c0.tenuta | 0; this.capelli = fisicoDi(c0).capelli;
     this.cont = Math.max(0, CONTINENTS.findIndex(c => c.codes.indexOf(this.code) >= 0));
     this.vaiA = true;          // al prossimo layout la griglia si porta sulla bandiera scelta
   }
@@ -1336,7 +1348,7 @@ class PlayerSetupScene extends Screen {
   }
   next() { if (this.tab === 0) { Snd.click(); this.tab = 1; this.layout(); } else this.confirm(); }
   confirm() {
-    Profiles.set(this.i, this.name, this.code, this.lefty, this.col);
+    Profiles.set(this.i, this.name, this.code, this.lefty, this.col, { sex: this.sex, capelli: this.capelli, tenuta: this.tenuta });
     if (this.i + 1 < this.i0 + this.n) { this.i++; this.loadProfile(); this.tab = 0; this.t = 0; this.layout(); }
     else if (this.done) this.done();
     else G.setScene(new MenuScene(this.n));
@@ -1432,7 +1444,16 @@ class PlayerSetupScene extends Screen {
     this.pv = { x: 44, y: 104, w: 210, h: 336, ppm: 108 };
     const x0 = this.pv.x + this.pv.w + 30;
     const sw = Math.min(52, Math.floor((G.W - 32 - x0 + gap) / 12) - gap), sh = 38;
-    this.rows = KIT_KEYS.map((k, r) => ({ k, x: x0, y: 128 + r * 84 }));
+    this.rows = KIT_KEYS.map((k, r) => ({ k, x: x0, y: 158 + r * 70 }));
+    // in cima: uomo o donna, i capelli, la divisa (tre pulsanti che girano fra le scelte)
+    const bw = Math.min(210, (G.W - 32 - x0 - 16) / 3), tenute = TENUTE[this.sex === 'f' ? 'f' : 'm'];
+    if (this.tenuta >= tenute.length) this.tenuta = 0;
+    [{ label: this.sex === 'f' ? 'DONNA' : 'UOMO', sub: 'atleta', color: this.sex === 'f' ? '#ad1457' : '#1565c0',
+      fn: () => { this.sex = this.sex === 'f' ? 'm' : 'f'; this.tenuta = 0; this.capelli = this.sex === 'f' ? 5 : 0; } },
+    { label: CAPELLI[this.capelli], sub: 'capelli', color: '#6d4c41', fn: () => { this.capelli = (this.capelli + 1) % CAPELLI.length; } },
+    { label: tenute[this.tenuta], sub: 'divisa', color: '#00796b', fn: () => { this.tenuta = (this.tenuta + 1) % tenute.length; } },
+    ].forEach((o, i) => this.btns.push({ x: x0 + i * (bw + 8), y: 76, w: bw, h: 44, label: o.label, sub: o.sub, size: o.label.length > 12 ? 12 : 16, color: o.color,
+      fn: () => { Snd.click(); o.fn(); this.layout(); } }));
     this.rows.forEach(row => KIT[row.k].forEach((c, i) => this.btns.push({
       x: row.x + i * (sw + gap), y: row.y, w: sw, h: sh, label: '', swatch: c, part: row.k,
       fn: () => { Snd.click(); this.col[row.k] = c; },
@@ -1446,7 +1467,7 @@ class PlayerSetupScene extends Screen {
     const W = G.W, cx = W / 2, col = HUMAN_COLS[this.i], P = this.pv;
     panel(ctx, 24, 8, W - 48, G.H - 16);
     txt(ctx, 'GIOCATORE ' + (this.i + 1), cx, 32, 26, col.ui);
-    txt(ctx, 'scegli i colori della divisa, della pelle e dei capelli', cx, 58, 15, '#fff', 'center', { italic: false });
+    txt(ctx, 'scegli l\'atleta, i capelli, la divisa e i colori', cx, 58, 15, '#fff', 'center', { italic: false });
     // live preview: the athlete runs wearing what you are choosing
     ctx.fillStyle = 'rgba(0,0,0,0.5)'; rrect(ctx, P.x, P.y, P.w, P.h, 12); ctx.fill();
     ctx.strokeStyle = col.ui; ctx.lineWidth = 2; ctx.stroke();
@@ -1454,7 +1475,8 @@ class PlayerSetupScene extends Screen {
     ctx.beginPath(); rrect(ctx, P.x, P.y, P.w, P.h, 12); ctx.clip();
     ctx.fillStyle = '#b0442f'; ctx.fillRect(P.x, P.y + P.h - 40, P.w, 40);
     ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(P.x, P.y + P.h - 40, P.w, 2);
-    drawAthlete(ctx, P.x + P.w / 2, P.y + P.h - 28 - 0.86 * P.ppm, P.ppm, Pose.run(this.t * 9, 1), this.col);
+    drawAthlete(ctx, P.x + P.w / 2, P.y + P.h - 28 - 0.86 * P.ppm, P.ppm, Pose.run(this.t * 9, 1),
+      Object.assign({}, this.col, { name: this.name, sex: this.sex, capelli: this.capelli, tenuta: this.tenuta }));
     ctx.restore();
     drawFlag(ctx, this.code, P.x + 10, P.y + 10, 30, 20);
     txt(ctx, this.name, P.x + 48, P.y + 21, 16, '#fff', 'left');

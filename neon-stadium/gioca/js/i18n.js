@@ -418,8 +418,8 @@ Object.assign(EN, {
   'TROPPO PESANTE!': 'TOO HEAVY!', 'il tronco non si alza': 'the log will not budge', 'BONK!': 'BONK!', 'TRONCO CADUTO!': 'LOG DROPPED!',
   'il tronco ti e\' caduto in testa': 'the log fell on your head', 'vedi le stelline?': 'seeing stars?', 'il boscaiolo ride di te': 'the lumberjack is laughing at you',
   'lancio nullo': 'no throw', 'oltre la linea di lancio': 'over the throwing line', 'LINEA': 'LINE', 'SOLLEVA! (A)': 'LIFT! (A)', 'INDIETRO': 'BACK', 'AVANTI': 'FORWARD',
-  'A veloce per sollevare e correre, tieni B per l\'angolo e lascia prima della linea': 'tap A fast to lift and run, hold B for the angle and let go before the line',
-  'A veloce: la forza sopra la tacca bianca solleva il tronco, poi corri.': 'Tap A fast: power above the white mark lifts the log, then run.',
+  'A veloce per sollevare e correre (non smettere!), tieni B per l\'angolo e lascia prima della linea': 'tap A fast to lift and run (keep tapping!), hold B for the angle and let go before the line',
+  'A veloce: solleva il tronco e poi corri. Non smettere: la velocita\' conta nel lancio.': 'Tap A fast: lift the log, then run. Keep tapping: speed counts in the throw.',
   'B: tienilo premuto per l\'angolo (ideale ~45°) e lascialo prima della linea.': 'B: hold it for the angle (ideal ~45°) and let go before the line.',
   'Il tronco fa mezzo giro e si misura dove tocca terra la cima. Tre lanci.': 'The log turns over and is measured where its top hits the ground. Three throws.',
   'NON GIRA!': 'NO TURN!', 'il tronco non si e\' ribaltato: nullo': 'the log did not turn over: no throw',
@@ -616,6 +616,14 @@ Object.assign(EN, {
   'ARIETI': 'RAMS', 'ARIETE DI LEGNO DI PERO': 'PEARWOOD RAM', 'ARIETE DI QUERCIA FERRATA': 'IRON-SHOD OAK RAM', 'ARIETE A TESTA DI CAPRONE': 'GOAT-HEAD RAM',
   'profuma di pere cotte': 'it smells of stewed pears', 'il fabbro giura che non si spezza': 'the blacksmith swears it won\'t break',
   'il caprone di bronzo sembra sorridere': 'the bronze goat seems to smile',
+});
+// ---------- uomini e donne (1.5.1) ----------
+Object.assign(EN, {
+  'UOMO': 'MAN', 'DONNA': 'WOMAN', 'atleta': 'athlete', 'capelli': 'hair', 'divisa': 'kit',
+  'CORTI': 'SHORT', 'CASCHETTO': 'BOB', 'CODA': 'PONYTAIL', 'RICCI': 'CURLY', 'RASATI': 'SHAVED', 'LUNGHI': 'LONG', 'CHIGNON': 'BUN',
+  'CANOTTA E PANTALONCINI': 'VEST AND SHORTS', 'BODY DA GARA': 'RACE SUIT', 'TOP E CULOTTE': 'CROP TOP AND BRIEFS',
+  'scegli l\'atleta, i capelli, la divisa e i colori': 'choose the athlete, the hair, the kit and the colours',
+  'CONO COL VELO': 'CONE HAT WITH VEIL', 'CORONA DI FIORI': 'FLOWER CROWN', 'ABITO DA DAMA': 'LADY\'S GOWN', 'VESTE DA LOCANDIERA': 'INNKEEPER\'S DRESS',
 });
 // ---------- il tiro al piccione (1.4.6) ----------
 Object.assign(EN, {

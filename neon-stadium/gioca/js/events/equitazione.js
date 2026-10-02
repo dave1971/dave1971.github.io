@@ -177,15 +177,18 @@ class Equitazione extends EventBase {
     leg(-0.62, -1.02, hindN[0], hindN[1], false);
     leg(0.58, -1.02, frontN[0], frontN[1], false);
     ctx.restore();
+    if (col.senzaCavaliere) return;         // la bestia senza nessuno in sella (il somaro che ha disarcionato)
     // il cavaliere: seduto al galoppo, in avanti sulle staffe ("due punti") sopra l'ostacolo
     const two = air ? Math.sin(k * Math.PI) : 0;
     const hip = P(-0.08, -1.78 - 0.12 * two);
     const pose = { torso: 0.3 + 0.7 * two + s.pitch, neck: -0.12 - 0.12 * two, ru: 0.9 + 0.3 * two, rf: 1.5 + 0.2 * two, lu: 0.85 + 0.3 * two, lf: 1.45 + 0.2 * two,
       rt: 1.0 + s.pitch, rs: -0.15 + s.pitch, lt: 0.95 + s.pitch, ls: -0.2 + s.pitch };
     const J = drawAthlete(ctx, hip[0], hip[1], ppm * 0.95, pose, col);
-    // caschetto nero
-    ctx.fillStyle = '#212121';
-    ctx.beginPath(); ctx.arc(J.head[0], J.head[1] - 0.02 * ppm, BODY.headR * ppm * 1.05, Math.PI * 1.05, TAU * 1.0); ctx.fill();
+    // caschetto nero (non nel torneo medievale: li' ognuno ha il suo copricapo)
+    if (!Bg.medievo()) {
+      ctx.fillStyle = '#212121';
+      ctx.beginPath(); ctx.arc(J.head[0], J.head[1] - 0.02 * ppm, BODY.headR * ppm * 1.05, Math.PI * 1.05, TAU * 1.0); ctx.fill();
+    }
     // le redini: dalle mani alla bocca
     ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(J.handN[0], J.handN[1]); ctx.lineTo(hd[0], hd[1]); ctx.stroke();
