@@ -132,20 +132,8 @@ class Skeet extends EventBase {
       ctx.stroke();
       txt(ctx, skeetSight(p, b) ? 'B' : 'A', x + this.R + 12, y - this.R, 16, PCOL[p].ui);
     }
-    // shooter seen from behind
-    const cx = w * 0.5, by = h;
-    const aimX = this.sightU[s.aim] * w, aimY = this.sightV * h;
-    const sc = h / 200;
-    ctx.save();
-    ctx.strokeStyle = '#333'; ctx.lineWidth = 5 * sc; ctx.lineCap = 'round';
-    const gx = cx + 6 * sc, gy = by - 50 * sc, ga = Math.atan2(aimY - gy, aimX - gx);
-    ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + Math.cos(ga) * 55 * sc, gy + Math.sin(ga) * 55 * sc); ctx.stroke();
-    ctx.fillStyle = PCOL[p].shirt;
-    rrect(ctx, cx - 22 * sc, by - 58 * sc, 44 * sc, 60 * sc, 12 * sc); ctx.fill();
-    ctx.fillStyle = PCOL[p].hair;
-    ctx.beginPath(); ctx.arc(cx, by - 66 * sc, 11 * sc, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#ffeb3b'; ctx.fillRect(cx - 12 * sc, by - 79 * sc, 24 * sc, 5 * sc);
-    ctx.restore();
+    // shooter seen from behind (drawDiSpalle in athlete.js: schiena, testa col berretto e le cuffie, fucile)
+    drawDiSpalle(ctx, PCOL[p], PCOL[p], w * 0.5, h, h / 200, this.sightU[s.aim] * w, this.sightV * h, 'fucile');
     // HUD
     for (let i = 0; i < 2; i++) {
       ctx.fillStyle = i < s.shells ? '#d32f2f' : 'rgba(0,0,0,0.3)';

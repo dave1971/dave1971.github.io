@@ -137,11 +137,11 @@ class Swim50 extends EventBase {
       const gx = sx(this.S[q].x);
       if (gx < -80 || gx > w + 80) continue;
       const [gp, gh] = this.swimmerPose(q, wy, ppm * 0.9);
-      drawAthlete(ctx, gx, gh - (k % 3) * 0.06 * ppm, ppm * 0.9, gp, PCOL[q]);
+      drawAthlete(ctx, gx, gh - (k % 3) * 0.06 * ppm, ppm * 0.9, Object.assign(gp, NUOTO), PCOL[q]);
     }
     ctx.restore();
     const [pose, hy] = this.swimmerPose(p, wy, ppm);
-    drawAthlete(ctx, sx(s.x), hy, ppm, pose, PCOL[p]);
+    drawAthlete(ctx, sx(s.x), hy, ppm, Object.assign(pose, NUOTO), PCOL[p]);
     // water overlay so the body looks submerged
     ctx.fillStyle = 'rgba(3,120,200,0.35)'; ctx.fillRect(0, wy + 0.08 * ppm, w, h - wy);
     // lane rope

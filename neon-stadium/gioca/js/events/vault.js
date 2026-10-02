@@ -308,7 +308,7 @@ class Vault extends EventBase {
     if (s.ph !== 'land' || s.t < 0.75) shadow(ctx, hx, gy, ppm, s.ph === 'air' ? 0.6 : 1);
     ctx.save();
     if (s.tw > 0) { ctx.translate(hx, hy); ctx.scale(Math.max(0.16, Math.abs(Math.cos((0.3 - s.tw) / 0.3 * Math.PI))), 1); ctx.translate(-hx, -hy); }
-    drawAthlete(ctx, hx, hy, ppm, this.pose(s), PCOL[p]);
+    drawAthlete(ctx, hx, hy, ppm, Object.assign(this.pose(s), SCALZO), PCOL[p]);
     ctx.restore();
     // indicatori: la velocità della rincorsa e, in volo, dove finirà l'asse del corpo
     drawMeter(ctx, 16, h * 0.09, w * 0.2, Math.max(10, h * 0.045), (s.ph === 'run' ? s.r.v : s.v) / this.capP(p),

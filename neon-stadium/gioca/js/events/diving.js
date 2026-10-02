@@ -144,7 +144,7 @@ class Diving extends EventBase {
       const hx = sx(s.x), hy = sy(s.y);
       ctx.save();
       if (s.tw > 0) { ctx.translate(hx, hy); ctx.scale(Math.max(0.15, Math.abs(Math.cos((0.3 - s.tw) / 0.3 * Math.PI))), 1); ctx.translate(-hx, -hy); }
-      drawAthlete(ctx, hx, hy, ppm, pose, PCOL[p]);
+      drawAthlete(ctx, hx, hy, ppm, Object.assign(pose, TUFFO), PCOL[p]);
       ctx.restore();
     }
     // water

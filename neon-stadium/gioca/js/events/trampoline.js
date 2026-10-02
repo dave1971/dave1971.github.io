@@ -146,7 +146,7 @@ class Trampoline extends EventBase {
     const hy = sy(s.y + 0.95) + (s.ph === 'air' ? 0 : dip);
     ctx.save();
     if (s.tw > 0) { ctx.translate(ax, hy); ctx.scale(Math.max(0.15, Math.abs(Math.cos((0.3 - s.tw) / 0.3 * Math.PI))), 1); ctx.translate(-ax, -hy); }
-    drawAthlete(ctx, ax, hy, ppm, pose, PCOL[p]);
+    drawAthlete(ctx, ax, hy, ppm, Object.assign(pose, SCALZO), PCOL[p]);
     ctx.restore();
     if (s.ph === 'air') {
       txt(ctx, (s.ang / TAU).toFixed(1) + ' giri', w - 16, h * 0.12, clamp(h * 0.09, 15, 30), '#fff', 'right');
