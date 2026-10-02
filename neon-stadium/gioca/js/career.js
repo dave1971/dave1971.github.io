@@ -161,6 +161,8 @@ function centrato(v, need, lowerBetter) {
 // Development of the CPU rivals of a career meeting, [weakest .. strongest of the field] per tier.
 // Tuned so that the qualifying mark of the tier is worth roughly a third place.
 const CPU_F = [[0.840, 0.925], [0.885, 0.965], [0.925, 1.0]];
+const LIBERO_F = 0.90;      // il piu' debole degli avversari del torneo medievale, in gara singola
+const LIBERO_F_EV = { orso: 0.965 };   // con l'orso meno: l'orso corre al massimo del livello, e i lenti li prende
 // Per-event nudge on top of that band, where the rivals' technique flattered them: the vault rewards a
 // clean plant so heavily that the whole university field cleared more than a player ever could.
 const CPU_F_ADJ = { asta: [-0.085, 0, 0] };
@@ -309,7 +311,12 @@ const Career = {
     return true;
   },
   factorFor(p, id) {
-    if (!Game.careerMode || !this.data) return 1; // free play: everybody runs at the tier ceiling
+    // free play: everybody runs at the tier ceiling. Nel torneo medievale no: li' gli avversari sono
+    // scalati come in carriera, dal piu' debole (LIBERO_F) al favorito (1), se no finivano tutti pari.
+    if (!Game.careerMode || !this.data) {
+      const s = Game.special && p >= Game.humans && Game.cpuSkill ? Game.cpuSkill[p] : null;
+      return s == null ? 1 : lerp(LIBERO_F_EV[id] || LIBERO_F, 1, clamp(s, 0, 1));
+    }
     if (p === 0) return this.factor(id);
     const i = clamp(Lv.i, 1, 3) - 1, b = CPU_F[i], s = Game.cpuSkill[p];
     const adj = CPU_F_ADJ[id] ? CPU_F_ADJ[id][i] : 0;

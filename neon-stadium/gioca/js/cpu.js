@@ -26,6 +26,13 @@ const CPU_ROSTER = [
   { name: 'H. KAYA', short: 'TUR', shirt: '#6d4c41', shorts: '#fdd835', skin: '#f0c8a0', hair: '#3b2412', ui: '#c29a88' },
 ];
 
+// Il posto di una CPU nel suo campo, da 0 (la piu' scarsa) a 1 (la favorita): serve dove la bravura deve
+// dare risultati graduati (le prove del torneo medievale), non solo colpi piu' o meno precisi.
+function cpuRango(c) {
+  const L = Game.careerMode ? CAREER_CPU : Lv.cur();
+  return clamp((c.L.hit - L.hit[0]) / (L.hit[1] - L.hit[0]), 0, 1);
+}
+
 const pick = a => a[(Math.random() * a.length) | 0];
 function shuffle(a) {
   for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; }
