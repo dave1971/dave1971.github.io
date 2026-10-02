@@ -1,6 +1,6 @@
 {
-  "rev": 27,
-  "aggiornato": "2026-10-01",
+  "rev": 28,
+  "aggiornato": "2026-10-02",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
     "100m": {
@@ -165,10 +165,10 @@
     ],
     "tuffi": [
       {
-        "v": 311.6,
+        "v": 354.65,
         "who": "LAMBO",
         "nat": "ITA",
-        "il": "2026-10-01"
+        "il": "2026-10-02"
       },
       {
         "v": 309.55,
@@ -259,6 +259,12 @@
     ],
     "110h": [
       {
+        "v": 12.832825386796122,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-02"
+      },
+      {
         "v": 12.89470332900281,
         "who": "LAMBOPC",
         "nat": "ITA",
@@ -269,12 +275,6 @@
         "who": "ILAMB",
         "nat": "ITA",
         "il": "2026-09-30"
-      },
-      {
-        "v": 15.51816635964746,
-        "who": "LAMBO",
-        "nat": "ITA",
-        "il": "2026-09-27"
       }
     ],
     "alto": [
@@ -323,6 +323,12 @@
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-30"
+      },
+      {
+        "v": 21.624999999999414,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-02"
       }
     ],
     "pesi": [
@@ -331,6 +337,12 @@
         "who": "LAMBOPC",
         "nat": "ITA",
         "il": "2026-09-23"
+      },
+      {
+        "v": 250,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-02"
       }
     ],
     "piattello": [
@@ -345,6 +357,12 @@
         "who": "MELLO",
         "nat": "ITA",
         "il": "2026-09-24"
+      },
+      {
+        "v": 12,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-02"
       }
     ],
     "peso": [
@@ -414,8 +432,16 @@
         "nat": "ITA",
         "il": "2026-10-01"
       }
+    ],
+    "decathlon": [
+      {
+        "v": 11271,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-02"
+      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 73
+  "postRev": 80
 }
