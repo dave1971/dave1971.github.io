@@ -617,6 +617,21 @@ Object.assign(EN, {
   'profuma di pere cotte': 'it smells of stewed pears', 'il fabbro giura che non si spezza': 'the blacksmith swears it won\'t break',
   'il caprone di bronzo sembra sorridere': 'the bronze goat seems to smile',
 });
+// ---------- il tiro al piccione (1.4.6) ----------
+Object.assign(EN, {
+  'IL TIRO AL PICCIONE': 'PIGEON SHOOT', 'TIRA SX': 'SHOOT L', 'TIRA DX': 'SHOOT R', 'CENTRATO!': 'GOT IT!',
+  'A tira nel mirino SINISTRO, B nel mirino DESTRO.': 'A shoots through the LEFT sight, B through the RIGHT one.',
+  'B tira nel mirino SINISTRO, A nel mirino DESTRO.': 'B shoots through the LEFT sight, A through the RIGHT one.',
+  'Tira quando il piccione attraversa il mirino.': 'Shoot as the pigeon crosses the sight.',
+  '2 dardi per gabbia, 15 piccioni (nei doppi il 2° esce dopo 1 s).': '2 bolts per cage, 15 pigeons (in doubles the 2nd leaves after 1 s).',
+  'piume dappertutto': 'feathers everywhere', 'stasera piccione arrosto': 'roast pigeon tonight', 'il falconiere e\' geloso': 'the falconer is jealous',
+  'BALESTRE': 'CROSSBOWS', 'FIONDA DEL GARZONE': 'STABLE BOY\'S SLING', 'BALESTRA DEL GUARDACACCIA': 'GAMEKEEPER\'S CROSSBOW',
+  'BALESTRA GENOVESE A DUE DARDI': 'GENOESE TWO-BOLT CROSSBOW',
+  'tira sassi, ma con molta convinzione': 'it throws stones, but with great conviction',
+  'il guardacaccia non deve sapere che l\'hai tu': 'the gamekeeper must not know you have it',
+  'i genovesi la vendono cara, e senza sconto': 'the Genoese sell it dear, and with no discount',
+});
+EN_RULES.push([/^GABBIA (\d+)\/(\d+)$/, 'CAGE $1/$2']);
 // ---------- birra a go go (1.4.5) ----------
 Object.assign(EN, {
   // la caccia al maiale col terzo tasto
