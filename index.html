@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dave1971 · giochi e strumenti</title>
+<meta name="description" content="I giochi e gli strumenti di dave1971: da giocare nel browser o da scaricare per Android e Windows.">
+<!--
+  La pagina d'ingresso di dave1971.github.io: due sezioni (GIOCHI, STRUMENTI), una scheda per ogni app.
+  Per aggiungere un'app: copia un blocco <article class="card"> dentro la sezione giusta e cambia
+  immagine, titolo, testo e link. La griglia si sistema da sola: una colonna sul telefono, due sul
+  tablet, tre o piu' su uno schermo largo.
+  I testi hanno due lingue: data-it e data-en sullo stesso elemento; lo script in fondo sceglie quella
+  del dispositivo, e i due pulsanti in alto la cambiano.
+-->
+<style>
+  :root {
+    --bg: #10141f; --panel: rgba(255,255,255,0.06); --line: rgba(255,255,255,0.16);
+    --testo: #e8eaf0; --tenue: #9aa7b8; --rosa: #ff4fd8; --ciano: #3ff0ff; --oro: #ffd600;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--testo); min-height: 100vh;
+    font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif; line-height: 1.5; }
+  a { color: #90caf9; }
+
+  /* tutto sta in una colonna centrale che non supera i 1200 px, con un margine che cresce con lo schermo */
+  .pagina { width: 100%; max-width: 1200px; margin: 0 auto; padding: clamp(16px, 4vw, 40px); }
+
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px;
+    padding-bottom: clamp(16px, 3vw, 28px); border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-style: italic; letter-spacing: 1px; line-height: 1.05; color: var(--rosa);
+    font-size: clamp(34px, 7vw, 64px); }
+  h1 span { color: var(--ciano); }
+  .motto { margin: 6px 0 0; color: var(--tenue); font-size: clamp(15px, 2.2vw, 19px); }
+  .lingua { display: flex; gap: 4px; }
+  .lingua button { background: none; border: 1px solid transparent; border-radius: 999px; color: #90caf9;
+    font: inherit; font-size: 14px; cursor: pointer; padding: 8px 14px; min-height: 40px; }
+  .lingua button[aria-pressed="true"] { color: var(--oro); border-color: var(--line); font-weight: bold; }
+
+  nav { display: flex; flex-wrap: wrap; gap: 10px; margin: clamp(16px, 3vw, 26px) 0 0; }
+  nav a { text-decoration: none; color: var(--testo); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 999px; padding: 9px 18px; font-size: 15px; }
+  nav a:hover, nav a:focus-visible { border-color: var(--ciano); color: var(--ciano); }
+
+  section { margin-top: clamp(28px, 5vw, 52px); scroll-margin-top: 16px; }
+  h2 { margin: 0 0 4px; color: var(--oro); font-size: clamp(22px, 3.4vw, 30px); letter-spacing: 0.5px; }
+  .intro { margin: 0 0 18px; color: var(--tenue); font-size: 15px; }
+
+  /* la griglia delle schede: quante colonne ci stanno, ognuna larga almeno 280 px */
+  .griglia { display: grid; gap: clamp(14px, 2.4vw, 24px);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+
+  .card { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 16px; overflow: hidden; }
+  .card img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+  .corpo { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px 18px; flex: 1; }
+  .card h3 { margin: 0; font-size: 21px; color: #fff; }
+  .card p { margin: 0; font-size: 15px; color: #cfd6e0; }
+  .tag { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag span { font-size: 12px; color: var(--tenue); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+  .azioni { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 6px; }
+  .btn { flex: 1 1 130px; text-align: center; text-decoration: none; color: #fff; font-weight: bold; font-size: 15px;
+    padding: 12px 10px; border-radius: 12px; border: 2px solid rgba(0,0,0,0.45); box-shadow: 0 4px 0 rgba(0,0,0,0.4);
+    background: #455a64; min-height: 46px; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+  .btn.web { background: #6a1b9a; } .btn.android { background: #2e7d32; } .btn.win { background: #1565c0; }
+  /* il pulsante giusto per il dispositivo da cui si guarda sta per primo e prende tutta la riga */
+  .btn.mio { order: -1; flex-basis: 100%; font-size: 17px; }
+  .btn small { display: block; font-weight: normal; font-size: 12px; opacity: 0.85; }
+  .altro { font-size: 14px; }
+
+  .vuota { border-style: dashed; align-items: center; justify-content: center; text-align: center;
+    min-height: 160px; color: var(--tenue); padding: 24px; }
+  .vuota p { color: var(--tenue); }
+
+  footer { margin-top: clamp(36px, 6vw, 64px); padding-top: 18px; border-top: 1px solid var(--line);
+    color: #78909c; font-size: 13px; text-align: center; }
+
+  /* sugli schermi larghi la prima scheda di una sezione puo' stare coricata: immagine a sinistra, testo a destra */
+  @media (min-width: 620px) { .card.grande { grid-column: span 2; } }
+  @media (min-width: 900px) {
+    .card.grande { flex-direction: row; }
+    .card.grande img { width: 56%; height: auto; aspect-ratio: auto; align-self: stretch; }
+  }
+  @media (prefers-reduced-motion: reduce) { .btn:active { transform: none; } }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+  <header>
+    <div>
+      <h1>DAVE<span>1971</span></h1>
+      <p class="motto" data-it="Giochi e strumenti fatti in casa." data-en="Home-made games and tools.">Giochi e strumenti fatti in casa.</p>
+    </div>
+    <div class="lingua" role="group" aria-label="Lingua / Language">
+      <button type="button" data-lingua="it" aria-pressed="true">Italiano</button>
+      <button type="button" data-lingua="en" aria-pressed="false">English</button>
+    </div>
+  </header>
+
+  <nav aria-label="Sezioni">
+    <a href="#giochi" data-it="Giochi" data-en="Games">Giochi</a>
+    <a href="#strumenti" data-it="Strumenti" data-en="Tools">Strumenti</a>
+  </nav>
+
+  <main>
+    <section id="giochi">
+      <h2 data-it="Giochi" data-en="Games">Giochi</h2>
+      <p class="intro" data-it="Da giocare subito nel browser, o da scaricare." data-en="Play right away in the browser, or download.">Da giocare subito nel browser, o da scaricare.</p>
+      <div class="griglia">
+
+        <article class="card grande">
+          <img src="olimpiadi/trailer-en.jpg" alt="Neon Stadium" width="1280" height="720">
+          <div class="corpo">
+            <h3>Neon Stadium</h3>
+            <p data-it="Atletica da sala giochi: diciotto specialità, decathlon, carriera e classifica mondiale. Uno o due giocatori."
+               data-en="Arcade athletics: eighteen events, decathlon, career mode and a world leaderboard. One or two players.">Atletica da sala giochi: diciotto specialità, decathlon, carriera e classifica mondiale. Uno o due giocatori.</p>
+            <div class="tag"><span>Browser</span><span>Android</span><span>Windows</span></div>
+            <div class="azioni">
+              <a class="btn web" href="neon-stadium/gioca/"><span data-it="Gioca nel browser" data-en="Play in the browser">Gioca nel browser</span><small data-it="senza installare niente" data-en="nothing to install">senza installare niente</small></a>
+              <a class="btn android" href="olimpiadi/neon-stadium.apk"><span>Android</span><small>.apk</small></a>
+              <a class="btn win" href="https://github.com/dave1971/dave1971.github.io/releases/latest/download/neon-stadium.exe"><span>Windows</span><small>.exe</small></a>
+            </div>
+            <a class="altro" href="olimpiadi/" data-it="La pagina del gioco: video, novità, istruzioni ›" data-en="The game page: videos, news, how to play ›">La pagina del gioco: video, novità, istruzioni ›</a>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <section id="strumenti">
+      <h2 data-it="Strumenti" data-en="Tools">Strumenti</h2>
+      <p class="intro" data-it="Piccoli programmi utili." data-en="Small useful programs.">Piccoli programmi utili.</p>
+      <div class="griglia">
+
+        <!-- finche' non c'e' il primo strumento resta questa scheda vuota: va tolta quando se ne aggiunge uno -->
+        <article class="card vuota">
+          <p data-it="In arrivo." data-en="Coming soon.">In arrivo.</p>
+        </article>
+
+      </div>
+    </section>
+  </main>
+
+  <footer>dave1971 · <span id="anno">2026</span></footer>
+</div>
+
+<script>
+(function () {
+  // la lingua: quella scelta l'ultima volta, se no quella del dispositivo
+  var salvata = null;
+  try { salvata = localStorage.getItem('dave1971_lingua'); } catch (e) { /* niente memoria: si usa quella del dispositivo */ }
+  var lingua = salvata || ((navigator.language || 'it').toLowerCase().indexOf('it') === 0 ? 'it' : 'en');
+  function metti(l) {
+    lingua = l;
+    document.documentElement.lang = l;
+    var el = document.querySelectorAll('[data-it]');
+    for (var i = 0; i < el.length; i++) el[i].textContent = el[i].getAttribute('data-' + l);
+    var b = document.querySelectorAll('.lingua button');
+    for (var j = 0; j < b.length; j++) b[j].setAttribute('aria-pressed', b[j].getAttribute('data-lingua') === l ? 'true' : 'false');
+    document.title = l === 'it' ? 'dave1971 · giochi e strumenti' : 'dave1971 · games and tools';
+  }
+  var bottoni = document.querySelectorAll('.lingua button');
+  for (var k = 0; k < bottoni.length; k++) bottoni[k].addEventListener('click', function () {
+    metti(this.getAttribute('data-lingua'));
+    try { localStorage.setItem('dave1971_lingua', lingua); } catch (e) { /* pazienza */ }
+  });
+  metti(lingua);
+
+  // il pulsante adatto a questo dispositivo va per primo: Android sul telefono Android, Windows sul PC
+  // con Windows, il browser dappertutto altrove (iPhone, Mac, Linux)
+  var ua = navigator.userAgent || '', mio = /Android/i.test(ua) ? 'android' : /Windows/i.test(ua) ? 'win' : 'web';
+  var schede = document.querySelectorAll('.azioni');
+  for (var s = 0; s < schede.length; s++) {
+    var scelto = schede[s].querySelector('.btn.' + mio) || schede[s].querySelector('.btn.web') || schede[s].querySelector('.btn');
+    if (scelto) scelto.className += ' mio';
+  }
+  document.getElementById('anno').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
