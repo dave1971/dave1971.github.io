@@ -14,7 +14,11 @@
   .su { font-size: 14px; }
   h1 { font-size: 40px; margin: 18px 0 2px; color: #ff4fd8; font-style: italic; letter-spacing: 1px; }
   .sub { color: #b0bec5; margin: 10px 0 22px; font-size: 15px; }
-  img.banner { width: 100%; height: auto; border-radius: 12px; border: 2px solid var(--line); display: block; }
+  /* l'immagine e' 16:9 con la finestra al centro e margini larghi, perche' la scheda
+     della pagina d'ingresso ne ritaglia i lati: qui la ritagliamo a nostra volta, piu'
+     stretta, cosi' la finestra riempie il banner invece di galleggiare nel vuoto */
+  img.banner { width: 100%; aspect-ratio: 5 / 4; object-fit: cover; height: auto;
+    border-radius: 12px; border: 2px solid var(--line); display: block; }
   a.dl { display: block; text-align: center; margin: 26px 0 10px; padding: 18px;
     background: #43a047; color: #fff; text-decoration: none; font-size: 22px; font-weight: bold;
     border-radius: 14px; border: 3px solid rgba(0,0,0,0.45); box-shadow: 0 5px 0 rgba(0,0,0,0.4); }
