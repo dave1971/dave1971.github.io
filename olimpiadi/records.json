@@ -1,5 +1,5 @@
 {
-  "rev": 35,
+  "rev": 36,
   "aggiornato": "2026-10-04",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -431,10 +431,10 @@
     ],
     "volteggio": [
       {
-        "v": 202.1,
+        "v": 202.8,
         "who": "LAMBO",
         "nat": "ITA",
-        "il": "2026-10-03"
+        "il": "2026-10-04"
       },
       {
         "v": 193.7,
@@ -479,5 +479,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 91
+  "postRev": 92
 }
