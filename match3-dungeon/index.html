@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Match3 Dungeon</title>
+<meta name="description" content="Match-3 e tower defense insieme: allinea le gemme per far sparare gli eroi e difendi le mura del castello. Tre capitoli, cinque eroi, per Android.">
+<style>
+  :root { --bg: #10141f; --panel: rgba(255,255,255,0.06); --line: rgba(255,255,255,0.16); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: #fff; min-height: 100vh;
+    font-family: "Trebuchet MS", Arial, sans-serif; display: flex; justify-content: center; }
+  main { width: 100%; max-width: 680px; padding: 28px 16px 60px; }
+  .su { font-size: 14px; }
+  h1 { font-size: 40px; margin: 18px 0 2px; color: #ff4fd8; font-style: italic; letter-spacing: 1px; }
+  .sub { color: #b0bec5; margin: 10px 0 22px; font-size: 15px; }
+  /* l'anteprima e' fatta di tre schermate del gioco e non ha margini da ritagliare: si mostra intera */
+  img.banner { width: 100%; height: auto;
+    border-radius: 12px; border: 2px solid var(--line); display: block; }
+  a.dl { display: block; text-align: center; margin: 26px 0 10px; padding: 18px;
+    background: #43a047; color: #fff; text-decoration: none; font-size: 22px; font-weight: bold;
+    border-radius: 14px; border: 3px solid rgba(0,0,0,0.45); box-shadow: 0 5px 0 rgba(0,0,0,0.4); }
+  a.dl:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+  a.dl small { display: block; font-size: 13px; font-weight: normal; opacity: 0.85; margin-top: 4px; }
+  .ver { text-align: center; color: #7CFC00; font-size: 14px; min-height: 20px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 18px; margin: 18px 0; }
+  h2 { font-size: 17px; margin: 0 0 8px; color: #ffd600; }
+  p, li { font-size: 15px; line-height: 1.5; color: #e0e0e0; margin: 6px 0; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  .piccolo, .piccolo li { font-size: 13px; color: #b0bec5; }
+  footer { color: #78909c; font-size: 13px; text-align: center; margin-top: 30px; }
+  a { color: #90caf9; }
+</style>
+</head>
+<body>
+<main>
+  <a class="su" href="../">‹ dave1971 · giochi e strumenti</a>
+  <h1>MATCH3 DUNGEON</h1>
+  <div class="sub">Match-3 e tower defense insieme: allinei le gemme, gli eroi sparano, le mura del castello reggono. Per telefoni e tablet Android.</div>
+  <img class="banner" src="anteprima.jpg" alt="Match3 Dungeon" width="1280" height="720">
+
+  <a class="dl" href="Match3Dungeon.apk">SCARICA PER ANDROID<small>telefono e tablet · .apk · circa 45 MB</small></a>
+  <div class="ver" id="ver"></div>
+
+  <section>
+    <h2>Il gioco</h2>
+    <p>I draghi hanno bruciato la città. Il capitano delle guardie affida le mura a una giovane arciera, mentre dietro si ricostruisce. Sopra c'è il campo di battaglia, con i nemici che scendono verso il castello; sotto c'è la griglia delle gemme. Ogni tris fa sparare un eroe.</p>
+    <p>Tre capitoli: i goblin e il loro accampamento, i non-morti del cimitero con il Negromante, la Palude Avvelenata con la sua Strega. Cinque eroi: l'arciera, e poi da evocare il mago del fuoco, il mago del ghiaccio, il druido e l'alchimista.</p>
+  </section>
+
+  <section>
+    <h2>Come si installa</h2>
+    <ul>
+      <li>Scarica il file <i>Match3Dungeon.apk</i> dal telefono e aprilo.</li>
+      <li>Android chiede il permesso di installare app che non vengono dal Play Store: va concesso al browser o al gestore dei file con cui apri il file.</li>
+      <li>Nell'elenco delle app compare con il nome <i>Match3-TD</i>.</li>
+      <li>Serve Android 6.0 o successivo. Va sia sui telefoni a 64 bit sia su quelli a 32 bit.</li>
+      <li>Il gioco non chiede permessi e non usa la rete: i progressi restano sul telefono.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Come si gioca</h2>
+    <ul>
+      <li><b>In battaglia</b> trascina una gemma per allinearne tre uguali. Ogni simbolo appartiene a un eroe: arco, fiamma, cristallo, albero, pozione. Il tris fa sparare subito quell'eroe e gli dà mana.</li>
+      <li>Gli eroi sparano anche da soli, a intervalli. Con il mana raccolto, toccando il ritratto di un eroe si attivano i suoi poteri speciali.</li>
+      <li><b>Nel cortile del castello</b>, fra una battaglia e l'altra: alle <i>caserme</i> si distribuisce l'esperienza agli eroi, al <i>cantiere</i> si riparano e si potenziano le mura con l'oro, al <i>portale</i> si evocano nuovi eroi con il mana avanzato, alla <i>bacheca</i> si riscuotono le missioni.</li>
+      <li>I mostri non sono tutti uguali: le frecce attraversano gli spettri, il troll di palude si rigenera finché non lo si brucia, gli uomini-ratto resistono al veleno.</li>
+      <li>Il pulsante in alto a destra nel cortile apre le impostazioni: musica, salvataggio, nuova partita.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Crediti</h2>
+    <p class="piccolo">I mostri dei capitoli 2 e 3 sono composti e ricolorati a partire dalle grafiche dell'<a href="https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator">Universal LPC Spritesheet</a> (Liberated Pixel Cup), usate con licenza <a href="https://static.opengameart.org/OGA-BY-3.0.txt">OGA-BY 3.0</a> e <a href="https://creativecommons.org/licenses/by/3.0/">CC-BY 3.0</a>. Autori: AntumDeluge, Benjamin K. Smith (BenCreating), bluecarrot16, Durrani, Eliza Wyatt (ElizaWy), Evert, JaidynReiman, Johannes Sjölund (wulax), Matthew Krohn (makrohn), MuffinElZangano, Napsio (Vitruvian Studio), Nila122, Pierre Vigier (pvigier), Sander Frenken (castelonia), Stephen Challener (Redshrike), TheraHedwig, Tuomo Untinen (reemax).</p>
+    <p class="piccolo">Musica: "Town Theme RPG" e "Battle Theme A" di cynicmusic, CC0 (<a href="https://opengameart.org/content/town-theme-rpg">opengameart.org</a>).</p>
+    <p class="piccolo"><a href="crediti.txt">L'elenco completo, grafica per grafica, con autori, licenze e fonti ›</a></p>
+  </section>
+
+  <footer>Match3 Dungeon · <span id="v2"></span></footer>
+</main>
+<script>
+  fetch('version.json', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      document.getElementById('ver').textContent = 'versione ' + d.versionName + (d.note ? ' — ' + d.note : '');
+      document.getElementById('v2').textContent = 'versione ' + d.versionName;
+    })
+    .catch(function () { });
+</script>
+</body>
+</html>
