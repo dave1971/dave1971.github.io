@@ -1,5 +1,5 @@
 {
-  "rev": 33,
+  "rev": 34,
   "aggiornato": "2026-10-04",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -287,6 +287,12 @@
         "who": "ILAMB",
         "nat": "ITA",
         "il": "2026-09-30"
+      },
+      {
+        "v": 16.72770383594493,
+        "who": "GABB",
+        "nat": "ITA",
+        "il": "2026-10-04"
       }
     ],
     "alto": [
@@ -461,5 +467,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 88
+  "postRev": 89
 }
