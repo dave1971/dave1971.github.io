@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Process Monitor</title>
+<meta name="description" content="Tiene d'occhio CPU, memoria e handle GDI/USER dei programmi che scegli, anche quando sono aperti da piu' utenti sullo stesso PC.">
+<style>
+  :root { --bg: #10141f; --panel: rgba(255,255,255,0.06); --line: rgba(255,255,255,0.16); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: #fff; min-height: 100vh;
+    font-family: "Trebuchet MS", Arial, sans-serif; display: flex; justify-content: center; }
+  main { width: 100%; max-width: 680px; padding: 28px 16px 60px; }
+  .su { font-size: 14px; }
+  h1 { font-size: 40px; margin: 18px 0 2px; color: #ff4fd8; font-style: italic; letter-spacing: 1px; }
+  .sub { color: #b0bec5; margin: 10px 0 22px; font-size: 15px; }
+  img.banner { width: 100%; height: auto; border-radius: 12px; border: 2px solid var(--line); display: block; }
+  a.dl { display: block; text-align: center; margin: 26px 0 10px; padding: 18px;
+    background: #43a047; color: #fff; text-decoration: none; font-size: 22px; font-weight: bold;
+    border-radius: 14px; border: 3px solid rgba(0,0,0,0.45); box-shadow: 0 5px 0 rgba(0,0,0,0.4); }
+  a.dl:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+  a.dl small { display: block; font-size: 13px; font-weight: normal; opacity: 0.85; margin-top: 4px; }
+  a.dl.win { background: #1565c0; } a.dl.web { background: #6a1b9a; }
+  a.dl + a.dl { margin-top: 14px; }
+  .ver { text-align: center; color: #7CFC00; font-size: 14px; min-height: 20px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 18px; margin: 18px 0; }
+  h2 { font-size: 17px; margin: 0 0 8px; color: #ffd600; }
+  p, li { font-size: 15px; line-height: 1.5; color: #e0e0e0; margin: 6px 0; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  footer { color: #78909c; font-size: 13px; text-align: center; margin-top: 30px; }
+  a { color: #90caf9; }
+</style>
+</head>
+<body>
+<main>
+  <a class="su" href="../">&lsaquo; dave1971 &middot; giochi e strumenti</a>
+  <h1>PROCESS MONITOR</h1>
+  <div class="sub">Tiene d'occhio i programmi che scegli tu: CPU, memoria e handle GDI e USER, con i totali per ogni sessione di Windows e lo stato della batteria.</div>
+  <img class="banner" src="anteprima.jpg" alt="Process Monitor" width="1280" height="720">
+
+  <a class="dl win" href="ProcessMonitor.exe">SCARICA PER WINDOWS<small>un file solo, niente da installare &middot; .exe</small></a>
+  <div class="ver" id="ver"></div>
+
+  <section>
+    <h2>A cosa serve</h2>
+    <p>Sorveglia un elenco di programmi scelti da te e mostra, aggiornati di continuo, quanta CPU e quanta memoria stanno usando e quanti handle GDI e USER hanno aperto.</p>
+    <p>Gli handle sono il motivo per cui un gestionale lasciato aperto tutto il giorno a un certo punto smette di disegnare finestre e menu: Windows ne concede un numero limitato a ogni processo, e il consumo cresce pian piano senza che nessuno se ne accorga. Qui si vede salire. Quando un valore supera la soglia la riga diventa rossa e l'evento finisce nel registro, con l'ora e per quanto tempo e' durato.</p>
+    <p>Rispetto a Gestione attivita' somma tutte le istanze della stessa applicazione e le separa per sessione di Windows: quante volte e' aperta e da quale utente, anche quando l'ha avviata un altro utente collegato allo stesso computer.</p>
+    <p>Sui portatili mostra anche la batteria: carica residua in percentuale e in mAh, corrente di carica o di scarica in mA e in watt, con un allarme se la carica supera le soglie.</p>
+  </section>
+
+  <section>
+    <h2>Come si installa</h2>
+    <ul>
+      <li>Scarica <b>ProcessMonitor.exe</b> e mettilo in una cartella qualsiasi: non c'e' niente da installare.</li>
+      <li>Serve Windows con .NET Framework 4.8, presente di serie da Windows 10 versione 1903 in avanti e su Windows 11.</li>
+      <li>All'avvio chiede i permessi di amministratore: servono per leggere i processi degli altri utenti.</li>
+      <li>La prima volta Windows avvisa che non conosce il programma: <i>Ulteriori informazioni</i> &rarr; <i>Esegui comunque</i>. Succede a tutti i programmi senza firma commerciale.</li>
+      <li>Alla chiusura crea accanto a se' il file <code>processes.xml</code> con l'elenco dei programmi da sorvegliare, e se lo rilegge all'avvio dopo.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Come si usa</h2>
+    <ul>
+      <li>Scrivi il nome dell'eseguibile, per esempio <code>notepad.exe</code>, e premi <b>Add</b>; <b>Remove</b> toglie quello selezionato.</li>
+      <li><b>Refr (s)</b> regola ogni quanti secondi aggiorna, da 1 a 60.</li>
+      <li><b>Sess: ON</b> apre sotto ogni programma il dettaglio per sessione: quante istanze, di quale utente, con CPU e memoria di quella sessione.</li>
+      <li><b>Log: ON</b> scrive gli eventi in un file <code>procmonitor_AAAAMMGG.log</code> accanto al programma, uno al giorno.</li>
+      <li>Il pulsante <b>&#9650;</b> riduce la finestra a una riga sola, da lasciare in un angolo dello schermo. La finestra sta sempre davanti alle altre.</li>
+      <li>In fondo, sempre visibili: CPU, memoria, disco e rete di tutto il sistema.</li>
+    </ul>
+  </section>
+
+  <footer>Process Monitor &middot; <span id="v2"></span></footer>
+</main>
+<script>
+  fetch('version.json', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      document.getElementById('ver').textContent = 'versione ' + d.versionName + (d.note ? ' — ' + d.note : '');
+      document.getElementById('v2').textContent = 'versione ' + d.versionName;
+    })
+    .catch(function () { });
+</script>
+</body>
+</html>
