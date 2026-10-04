@@ -1,5 +1,5 @@
 {
-  "rev": 34,
+  "rev": 35,
   "aggiornato": "2026-10-04",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -267,6 +267,12 @@
         "who": "LAMBOTV",
         "nat": "ITA",
         "il": "2026-09-23"
+      },
+      {
+        "v": 5.7,
+        "who": "GABB",
+        "nat": "ITA",
+        "il": "2026-10-04"
       }
     ],
     "110h": [
@@ -441,6 +447,12 @@
         "who": "GIOCATORE 1",
         "nat": "",
         "il": "2026-09-28"
+      },
+      {
+        "v": 45,
+        "who": "GABB",
+        "nat": "ITA",
+        "il": "2026-10-04"
       }
     ],
     "martello": [
@@ -467,5 +479,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 89
+  "postRev": 91
 }
