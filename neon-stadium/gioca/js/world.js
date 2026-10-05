@@ -158,8 +158,18 @@ const Share = {
   load() {
     try {
       const d = JSON.parse(World.read(this.KEY));
-      if (d && Array.isArray(d.coda)) this.d = { ok: d.ok === true ? true : d.ok === false ? false : null, coda: d.coda };
+      if (d && Array.isArray(d.coda)) this.d = { ok: d.ok === true ? true : d.ok === false ? false : null, coda: d.coda, v: d.v };
     } catch (e) { /* prima volta */ }
+  },
+  /**
+   * Dalla 1.6.2 in classifica mondiale vanno solo le gare di carriera. Quello che era in coda da prima
+   * poteva venire da una gara singola: si butta, una volta sola. Non si rimette in coda niente da soli:
+   * ci andra' il prossimo primato di carriera, o tutto quanto se il giocatore riaccende l'invio.
+   */
+  soloCarriera() {
+    if (this.d.v === 2) return;
+    this.d.v = 2; this.d.coda = [];
+    this.save();
   },
   save() { World.write(this.KEY, JSON.stringify(this.d)); },
 
@@ -176,22 +186,39 @@ const Share = {
     this.ricoda();
     this.save();
   },
-  /** I record personali del Mondiale che entrerebbero fra i primi cinque, di nuovo in coda. */
+  /**
+   * I migliori di carriera al Mondiale che entrerebbero fra i primi cinque, di nuovo in coda. Si leggono
+   * dalle carriere salvate e non dai record personali: quelli puo' averli fatti una gara singola, che
+   * in classifica non va.
+   */
   ricoda() {
-    for (const id of EVENTS.map(e => e.id).concat(['decathlon'])) {
-      const r = Records.get(id, 'olympic');
-      if (!r || !World.wouldEnter(id, r.v)) continue;
-      const who = pulisciNome(r.who), nat = (typeof FLAGS !== 'undefined' && FLAGS[r.nat]) ? r.nat : '';
-      if (!who) continue;
-      this.d.coda = this.d.coda.filter(x => x.ev !== id);
-      this.d.coda.push(r.leg ? { ev: id, v: r.v, who, nat, leg: true } : { ev: id, v: r.v, who, nat });
-    }
+    let slots = null;
+    try { slots = JSON.parse(World.read(CIRCUITO_BASE.key)); } catch (e) { /* nessuna carriera */ }
+    if (!Array.isArray(slots)) return;
+    slots.forEach((d, i) => {
+      const pr = typeof Profiles !== 'undefined' && Profiles.data[i], B = d && d.best && d.best.olympic;
+      if (!pr || !B) return;
+      const who = pulisciNome(pr.name), nat = (typeof FLAGS !== 'undefined' && FLAGS[pr.code]) ? pr.code : '';
+      if (!who) return;
+      for (const id in B) {
+        const v = B[id], meta = EVENTS.find(e => e.id === id);
+        if (!meta || typeof v !== 'number' || !World.wouldEnter(id, v)) continue;
+        // con due carriere si manda la migliore delle due
+        const gia = this.d.coda.find(x => x.ev === id);
+        if (gia && (meta.lowerBetter ? gia.v <= v : gia.v >= v)) continue;
+        // oltre il record vero si arriva solo con un oggetto leggendario: va detto, o il server lo scarta
+        const wr = World.wr(id), leg = !!(wr && (meta.lowerBetter ? v < wr.v : v > wr.v));
+        this.d.coda = this.d.coda.filter(x => x.ev !== id);
+        this.d.coda.push(leg ? { ev: id, v, who, nat, leg: true } : { ev: id, v, who, nat });
+      }
+    });
     this.d.coda = this.d.coda.slice(-12);
   },
 
   /**
-   * Finita una gara: se è un record personale che entrerebbe in classifica, si mette in coda.
-   * Mandarlo subito no: il giocatore sta guardando il risultato, e la domanda va fatta con calma.
+   * Finita una gara di carriera: se e' il nuovo primato di quella carriera ed entrerebbe in classifica,
+   * si mette in coda. Mandarlo subito no: il giocatore sta guardando il risultato, e la domanda va
+   * fatta con calma. Le gare singole e il decathlon non arrivano qui (vedi Game.eventDone).
    */
   offer(id, v, p, leg) {
     if (!this.attivo() || this.d.ok === false) return;
@@ -219,10 +246,11 @@ const Share = {
     const uno = () => {
       const r = this.d.coda[0];
       if (!r) return this.fine(mandati, primi, false, fermo);
-      // col leggendario la firma porta anche il segno: il server lo accetta oltre il record vero
+      // col leggendario la firma porta anche il segno: il server lo accetta oltre il record vero.
+      // 'car' dice che viene da una gara di carriera: dalla 1.6.2 il server prende solo quelli.
       const corpo = {
-        ev: r.ev, v: r.v, who: r.who, nat: r.nat,
-        s: firmaRecord(r.ev + '|' + r.v + '|' + r.who + '|' + r.nat + (r.leg ? '|L' : '')),
+        ev: r.ev, v: r.v, who: r.who, nat: r.nat, car: 1,
+        s: firmaRecord(r.ev + '|' + r.v + '|' + r.who + '|' + r.nat + (r.leg ? '|L' : '') + '|C'),
       };
       if (r.leg) corpo.leg = 1;
       let late = false;

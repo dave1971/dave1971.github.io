@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.6.1.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.6.2.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -63,22 +63,23 @@ const Game = {
   menu() { return this.careerMode ? new CareerScene() : this.special ? new SpecialsScene(this.humans) : new MenuScene(this.humans); },
   eventDone(evIdx, res) {
     const meta = evMeta(evIdx);
-    // Anche le gare di carriera fanno record personale (al livello del campionato che si corre), e al
-    // Mondiale possono andare nella classifica mondiale come le gare singole. Prima ne restavano fuori
-    // ("un atleta in crescita"), ma chi gioca solo in carriera non vedeva mai un record.
+    // Anche le gare di carriera fanno record personale (al livello del campionato che si corre). Prima
+    // ne restavano fuori ("un atleta in crescita"), ma chi gioca solo in carriera non vedeva mai un record.
     // i record del torneo stanno per conto loro, separati da quelli delle Olimpiadi
     const R = recordsOf(meta);
     // una gara di carriera fatta con un oggetto leggendario: il record porta l'asterisco (anche in classifica)
     const leg = p => !!(this.careerMode && p === 0 && Career.legPer && Career.legPer(meta.id));
     const rec = res.map((r, p) => this.isCpu(p) ? false : R.submit(meta.id, r.value, meta.lowerBetter, PCOL[p].name, PCOL[p].short, undefined, leg(p)));
-    // un record personale al livello olimpico può valere la classifica mondiale: si mette in coda,
-    // la domanda si fa dal titolo, con calma
-    if (!this.special) rec.forEach((ok, p) => { if (ok) Share.offer(meta.id, res[p].value, p, leg(p)); });
     res.forEach((r, p) => { this.totals[p] += r.pts; });
     const order = rankResults(res, meta.lowerBetter);
     if (this.n > 1) order.forEach(o => { if (o.place && o.place <= 3) this.medals[o.p][o.place - 1]++; });
     this.table.push({ ev: evIdx, res, order });
     const pay = this.careerMode ? Career.eventDone(meta, res, order) : null;
+    // Nella classifica mondiale vanno solo le gare di carriera, al Mondiale: una gara singola si puo'
+    // ripetere finche' non esce il colpo fortunato, una carriera no. Conta il primato di quella carriera
+    // (pay.better), non il record personale, che puo' averlo fatto una gara singola. Si mette in coda:
+    // la domanda si fa dal titolo, con calma.
+    if (this.careerMode && !this.special && pay && pay.better) Share.offer(meta.id, res[0].value, Career.slot, leg(0));
     G.setScene(new ResultScene(evIdx, res, rec, order, pay));
   },
   next() {
@@ -826,7 +827,7 @@ class FinalScene extends Screen {
   enter() {
     super.enter();
     this.rec = Game.totals.map((t, p) => Game.isCpu(p) ? false : Records.submit('decathlon', t, false, PCOL[p].name, PCOL[p].short));
-    this.rec.forEach((ok, p) => { if (ok) Share.offer('decathlon', Game.totals[p], p); });
+    // il decathlon non e' una gara di carriera: il record resta personale, in classifica mondiale non va
     this.order = rankTotals(Game.totals);
     Snd.fanfare();
   }
@@ -1061,6 +1062,8 @@ class RecordsScene extends Screen {
     this.drawButtons(ctx);
     if (this.wait) txt(ctx, 'scarico i record...', cx, G.H - 44, 14, '#90caf9', 'center', { italic: false });
     else if (this.conLeg) txt(ctx, '* con un oggetto leggendario', cx, G.H - 82, 12, '#ffd54f', 'center', { italic: false });
+    // sotto il pulsante dell'invio: che cosa finisce nella classifica dei giocatori
+    if (Share.attivo()) txt(ctx, 'vanno in classifica solo le gare di carriera', W - 20, 66, 11, '#b0bec5', 'right', { italic: false, outline: false });
   }
 }
 
