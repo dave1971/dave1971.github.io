@@ -265,3 +265,35 @@ const Share = {
 };
 Share.load();
 
+// ===== I contatori =====
+// Un segnale minuscolo al Worker della classifica: "il gioco e' stato aperto", "e' partita una gara".
+// Serve a sapere quanto si gioca e da quale paese (lo vede Cloudflare, qui non si manda): niente nomi,
+// niente risultati, niente che dica chi sei. L'indirizzo e' quello degli invii, che arriva da
+// records.json: finche' non c'e', non parte niente.
+const Conta = {
+  SITO: 'neon-stadium', coda: [], fatte: {},
+  // da dove si gioca: nel browser, nell'app Android, nell'exe. Altrove (le prove in locale) non si conta.
+  dove() {
+    // chi sulla pagina delle statistiche ha scelto di non contarsi (vale per il sito, quindi per il gioco web)
+    try { if (localStorage.getItem('dave1971_noconta')) return ''; } catch (e) { /* niente memoria: si conta */ }
+    if (window.OLIMPIADI_PLATFORM === 'web') return /^(localhost$|127\.|\[::1\])/.test(location.hostname) ? '' : 'web';
+    if (window.OLIMPIADI_PLATFORM === 'win') return 'exe';
+    return location.protocol === 'file:' && /Android/i.test(navigator.userAgent || '') ? 'apk' : '';
+  },
+  // ogni cosa una volta sola per sessione: 'avvio', 'gara' (la prima), 'agg' (l'aggiornamento accettato)
+  manda(cosa) {
+    const d = this.dove();
+    if (!d || this.fatte[cosa]) return;
+    this.fatte[cosa] = true;
+    this.coda.push(cosa + '-' + d);
+    this.svuota();
+  },
+  svuota() {
+    const post = World.postUrl();
+    if (!/\/r$/.test(post) || typeof window.fetch !== 'function') return;
+    while (this.coda.length) {
+      const u = post.replace(/\/r$/, '/c') + '?s=' + this.SITO + '&e=' + this.coda.shift();
+      try { window.fetch(u, { method: 'POST', mode: 'no-cors', keepalive: true }).catch(() => {}); } catch (e) { /* pazienza */ }
+    }
+  },
+};

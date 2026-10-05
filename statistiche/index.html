@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Statistiche · dave1971</title>
+<!--
+  Le statistiche del sito, private: visite alle pagine, download, partite avviate, e da quale paese.
+  I numeri li tiene il Worker di Cloudflare (worker/src/worker.js, in fondo) e li da' solo a chi manda
+  la parola d'ordine: questa pagina non la contiene, la chiede e la passa. Nessun'altra pagina del sito
+  porta qui. Il sorgente e' site/statistiche/index.html nel progetto Olimpiadi.
+-->
+<style>
+  :root {
+    --bg: #10141f; --panel: rgba(255,255,255,0.06); --line: rgba(255,255,255,0.16); --griglia: rgba(255,255,255,0.09);
+    --testo: #e8eaf0; --tenue: #9aa7b8; --rosa: #ff4fd8; --ciano: #3ff0ff; --oro: #ffd600; --barra: #29b6d6;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--testo); min-height: 100vh;
+    font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif; line-height: 1.45; }
+  .pagina { width: 100%; max-width: 1100px; margin: 0 auto; padding: clamp(16px, 4vw, 36px); }
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 20px;
+    padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-style: italic; color: var(--rosa); font-size: clamp(26px, 5vw, 40px); line-height: 1.1; }
+  h1 span { color: var(--ciano); }
+  h2 { margin: 0 0 4px; color: var(--oro); font-size: 19px; }
+  .nota { margin: 0 0 12px; color: var(--tenue); font-size: 14px; }
+  section { margin-top: 26px; }
+  button, select, input { font: inherit; }
+  .tasto { background: var(--panel); color: var(--testo); border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 16px; min-height: 40px; cursor: pointer; font-size: 14px; }
+  .tasto[aria-pressed="true"] { border-color: var(--oro); color: var(--oro); font-weight: bold; }
+  .tasto:hover, .tasto:focus-visible { border-color: var(--ciano); }
+
+  /* la porta */
+  #porta { max-width: 420px; margin: 12vh auto 0; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 16px; padding: 22px; }
+  #porta label { display: block; font-size: 15px; margin-bottom: 8px; }
+  #porta input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: #0b0e17; color: var(--testo); font-size: 17px; }
+  #porta button { width: 100%; margin-top: 12px; padding: 12px; border-radius: 12px; border: 2px solid rgba(0,0,0,0.45);
+    background: #1565c0; color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; min-height: 46px; }
+  #errore { color: #ff8a80; font-size: 14px; min-height: 20px; margin: 10px 0 0; }
+
+  /* i filtri: una riga sola sopra tutto */
+  .filtri { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-top: 18px; }
+  .gruppo { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .gruppo > span { color: var(--tenue); font-size: 13px; margin-right: 2px; }
+  select.tasto { appearance: auto; padding-right: 10px; }
+
+  /* i numeri grossi */
+  .tessere { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); margin-top: 18px; }
+  .tessera { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .tessera .cosa { color: var(--tenue); font-size: 13px; }
+  .tessera .num { font-size: 34px; font-weight: bold; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .tessera .parti { color: #cfd6e0; font-size: 13px; min-height: 18px; }
+  .tessera .sempre { color: var(--tenue); font-size: 12px; margin-top: 4px; }
+
+  /* il grafico dei giorni */
+  .quadro { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; position: relative; }
+  #grafico { display: block; width: 100%; height: 240px; }
+  #grafico text { fill: var(--tenue); font-size: 11px; font-family: inherit; }
+  #grafico .g { stroke: var(--griglia); stroke-width: 1; }
+  #grafico .b { fill: var(--barra); }
+  #grafico .b.su { fill: #7fdcf0; }
+  #fumetto { position: absolute; pointer-events: none; background: #0b0e17; border: 1px solid var(--line); border-radius: 8px;
+    padding: 6px 10px; font-size: 13px; white-space: nowrap; display: none; z-index: 2; }
+  #fumetto b { font-variant-numeric: tabular-nums; }
+
+  /* le tabelle */
+  .scorri { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--griglia); white-space: nowrap;
+    font-variant-numeric: tabular-nums; }
+  th { color: var(--tenue); font-weight: normal; font-size: 12px; vertical-align: bottom; }
+  th:first-child, td:first-child { text-align: left; }
+  td.zero { color: #56627a; }
+  tr.tot td { font-weight: bold; border-top: 1px solid var(--line); }
+
+  .riga { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+  .spunta { display: flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
+  .spunta input { width: 18px; height: 18px; }
+  footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--line); color: #78909c; font-size: 13px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+  <header>
+    <h1>STATISTICHE <span>DAVE1971</span></h1>
+    <button type="button" class="tasto" id="esci" hidden>Esci</button>
+  </header>
+
+  <!-- method post e onsubmit: se lo script qui sotto non partisse, il modulo non deve mai spedirsi da
+       solo, perche' un modulo "get" metterebbe la parola d'ordine nell'indirizzo della pagina -->
+  <form id="porta" method="post" action="#" onsubmit="return false" autocomplete="on">
+    <label for="parola">Parola d'ordine</label>
+    <input type="password" id="parola" name="password" autocomplete="current-password" required>
+    <button type="submit">Entra</button>
+    <p id="errore" role="alert"></p>
+  </form>
+
+  <main id="dentro" hidden>
+    <div class="filtri">
+      <div class="gruppo" id="periodi" role="group" aria-label="Periodo">
+        <span>Periodo</span>
+        <button type="button" class="tasto" data-g="7">7 giorni</button>
+        <button type="button" class="tasto" data-g="30">30 giorni</button>
+        <button type="button" class="tasto" data-g="90">90 giorni</button>
+        <button type="button" class="tasto" data-g="365">un anno</button>
+      </div>
+      <div class="gruppo">
+        <span>Progetto</span>
+        <select class="tasto" id="progetto" aria-label="Progetto"></select>
+      </div>
+    </div>
+
+    <div class="tessere" id="tessere"></div>
+
+    <section>
+      <div class="riga" style="justify-content: space-between;">
+        <h2>Giorno per giorno</h2>
+        <div class="gruppo">
+          <span>Mostra</span>
+          <select class="tasto" id="misura" aria-label="Cosa mostrare nel grafico"></select>
+        </div>
+      </div>
+      <p class="nota" id="notaGrafico"></p>
+      <div class="quadro">
+        <svg id="grafico" role="img" aria-label="Andamento giorno per giorno"></svg>
+        <div id="fumetto"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Per progetto</h2>
+      <p class="nota">Nel periodo scelto. Una sessione è il gioco aperto una volta; "con gara" vuol dire che è partita almeno una gara.</p>
+      <div class="quadro scorri"><table id="tabProgetti"></table></div>
+    </section>
+
+    <section>
+      <h2>Da dove</h2>
+      <p class="nota">Il paese lo vede Cloudflare a ogni richiesta; qui arrivano solo i totali.</p>
+      <div class="quadro scorri"><table id="tabPaesi"></table></div>
+    </section>
+
+    <section>
+      <h2>Download secondo GitHub</h2>
+      <p class="nota">I file allegati alle release li conta GitHub da sé, da sempre. Comprende gli aggiornamenti automatici
+        e le verifiche fatte dopo ogni pubblicazione, quindi è più alto dei clic sul pulsante.</p>
+      <div class="quadro scorri"><table id="tabGithub"><tr><td>…</td></tr></table></div>
+    </section>
+
+    <section>
+      <label class="spunta"><input type="checkbox" id="noconta"> Non contare le mie visite da questo dispositivo</label>
+      <p class="nota" style="margin-top: 6px;">Vale per le pagine del sito e per il gioco nel browser, su questo browser soltanto.</p>
+    </section>
+
+    <footer id="piede"></footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var locale = /^(localhost$|127\.)/.test(location.hostname);
+  // in locale si parla col Worker di prova (npx wrangler dev), mai con quello vero
+  var W = locale ? 'http://127.0.0.1:8787' : 'https://olimpiadi-record.olimpiadi-dave1971.workers.dev';
+  var REPO = 'dave1971/dave1971.github.io';
+
+  // le misure: ognuna somma uno o piu' eventi del Worker
+  var MISURE = [
+    { k: 'visite', nome: 'Visite alle pagine', ev: ['visita'] },
+    { k: 'download', nome: 'Download', ev: ['scarica-apk', 'scarica-exe', 'scarica-zip'], parti: { 'scarica-apk': 'apk', 'scarica-exe': 'exe', 'scarica-zip': 'zip' } },
+    { k: 'sessioni', nome: 'Sessioni di gioco', ev: ['avvio-web', 'avvio-apk', 'avvio-exe'], parti: { 'avvio-web': 'web', 'avvio-apk': 'apk', 'avvio-exe': 'exe' } },
+    { k: 'gare', nome: 'Sessioni con gara', ev: ['gara-web', 'gara-apk', 'gara-exe'], parti: { 'gara-web': 'web', 'gara-apk': 'apk', 'gara-exe': 'exe' } },
+    { k: 'apri', nome: 'Clic su "gioca nel browser"', ev: ['apri-web'] },
+    { k: 'agg', nome: 'Aggiornamenti dall\'app', ev: ['agg-apk', 'agg-exe'], parti: { 'agg-apk': 'apk', 'agg-exe': 'exe' } },
+  ];
+  // le colonne della tabella per progetto, nell'ordine in cui si leggono
+  var COLONNE = [['visita', 'visite'], ['scarica-apk', 'download apk'], ['scarica-exe', 'download exe'], ['scarica-zip', 'download zip'],
+    ['apri-web', 'clic gioca web'], ['avvio-web', 'sessioni web'], ['avvio-apk', 'sessioni apk'], ['avvio-exe', 'sessioni exe'],
+    ['gara-web', 'con gara web'], ['gara-apk', 'con gara apk'], ['gara-exe', 'con gara exe'], ['agg-apk', 'agg. apk'], ['agg-exe', 'agg. exe']];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var num = function (n) { return (n || 0).toLocaleString('it-IT'); };
+  var stato = { giorni: 30, progetto: '', misura: 'visite', dati: null, parola: '' };
+  var ricordo = {
+    leggi: function (k) { try { return sessionStorage.getItem(k) || ''; } catch (e) { return ''; } },
+    scrivi: function (k, v) { try { if (v) sessionStorage.setItem(k, v); else sessionStorage.removeItem(k); } catch (e) { /* pazienza */ } },
+  };
+
+  // ---------- la porta ----------
+  function chiedi(parola, giorni) {
+    return fetch(W + '/stat?giorni=' + giorni, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: parola, cache: 'no-store' })
+      .then(function (r) { return r.json().then(function (d) { d.stato = r.status; return d; }); });
+  }
+  function entra(parola) {
+    $('errore').textContent = '';
+    return chiedi(parola, stato.giorni).then(function (d) {
+      if (!d.ok) {
+        ricordo.scrivi('stat_parola', '');
+        $('errore').textContent = d.stato === 403 ? 'Parola d\'ordine sbagliata.'
+          : d.stato === 429 ? 'Troppi tentativi: aspetta un minuto.'
+          : d.stato === 503 ? 'La parola d\'ordine non è ancora stata impostata sul Worker.'
+          : 'Il Worker ha risposto ' + d.stato + '.';
+        mostra(false);
+        return;
+      }
+      stato.parola = parola; stato.dati = d;
+      ricordo.scrivi('stat_parola', parola);
+      mostra(true);
+      disegna();
+    }).catch(function () { $('errore').textContent = 'Il Worker non risponde: riprova fra poco.'; mostra(false); });
+  }
+  function mostra(dentro) {
+    $('porta').hidden = dentro; $('dentro').hidden = !dentro; $('esci').hidden = !dentro;
+    if (!dentro) $('parola').focus();
+  }
+  $('porta').addEventListener('submit', function (ev) { ev.preventDefault(); entra($('parola').value); });
+  $('esci').addEventListener('click', function () {
+    stato.parola = ''; stato.dati = null; ricordo.scrivi('stat_parola', ''); $('parola').value = ''; mostra(false);
+  });
+
+  // ---------- i conti ----------
+  // righe del Worker: [giorno, progetto, evento, paese, quante]
+  function righe() {
+    var p = stato.progetto;
+    return stato.dati.righe.filter(function (r) { return !p || r[1] === p; });
+  }
+  function somma(rr, eventi) {
+    var n = 0;
+    for (var i = 0; i < rr.length; i++) if (eventi.indexOf(rr[i][2]) >= 0) n += rr[i][4];
+    return n;
+  }
+  function giorniDelPeriodo() {
+    var out = [], a = new Date(stato.dati.da + 'T00:00:00Z'), b = new Date(stato.dati.oggi + 'T00:00:00Z');
+    for (var t = a.getTime(); t <= b.getTime(); t += 864e5) out.push(new Date(t).toISOString().slice(0, 10));
+    return out;
+  }
+  var mesi = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+  function giornoBreve(g) { return +g.slice(8) + ' ' + mesi[+g.slice(5, 7) - 1]; }
+  var nomePaese = (function () {
+    var dn = null;
+    try { dn = new Intl.DisplayNames(['it'], { type: 'region' }); } catch (e) { /* si mostra la sigla */ }
+    return function (c) {
+      if (c === 'XX') return 'Non si sa';
+      if (c === 'T1') return 'Rete Tor';
+      try { return dn ? dn.of(c) : c; } catch (e) { return c; }
+    };
+  })();
+
+  // ---------- il disegno ----------
+  function disegna() {
+    var d = stato.dati;
+    // i progetti che hanno almeno un numero, di sempre
+    var progetti = [];
+    d.totali.forEach(function (t) { if (progetti.indexOf(t.s) < 0) progetti.push(t.s); });
+    progetti.sort();
+    var sel = $('progetto'), tenuto = stato.progetto;
+    sel.innerHTML = '';
+    [''].concat(progetti).forEach(function (p) {
+      var o = document.createElement('option'); o.value = p; o.textContent = p || 'Tutti'; sel.appendChild(o);
+    });
+    sel.value = progetti.indexOf(tenuto) >= 0 ? tenuto : '';
+    stato.progetto = sel.value;
+
+    var bb = document.querySelectorAll('#periodi button');
+    for (var i = 0; i < bb.length; i++) bb[i].setAttribute('aria-pressed', +bb[i].getAttribute('data-g') === stato.giorni ? 'true' : 'false');
+
+    var rr = righe();
+    tessere(rr);
+    grafico(rr);
+    tabProgetti(progetti);
+    tabPaesi(rr);
+
+    var dal = '';
+    d.totali.forEach(function (t) { if (!dal || t.dal < dal) dal = t.dal; });
+    $('piede').textContent = 'Periodo: dal ' + giornoBreve(d.da) + ' a oggi (i giorni sono in ora UTC). ' +
+      (dal ? 'Il contatore conta dal ' + giornoBreve(dal) + ' ' + dal.slice(0, 4) + '.' : 'Il contatore non ha ancora contato niente.');
+  }
+
+  function tessere(rr) {
+    var box = $('tessere'); box.innerHTML = '';
+    MISURE.forEach(function (m) {
+      var n = somma(rr, m.ev), parti = '';
+      if (m.parti) parti = m.ev.map(function (e) { return m.parti[e] + ' ' + num(somma(rr, [e])); }).join(' · ');
+      var sempre = 0;
+      stato.dati.totali.forEach(function (t) { if ((!stato.progetto || t.s === stato.progetto) && m.ev.indexOf(t.e) >= 0) sempre += t.n; });
+      var t = document.createElement('div'); t.className = 'tessera';
+      t.innerHTML = '<div class="cosa"></div><div class="num"></div><div class="parti"></div><div class="sempre"></div>';
+      t.children[0].textContent = m.nome;
+      t.children[1].textContent = num(n);
+      t.children[2].textContent = parti;
+      t.children[3].textContent = 'da sempre: ' + num(sempre);
+      box.appendChild(t);
+    });
+  }
+
+  // un valore "bello" appena sopra il massimo, per la scala
+  function tetto(v) {
+    if (v <= 4) return 4;
+    var p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 4 ? 4 : f <= 5 ? 5 : 10) * p;
+  }
+  function grafico(rr) {
+    var svg = $('grafico'), m = MISURE.filter(function (x) { return x.k === stato.misura; })[0];
+    var giorni = giorniDelPeriodo(), per = {};
+    rr.forEach(function (r) { if (m.ev.indexOf(r[2]) >= 0) per[r[0]] = (per[r[0]] || 0) + r[4]; });
+    var valori = giorni.map(function (g) { return per[g] || 0; });
+    var tot = valori.reduce(function (a, b) { return a + b; }, 0);
+    $('notaGrafico').textContent = m.nome + ' al giorno' + (stato.progetto ? ' · ' + stato.progetto : ' · tutti i progetti') + ' · ' + num(tot) + ' nel periodo';
+
+    var Wd = Math.max(280, svg.clientWidth || 600), H = 240, sx = 38, dx = 8, su = 12, giu = 26;
+    var max = tetto(Math.max.apply(null, valori.concat([1]))), n = giorni.length, passo = (Wd - sx - dx) / n;
+    var larga = Math.max(1, passo - (passo > 5 ? 2 : passo > 2.5 ? 1 : 0)), y0 = H - giu, alt = y0 - su;
+    var ns = 'http://www.w3.org/2000/svg';
+    function el(nome, attr, testo) {
+      var e = document.createElementNS(ns, nome);
+      for (var k in attr) e.setAttribute(k, attr[k]);
+      if (testo != null) e.textContent = testo;
+      svg.appendChild(e);
+      return e;
+    }
+    svg.innerHTML = '';
+    svg.setAttribute('viewBox', '0 0 ' + Wd + ' ' + H);
+    // la griglia: quattro linee, con i numeri a sinistra
+    for (var i = 0; i <= 4; i++) {
+      var y = y0 - alt * i / 4;
+      el('line', { class: 'g', x1: sx, x2: Wd - dx, y1: y, y2: y });
+      el('text', { x: sx - 6, y: y + 4, 'text-anchor': 'end' }, num(max * i / 4));
+    }
+    // le barre, e sotto ognuna una colonna invisibile alta quanto il grafico: e' quella che si tocca
+    var ogni = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((Wd - sx - dx) / 64))));
+    var barre = [];
+    giorni.forEach(function (g, j) {
+      var x = sx + j * passo + (passo - larga) / 2, h = valori[j] / max * alt, r = Math.min(4, larga / 2, h);
+      if (h > 0) {
+        barre[j] = el('path', { class: 'b', d: 'M' + x + ' ' + y0 + 'V' + (y0 - h + r) + 'q0 ' + (-r) + ' ' + r + ' ' + (-r) +
+          'h' + (larga - 2 * r) + 'q' + r + ' 0 ' + r + ' ' + r + 'V' + y0 + 'z' });
+      }
+      if (j % ogni === 0 || j === n - 1 && j % ogni > ogni / 2) el('text', { x: sx + j * passo + passo / 2, y: H - 8, 'text-anchor': 'middle' }, giornoBreve(g));
+      var c = el('rect', { x: sx + j * passo, y: su, width: passo, height: alt, fill: 'transparent' });
+      c.addEventListener('mouseenter', function () { fumetto(j, g, valori[j], sx + j * passo + passo / 2, y0 - h, Wd); if (barre[j]) barre[j].setAttribute('class', 'b su'); });
+      c.addEventListener('mouseleave', function () { $('fumetto').style.display = 'none'; if (barre[j]) barre[j].setAttribute('class', 'b'); });
+      c.addEventListener('click', function () { fumetto(j, g, valori[j], sx + j * passo + passo / 2, y0 - h, Wd); });
+    });
+  }
+  function fumetto(j, g, v, x, y, Wd) {
+    var f = $('fumetto'), svg = $('grafico'), k = svg.clientWidth / Wd;
+    f.innerHTML = '';
+    var b = document.createElement('b'); b.textContent = num(v);
+    f.appendChild(b); f.appendChild(document.createTextNode('  ·  ' + giornoBreve(g) + ' ' + g.slice(0, 4)));
+    f.style.display = 'block';
+    var lx = svg.offsetLeft + x * k - f.offsetWidth / 2;
+    lx = Math.max(4, Math.min(lx, svg.offsetLeft + svg.clientWidth - f.offsetWidth - 4));
+    f.style.left = lx + 'px';
+    f.style.top = Math.max(0, svg.offsetTop + y * k - f.offsetHeight - 8) + 'px';
+  }
+
+  function cella(tr, testo, classe) {
+    var td = document.createElement('td'); td.textContent = testo; if (classe) td.className = classe; tr.appendChild(td); return td;
+  }
+  function testata(tab, nomi) {
+    tab.innerHTML = '';
+    var tr = document.createElement('tr');
+    nomi.forEach(function (n) { var th = document.createElement('th'); th.textContent = n; tr.appendChild(th); });
+    tab.appendChild(tr);
+  }
+  function tabProgetti(progetti) {
+    var tab = $('tabProgetti'), tutte = stato.dati.righe;
+    // solo le colonne in cui c'e' almeno un numero: una tabella di zeri non la legge nessuno
+    var col = COLONNE.filter(function (c) { return somma(tutte, [c[0]]) > 0; });
+    if (!col.length) { tab.innerHTML = '<tr><td>Ancora niente in questo periodo.</td></tr>'; return; }
+    testata(tab, ['progetto'].concat(col.map(function (c) { return c[1]; })));
+    var tot = col.map(function () { return 0; });
+    progetti.forEach(function (p) {
+      var rr = tutte.filter(function (r) { return r[1] === p; });
+      if (!rr.length) return;
+      var tr = document.createElement('tr'); cella(tr, p);
+      col.forEach(function (c, i) { var n = somma(rr, [c[0]]); tot[i] += n; cella(tr, n ? num(n) : '–', n ? '' : 'zero'); });
+      tab.appendChild(tr);
+    });
+    var tr = document.createElement('tr'); tr.className = 'tot'; cella(tr, 'in tutto');
+    tot.forEach(function (n) { cella(tr, num(n)); });
+    tab.appendChild(tr);
+  }
+  function tabPaesi(rr) {
+    var tab = $('tabPaesi'), per = {};
+    var gruppi = [MISURE[0], MISURE[1], MISURE[2], MISURE[3]];
+    rr.forEach(function (r) {
+      var o = per[r[3]] || (per[r[3]] = { tot: 0, v: [0, 0, 0, 0] });
+      gruppi.forEach(function (m, i) { if (m.ev.indexOf(r[2]) >= 0) { o.v[i] += r[4]; o.tot += r[4]; } });
+    });
+    var paesi = Object.keys(per).filter(function (c) { return per[c].tot > 0; })
+      .sort(function (a, b) { return per[b].tot - per[a].tot || (a < b ? -1 : 1); });
+    if (!paesi.length) { tab.innerHTML = '<tr><td>Ancora niente in questo periodo.</td></tr>'; return; }
+    testata(tab, ['paese', 'visite', 'download', 'sessioni di gioco', 'con gara']);
+    paesi.slice(0, 40).forEach(function (c) {
+      var tr = document.createElement('tr'); cella(tr, nomePaese(c) + (c.length === 2 && c !== 'XX' && c !== 'T1' ? '  (' + c + ')' : ''));
+      per[c].v.forEach(function (n) { cella(tr, n ? num(n) : '–', n ? '' : 'zero'); });
+      tab.appendChild(tr);
+    });
+    if (paesi.length > 40) { var tr = document.createElement('tr'); cella(tr, 'e altri ' + (paesi.length - 40) + ' paesi').colSpan = 5; tab.appendChild(tr); }
+  }
+
+  // i download che conta GitHub: i file allegati alle release, sommati per nome
+  function github() {
+    var tab = $('tabGithub');
+    fetch('https://api.github.com/repos/' + REPO + '/releases?per_page=100')
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (rel) {
+        var per = {}, ultima = {};
+        rel.forEach(function (x) {
+          (x.assets || []).forEach(function (a) {
+            per[a.name] = (per[a.name] || 0) + a.download_count;
+            if (!ultima[a.name] || x.published_at > ultima[a.name].quando) ultima[a.name] = { quando: x.published_at, tag: x.tag_name, n: a.download_count };
+          });
+        });
+        var nomi = Object.keys(per).sort();
+        if (!nomi.length) { tab.innerHTML = '<tr><td>Nessun file allegato alle release.</td></tr>'; return; }
+        testata(tab, ['file', 'in tutto', 'ultima versione', 'download dell\'ultima']);
+        nomi.forEach(function (n) {
+          var tr = document.createElement('tr');
+          cella(tr, n); cella(tr, num(per[n])); cella(tr, ultima[n].tag); cella(tr, num(ultima[n].n));
+          tab.appendChild(tr);
+        });
+      })
+      .catch(function () { tab.innerHTML = '<tr><td>GitHub non risponde adesso (ha un limite di richieste all\'ora): riprova più tardi.</td></tr>'; });
+  }
+
+  // ---------- i comandi ----------
+  $('periodi').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    stato.giorni = +b.getAttribute('data-g');
+    chiedi(stato.parola, stato.giorni).then(function (d) { if (d.ok) { stato.dati = d; disegna(); } else entra(stato.parola); })
+      .catch(function () { /* resta quello che c'era */ });
+  });
+  $('progetto').addEventListener('change', function () { stato.progetto = this.value; disegna(); });
+  MISURE.forEach(function (m) { var o = document.createElement('option'); o.value = m.k; o.textContent = m.nome; $('misura').appendChild(o); });
+  $('misura').addEventListener('change', function () { stato.misura = this.value; grafico(righe()); });
+  var attesa = 0;
+  window.addEventListener('resize', function () { clearTimeout(attesa); attesa = setTimeout(function () { if (stato.dati) grafico(righe()); }, 120); });
+
+  var nc = $('noconta');
+  try { nc.checked = !!localStorage.getItem('dave1971_noconta'); } catch (e) { nc.disabled = true; }
+  nc.addEventListener('change', function () {
+    try { if (nc.checked) localStorage.setItem('dave1971_noconta', '1'); else localStorage.removeItem('dave1971_noconta'); } catch (e) { nc.checked = false; }
+  });
+
+  github();
+  var salvata = ricordo.leggi('stat_parola');
+  if (salvata) entra(salvata); else mostra(false);
+})();
+</script>
+</body>
+</html>

@@ -10,7 +10,7 @@
 
 const UPDATE_URL = 'https://dave1971.github.io/olimpiadi/version.json';
 const GAME_PAGE = 'https://dave1971.github.io/olimpiadi/';
-const GAME_BUILD = 99; // must match versionCode in app/build.gradle (the build fails if it drifts)
+const GAME_BUILD = 100; // must match versionCode in app/build.gradle (the build fails if it drifts)
 
 const Updater = {
   info: null, started: false,
@@ -56,6 +56,7 @@ const Updater = {
   open() {
     const d = this.info || {};
     const u = this.direct() || d.url || GAME_PAGE;
+    if (this.direct()) Conta.manda('agg');     // l'aggiornamento scaricato da dentro l'app
     this.info = null;
     // in the app the WebView hands http(s) links to the system browser
     try { if (!window.open(u, '_blank')) location.href = u; } catch (e) { location.href = u; }

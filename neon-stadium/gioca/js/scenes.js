@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.6.0.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.6.1.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -580,7 +580,7 @@ class EventScene {
     // il breaking porta la sua musica, a tempo con le note: quella della gara la coprirebbe
     this.music = this.meta.music || 'race';
   }
-  enter() { Snd.startTune(); }
+  enter() { Snd.startTune(); Conta.manda('gara'); }
   // Right-handers press action 1 (A) with the right hand, action 2 (B) with the left; lefties swap.
   // With two players each holds one half: for G1 the dominant hand is the inner button, for G2 the outer one.
   // Tutta la striscia di schermo di un pulsante lo preme, non solo il cerchio. In due giocatori il confine
