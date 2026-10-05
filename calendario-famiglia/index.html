@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Calendario</title>
+<style>
+  :root {
+    --bg: #f4f1ea; --carta: #ffffff; --testo: #1d2230; --tenue: #5f6b7d; --linea: #dcd6c8;
+    --accento: #24324a; --su-accento: #ffffff;
+    --mamma: #b0256a; --mamma-s: #fbe3ee;
+    --papa: #1c5fc0; --papa-s: #e0ecfc;
+    --entrambi: #0d7566; --entrambi-s: #d9f2ed;
+    --avviso: #a34b06; --avviso-s: #fdecc8;
+    --pericolo: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10141f; --carta: #1a2030; --testo: #eef1f6; --tenue: #9aa5b8; --linea: #2f384d;
+      --accento: #9dbcff; --su-accento: #10141f;
+      --mamma: #ff8cc0; --mamma-s: #4a1f37;
+      --papa: #8dbbff; --papa-s: #1c3358;
+      --entrambi: #6fd9c6; --entrambi-s: #14403a;
+      --avviso: #ffc266; --avviso-s: #4a3410;
+      --pericolo: #ff8a80;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--testo); min-height: 100vh;
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; font-size: 16px; line-height: 1.4; }
+  [hidden] { display: none !important; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; min-height: 40px; padding: 8px 14px; border-radius: 10px;
+    border: 1px solid var(--linea); background: var(--carta); }
+  button:hover { border-color: var(--tenue); }
+  button.primario { background: var(--accento); color: var(--su-accento); border-color: var(--accento); font-weight: bold; }
+  button.piano { background: transparent; }
+  button.pericolo { color: var(--pericolo); border-color: var(--pericolo); background: transparent; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  :focus-visible { outline: 3px solid var(--accento); outline-offset: 2px; }
+  input, select, textarea { width: 100%; min-height: 44px; padding: 9px 11px; border-radius: 10px;
+    border: 1px solid var(--linea); background: var(--carta); }
+  textarea { resize: vertical; }
+  .spazio { flex: 1; }
+
+  /* ---------- la porta: parola d'ordine, e chi sei ---------- */
+  .porta { max-width: 360px; margin: 0 auto; padding: 18vh 16px 40px; }
+  .porta h1 { font-size: 26px; margin: 0 0 18px; }
+  .porta label { display: block; color: var(--tenue); font-size: 14px; }
+  .porta input { margin-top: 6px; }
+  .porta button { width: 100%; margin-top: 12px; min-height: 48px; }
+  .porta .errore { color: var(--pericolo); min-height: 22px; margin: 10px 0 0; font-size: 14px; }
+
+  /* ---------- la testata ---------- */
+  #app { max-width: 1240px; margin: 0 auto; padding: 14px 16px 60px; }
+  .riga { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .testa h1 { font-size: 22px; margin: 0; }
+  .sono { display: flex; align-items: center; gap: 8px; color: var(--tenue); font-size: 14px; }
+  .sono select { width: auto; min-height: 40px; color: var(--testo); font-weight: bold; }
+  .comandi { margin-top: 12px; }
+  .nav, .viste { display: flex; }
+  .nav button, .viste button { border-radius: 0; margin-left: -1px; }
+  .nav button:first-child, .viste button:first-child { border-radius: 10px 0 0 10px; margin-left: 0; }
+  .nav button:last-child, .viste button:last-child { border-radius: 0 10px 10px 0; }
+  .nav button { min-width: 44px; }
+  .viste button[aria-pressed="true"] { background: var(--accento); color: var(--su-accento); border-color: var(--accento); }
+  #periodo { font-size: 20px; margin: 0; text-transform: capitalize; }
+  .legenda { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0 10px; font-size: 13px; color: var(--tenue); }
+  .legenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .legenda i { width: 12px; height: 12px; border-radius: 50%; background: var(--c); display: inline-block; }
+  .legenda i.vuoto { background: transparent; border: 2px dashed var(--avviso); }
+  #avviso { position: sticky; top: 8px; z-index: 5; margin: 10px 0; padding: 10px 14px; border-radius: 10px;
+    background: var(--avviso-s); color: var(--testo); border: 1px solid var(--avviso); }
+
+  .mamma { --c: var(--mamma); --s: var(--mamma-s); }
+  .papa { --c: var(--papa); --s: var(--papa-s); }
+  .entrambi { --c: var(--entrambi); --s: var(--entrambi-s); }
+
+  /* ---------- il mese ---------- */
+  .nomi, #griglia { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .nomi div { padding: 6px 4px; font-size: 13px; color: var(--tenue); text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+  #griglia { border-top: 1px solid var(--linea); border-left: 1px solid var(--linea); border-radius: 12px; overflow: hidden; background: var(--carta); }
+  .cella { min-height: 112px; padding: 4px; border-right: 1px solid var(--linea); border-bottom: 1px solid var(--linea); cursor: pointer; min-width: 0; }
+  .cella.fuori { background: var(--bg); }
+  .cella.fuori .num { color: var(--tenue); }
+  .cella.scelto { box-shadow: inset 0 0 0 2px var(--accento); }
+  .num { min-height: 28px; min-width: 28px; padding: 0 6px; border: 0; border-radius: 14px; background: transparent; font-size: 14px; }
+  .cella.oggi .num { background: var(--accento); color: var(--su-accento); font-weight: bold; }
+  .chips { display: flex; flex-direction: column; gap: 3px; margin-top: 2px; }
+  .chip { min-height: 0; padding: 2px 6px; border: 0; border-left: 4px solid var(--c); border-radius: 5px; background: var(--s);
+    font-size: 12.5px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+  .chip b { font-weight: bold; margin-right: 4px; }
+  .chip.libero { outline: 1px dashed var(--avviso); outline-offset: -1px; }
+  .chip.passato, .ev.passato { opacity: 0.6; }
+  .altri { font-size: 12px; color: var(--tenue); padding-left: 4px; }
+
+  /* ---------- le schede degli appuntamenti (il giorno scelto, la settimana) ---------- */
+  .pannello { margin-top: 18px; }
+  .pannello h3, .col h3 { margin: 0; font-size: 17px; }
+  .pannello h3::first-letter { text-transform: uppercase; }
+  .lista { display: grid; gap: 10px; margin-top: 10px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .niente { color: var(--tenue); margin: 10px 0 0; font-size: 14px; }
+  .ev { background: var(--carta); border: 1px solid var(--linea); border-left: 6px solid var(--c); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+  .ev .ora { font-size: 18px; font-weight: bold; margin-right: 8px; }
+  .ev .per { display: inline-block; padding: 1px 9px; border-radius: 10px; background: var(--s); font-size: 13px; font-weight: bold; }
+  .ev .descr { font-size: 16px; margin: 6px 0 0; overflow-wrap: anywhere; }
+  .ev .note { font-size: 14px; color: var(--tenue); margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere;
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .incarico { display: inline-block; margin-top: 8px; padding: 2px 10px; border-radius: 10px; font-size: 13px; border: 1px solid var(--linea); }
+  .incarico.mio { color: var(--accento); border-color: var(--accento); font-weight: bold; }
+  .incarico.libero { background: var(--avviso-s); border: 1px dashed var(--avviso); font-weight: bold; }
+  .ev .azioni { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .ev .azioni button { min-height: 36px; padding: 5px 12px; font-size: 14px; }
+
+  /* ---------- la settimana ---------- */
+  #settimana { display: grid; gap: 14px; grid-template-columns: 1fr; }
+  .col { min-width: 0; }
+  .col .capo { display: flex; align-items: center; gap: 8px; padding-bottom: 6px; border-bottom: 2px solid var(--linea); }
+  .col h3 { text-transform: capitalize; flex: 1; }
+  .col.oggi .capo { border-color: var(--accento); }
+  .col.oggi h3::after { content: " · oggi"; color: var(--tenue); font-weight: normal; text-transform: none; font-size: 14px; }
+  .col .capo button { min-height: 34px; min-width: 34px; padding: 0 10px; }
+  .col .lista { grid-template-columns: 1fr; }
+  @media (min-width: 1040px) {
+    #settimana { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; align-items: start; }
+    .col h3 { font-size: 15px; }
+    .col .ev { padding: 8px 9px; }
+    .col .ev .ora { display: block; }
+    .col .ev .per { margin-top: 2px; }
+  }
+
+  /* sul telefono le celle del mese sono troppo strette per il testo: restano i pallini colorati,
+     e gli appuntamenti si leggono sotto, toccando il giorno */
+  @media (max-width: 699px) {
+    #app { padding: 10px 10px 50px; }
+    .testa h1 { font-size: 19px; }
+    #periodo { font-size: 17px; order: -1; width: 100%; }
+    .cella { min-height: 58px; padding: 3px 1px; text-align: center; }
+    .chips { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 3px; }
+    .chip { width: 9px; height: 9px; padding: 0; border: 0; border-radius: 50%; background: var(--c); font-size: 0; pointer-events: none; }
+    .chip.libero { background: transparent; border: 2px solid var(--c); outline: 0; }
+    .altri { font-size: 10px; padding: 0; line-height: 9px; }
+    .nomi div { font-size: 11px; letter-spacing: 0; }
+  }
+
+  /* ---------- la finestra dell'appuntamento ---------- */
+  dialog { width: min(520px, calc(100vw - 20px)); max-height: calc(100vh - 20px); padding: 0; border: 1px solid var(--linea);
+    border-radius: 16px; background: var(--bg); color: var(--testo); }
+  dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
+  #modulo { padding: 18px; display: grid; gap: 14px; }
+  #modulo h2 { margin: 0; font-size: 20px; }
+  #modulo label, #modulo legend { font-size: 14px; color: var(--tenue); display: block; padding: 0; }
+  #modulo label > input, #modulo label > textarea, #modulo label > .con-bottone { margin-top: 5px; }
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .perchi div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 5px; }
+  #modulo .perchi label.scelta { position: relative; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 46px; padding: 6px;
+    border: 2px solid var(--linea); border-radius: 10px; background: var(--carta); color: var(--testo); font-size: 15px; cursor: pointer; }
+  .perchi input { position: absolute; opacity: 0; width: 100%; height: 100%; left: 0; top: 0; margin: 0; cursor: pointer; }
+  .perchi label.scelta:has(input:checked) { border-color: var(--c); background: var(--s); font-weight: bold; }
+  .perchi label.scelta:has(input:focus-visible) { outline: 3px solid var(--accento); outline-offset: 2px; }
+  .due { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
+  .con-bottone { display: flex; gap: 8px; }
+  .con-bottone button { white-space: nowrap; }
+  .storia { margin: 0; font-size: 12.5px; color: var(--tenue); }
+  .piede { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #fErrore { margin: 0; color: var(--pericolo); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<main class="porta" id="entra" hidden>
+  <h1>Calendario</h1>
+  <form id="formEntra">
+    <label>Parola d'ordine
+      <input type="password" id="parola" autocomplete="current-password" required>
+    </label>
+    <button type="submit" class="primario">Entra</button>
+    <p class="errore" id="erroreEntra" role="alert"></p>
+  </form>
+</main>
+
+<main class="porta" id="chisei" hidden>
+  <h1>Chi sei?</h1>
+  <div id="bottoniChi"></div>
+</main>
+
+<div id="app" hidden>
+  <header class="testa">
+    <div class="riga">
+      <h1>Mamma e papà</h1>
+      <span class="spazio"></span>
+      <label class="sono">Sono <select id="io"></select></label>
+      <button type="button" id="esci" class="piano">Esci</button>
+    </div>
+    <div class="riga comandi">
+      <div class="nav">
+        <button type="button" id="prima" aria-label="Indietro">‹</button>
+        <button type="button" id="oggi">Oggi</button>
+        <button type="button" id="dopo" aria-label="Avanti">›</button>
+      </div>
+      <h2 id="periodo"></h2>
+      <span class="spazio"></span>
+      <div class="viste" role="group" aria-label="Vista">
+        <button type="button" id="vMese">Mese</button>
+        <button type="button" id="vSettimana">Settimana</button>
+      </div>
+      <button type="button" id="nuovo" class="primario">+ Nuovo</button>
+    </div>
+    <div class="legenda">
+      <span class="mamma"><i></i>Mamma</span>
+      <span class="papa"><i></i>Papà</span>
+      <span class="entrambi"><i></i>Mamma e papà</span>
+      <span><i class="vuoto"></i>Da assegnare</span>
+    </div>
+  </header>
+
+  <div id="avviso" role="status" hidden></div>
+
+  <section id="mese">
+    <div class="nomi"><div>lun</div><div>mar</div><div>mer</div><div>gio</div><div>ven</div><div>sab</div><div>dom</div></div>
+    <div id="griglia"></div>
+    <div class="pannello">
+      <div class="riga"><h3 id="giornoTitolo"></h3><span class="spazio"></span><button type="button" id="nuovoGiorno">+ Aggiungi</button></div>
+      <div id="giornoLista"></div>
+    </div>
+  </section>
+
+  <section id="settimana" hidden></section>
+</div>
+
+<dialog id="scheda">
+  <form id="modulo">
+    <h2 id="schedaTitolo"></h2>
+    <fieldset class="perchi">
+      <legend>Per chi</legend>
+      <div>
+        <label class="scelta mamma"><input type="radio" name="chi" value="mamma" required>Mamma</label>
+        <label class="scelta papa"><input type="radio" name="chi" value="papa">Papà</label>
+        <label class="scelta entrambi"><input type="radio" name="chi" value="entrambi">Mamma e papà</label>
+      </div>
+    </fieldset>
+    <div class="due">
+      <label>Giorno <input type="date" id="fGiorno" min="2000-01-01" max="2100-12-31" required></label>
+      <label>Ora <input type="time" id="fOra" required></label>
+    </div>
+    <label>Descrizione <input type="text" id="fDescr" maxlength="120" required autocomplete="off"></label>
+    <label>Note <textarea id="fNote" maxlength="2000" rows="4"></textarea></label>
+    <label>Se ne occupa
+      <span class="con-bottone"><select id="fFiglio"></select><button type="button" id="fIo">Me ne occupo io</button></span>
+    </label>
+    <p class="storia" id="fStoria"></p>
+    <p id="fErrore" role="alert" hidden></p>
+    <div class="piede">
+      <button type="button" id="fTogli" class="pericolo">Elimina</button>
+      <span class="spazio"></span>
+      <button type="button" id="fAnnulla">Annulla</button>
+      <button type="submit" id="fSalva" class="primario">Salva</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function () {
+  'use strict';
+
+  // La pagina è pubblica e non contiene niente: appuntamenti e nomi arrivano dal Worker, e solo
+  // dopo la parola d'ordine. In locale (python -m http.server) parla col Worker di `wrangler dev`.
+  var LOCALE = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  var API = LOCALE ? 'http://127.0.0.1:8787' : 'https://calendario-famiglia.olimpiadi-dave1971.workers.dev';
+  var CHIAVE = 'calendario-famiglia';
+  var MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+  var GIORNI = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
+  var PER = { mamma: 'Mamma', papa: 'Papà', entrambi: 'Mamma e papà' };
+  var MAX_CHIP = 3;            // quanti appuntamenti si scrivono in una cella del mese, poi "+2"
+  var OGNI = 60000;            // ogni quanto si guarda se gli altri hanno cambiato qualcosa
+
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, classe, testo) {
+    var e = document.createElement(tag);
+    if (classe) e.className = classe;
+    if (testo != null) e.textContent = testo;
+    return e;
+  }
+
+  // ---------- quello che il telefono ricorda ----------
+  var st = { gettone: '', io: '', figli: [], vista: 'mese' };
+  try {
+    var salvato = JSON.parse(localStorage.getItem(CHIAVE) || '{}');
+    Object.keys(st).forEach(function (k) { if (salvato[k] != null) st[k] = salvato[k]; });
+  } catch (e) { /* navigazione privata, o roba rovinata: si riparte dalla porta */ }
+  function salva() {
+    try { localStorage.setItem(CHIAVE, JSON.stringify(st)); } catch (e) { /* pazienza */ }
+  }
+
+  var eventi = [];             // gli appuntamenti del periodo che si sta guardando
+  var scelto = '';             // il giorno scelto, 'AAAA-MM-GG': decide anche mese e settimana mostrati
+  var inScheda = null;         // l'appuntamento aperto nella finestra, null se è nuovo
+  var giro = 0;
+
+  // ---------- le date ----------
+  function due(n) { return (n < 10 ? '0' : '') + n; }
+  function iso(d) { return d.getFullYear() + '-' + due(d.getMonth() + 1) + '-' + due(d.getDate()); }
+  function daIso(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function piu(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+  function lunedi(d) { return piu(d, -((d.getDay() + 6) % 7)); }
+  function nomeGiorno(d) { return GIORNI[(d.getDay() + 6) % 7]; }
+  function adesso() { var d = new Date(); return iso(d) + 'T' + due(d.getHours()) + ':' + due(d.getMinutes()); }
+
+  function periodo() {
+    var d = daIso(scelto);
+    if (st.vista === 'settimana') return { inizio: lunedi(d), fine: piu(lunedi(d), 6) };
+    return { inizio: lunedi(new Date(d.getFullYear(), d.getMonth(), 1)), fine: piu(lunedi(new Date(d.getFullYear(), d.getMonth() + 1, 0)), 6) };
+  }
+
+  // ---------- il Worker ----------
+  function chiama(come, via, dati) {
+    var capo = { 'Content-Type': 'application/json' };
+    if (via !== '/entra') capo.Authorization = 'Bearer ' + st.gettone;
+    return fetch(API + via, { method: come, headers: capo, body: dati ? JSON.stringify(dati) : undefined })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) { j.stato = r.status; return j; });
+      }, function () { return { ok: false, stato: 0 }; })
+      .then(function (j) {
+        // il gettone è scaduto, o la parola d'ordine è stata cambiata: si torna alla porta
+        if (j.stato === 401) { st.gettone = ''; salva(); mostra(); }
+        return j;
+      });
+  }
+
+  var tAvviso = 0;
+  function avviso(testo, resta) {
+    clearTimeout(tAvviso);
+    $('avviso').textContent = testo || '';
+    $('avviso').hidden = !testo;
+    if (testo && !resta) tAvviso = setTimeout(function () { $('avviso').hidden = true; }, 7000);
+  }
+
+  /** Dice a parole com'è andata una scrittura; vero se è andata bene. */
+  function esito(r) {
+    if (r.ok) return true;
+    if (r.stato === 401) return false;
+    if (r.stato === 409) avviso('Qualcun altro ha appena cambiato questo appuntamento: l\'ho ricaricato, riguardalo e riprova.');
+    else if (r.stato === 404) avviso('Questo appuntamento non c\'è più: l\'ha eliminato qualcun altro.');
+    else if (r.stato === 400) avviso('C\'è qualcosa che non va in quello che hai scritto (' + (r.perche || '?') + ').');
+    else if (r.stato === 0) avviso('Non riesco a collegarmi: controlla la connessione e riprova.');
+    else avviso('Non sono riuscito a salvare. Riprova fra un momento.');
+    return false;
+  }
+
+  function carica() {
+    if (!st.gettone || !st.io) return;
+    var p = periodo(), n = ++giro;
+    return chiama('GET', '/eventi?da=' + iso(piu(p.inizio, -7)) + '&a=' + iso(piu(p.fine, 7))).then(function (r) {
+      if (n !== giro) return;                    // nel frattempo si è cambiato mese: questa risposta è vecchia
+      if (r.ok) {
+        eventi = r.eventi;
+        st.figli = r.figli; salva();
+        if ($('avviso').dataset.rete) { delete $('avviso').dataset.rete; avviso(''); }
+        disegna();
+      } else if (r.stato !== 401) {
+        $('avviso').dataset.rete = '1';
+        avviso('Non riesco a leggere gli appuntamenti: controlla la connessione. Riprovo da solo fra un minuto.', true);
+      }
+    });
+  }
+
+  // ---------- chi è chi ----------
+  function nomeFiglio(id) {
+    for (var i = 0; i < st.figli.length; i++) if (st.figli[i].id === id) return st.figli[i].nome;
+    return id;
+  }
+  function delGiorno(s) {
+    return eventi.filter(function (e) { return e.quando.slice(0, 10) === s; })
+      .sort(function (a, b) { return a.quando < b.quando ? -1 : a.quando > b.quando ? 1 : 0; });
+  }
+
+  function prendi(ev) {
+    if (ev.figlio && ev.figlio !== st.io && !confirm('Adesso se ne occupa ' + nomeFiglio(ev.figlio) + '. Lo prendi tu?')) return;
+    chiama('PUT', '/eventi/' + ev.id, { figlio: st.io, rev: ev.rev, da: st.io }).then(function (r) {
+      esito(r);
+      carica();
+    });
+  }
+
+  // ---------- disegnare ----------
+  function scheda(ev, ora) {
+    var a = el('article', 'ev ' + ev.chi + (ev.quando < ora ? ' passato' : ''));
+    var r1 = el('div');
+    r1.appendChild(el('span', 'ora', ev.quando.slice(11)));
+    r1.appendChild(el('span', 'per', PER[ev.chi]));
+    a.appendChild(r1);
+    a.appendChild(el('p', 'descr', ev.descr));
+    if (ev.note) a.appendChild(el('p', 'note', ev.note));
+    a.appendChild(ev.figlio
+      ? el('span', 'incarico' + (ev.figlio === st.io ? ' mio' : ''), ev.figlio === st.io ? '✓ Te ne occupi tu' : 'Se ne occupa ' + nomeFiglio(ev.figlio))
+      : el('span', 'incarico libero', 'Da assegnare'));
+    var az = el('div', 'azioni');
+    if (ev.figlio !== st.io) {
+      var p = el('button', 'primario', 'Me ne occupo io');
+      p.type = 'button';
+      p.addEventListener('click', function () { prendi(ev); });
+      az.appendChild(p);
+    }
+    var m = el('button', '', 'Apri e modifica');
+    m.type = 'button';
+    m.addEventListener('click', function () { apri(ev); });
+    az.appendChild(m);
+    a.appendChild(az);
+    return a;
+  }
+
+  function lista(dove, evs, ora) {
+    dove.textContent = '';
+    if (!evs.length) { dove.appendChild(el('p', 'niente', 'Nessun appuntamento.')); return; }
+    var l = el('div', 'lista');
+    evs.forEach(function (ev) { l.appendChild(scheda(ev, ora)); });
+    dove.appendChild(l);
+  }
+
+  function disegnaMese(ora) {
+    var d = daIso(scelto), p = periodo(), oggi = ora.slice(0, 10), g = $('griglia');
+    g.textContent = '';
+    for (var x = p.inizio; x <= p.fine; x = piu(x, 1)) (function (x) {
+      var s = iso(x), evs = delGiorno(s);
+      var c = el('div', 'cella' + (x.getMonth() !== d.getMonth() ? ' fuori' : '') + (s === oggi ? ' oggi' : '') + (s === scelto ? ' scelto' : ''));
+      var n = el('button', 'num', x.getDate());
+      n.type = 'button';
+      n.setAttribute('aria-label', nomeGiorno(x) + ' ' + x.getDate() + ' ' + MESI[x.getMonth()] + ', ' + (evs.length === 1 ? '1 appuntamento' : evs.length + ' appuntamenti'));
+      c.appendChild(n);
+      var ch = el('div', 'chips');
+      evs.slice(0, MAX_CHIP).forEach(function (ev) {
+        var b = el('button', 'chip ' + ev.chi + (ev.figlio ? '' : ' libero') + (ev.quando < ora ? ' passato' : ''));
+        b.type = 'button';
+        b.title = PER[ev.chi] + ' · ' + (ev.figlio ? nomeFiglio(ev.figlio) : 'da assegnare');
+        b.appendChild(el('b', '', ev.quando.slice(11)));
+        b.appendChild(document.createTextNode(ev.descr));
+        b.addEventListener('click', function (e) { e.stopPropagation(); scelto = s; disegna(); apri(ev); });
+        ch.appendChild(b);
+      });
+      if (evs.length > MAX_CHIP) ch.appendChild(el('span', 'altri', '+' + (evs.length - MAX_CHIP)));
+      c.appendChild(ch);
+      c.addEventListener('click', function () { vai(s); });
+      g.appendChild(c);
+    })(x);
+
+    $('giornoTitolo').textContent = nomeGiorno(d) + ' ' + d.getDate() + ' ' + MESI[d.getMonth()];
+    lista($('giornoLista'), delGiorno(scelto), ora);
+  }
+
+  function disegnaSettimana(ora) {
+    var p = periodo(), oggi = ora.slice(0, 10), box = $('settimana');
+    box.textContent = '';
+    for (var x = p.inizio; x <= p.fine; x = piu(x, 1)) (function (x) {
+      var s = iso(x), col = el('section', 'col' + (s === oggi ? ' oggi' : ''));
+      var capo = el('div', 'capo');
+      capo.appendChild(el('h3', '', nomeGiorno(x).slice(0, 3) + ' ' + x.getDate()));
+      var b = el('button', '', '+');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Aggiungi un appuntamento ' + nomeGiorno(x) + ' ' + x.getDate());
+      b.addEventListener('click', function () { apri(null, s); });
+      capo.appendChild(b);
+      col.appendChild(capo);
+      var dentro = el('div');
+      lista(dentro, delGiorno(s), ora);
+      col.appendChild(dentro);
+      box.appendChild(col);
+    })(x);
+  }
+
+  function disegna() {
+    var d = daIso(scelto), p = periodo(), ora = adesso(), sett = st.vista === 'settimana';
+    if (sett) {
+      var i = p.inizio, f = p.fine;
+      $('periodo').textContent = i.getDate() + (i.getMonth() !== f.getMonth() ? ' ' + MESI[i.getMonth()] : '') +
+        (i.getFullYear() !== f.getFullYear() ? ' ' + i.getFullYear() : '') + ' – ' + f.getDate() + ' ' + MESI[f.getMonth()] + ' ' + f.getFullYear();
+    } else {
+      $('periodo').textContent = MESI[d.getMonth()] + ' ' + d.getFullYear();
+    }
+    $('vMese').setAttribute('aria-pressed', String(!sett));
+    $('vSettimana').setAttribute('aria-pressed', String(sett));
+    $('mese').hidden = sett;
+    $('settimana').hidden = !sett;
+    if (sett) disegnaSettimana(ora); else disegnaMese(ora);
+
+    var io = $('io');
+    io.textContent = '';
+    st.figli.forEach(function (f) {
+      var o = el('option', '', f.nome);
+      o.value = f.id;
+      io.appendChild(o);
+    });
+    io.value = st.io;
+  }
+
+  /** Cambia il giorno scelto; se con lui cambia il periodo mostrato, si ricarica. */
+  function vai(s) {
+    var prima = periodo();
+    scelto = s;
+    var dopo = periodo();
+    disegna();
+    if (+prima.inizio !== +dopo.inizio || +prima.fine !== +dopo.fine) carica();
+  }
+
+  function sposta(verso) {
+    var d = daIso(scelto), oggi = new Date();
+    if (st.vista === 'settimana') return vai(iso(piu(d, 7 * verso)));
+    var m = new Date(d.getFullYear(), d.getMonth() + verso, 1);
+    // arrivando nel mese di oggi si sceglie oggi, negli altri il primo
+    vai(iso(m.getFullYear() === oggi.getFullYear() && m.getMonth() === oggi.getMonth() ? oggi : m));
+  }
+
+  // ---------- la finestra dell'appuntamento ----------
+  function apri(ev, giorno) {
+    inScheda = ev || null;
+    $('schedaTitolo').textContent = ev ? 'Appuntamento' : 'Nuovo appuntamento';
+    Array.prototype.forEach.call(document.getElementsByName('chi'), function (r) { r.checked = !!ev && r.value === ev.chi; });
+    $('fGiorno').value = ev ? ev.quando.slice(0, 10) : (giorno || scelto);
+    $('fOra').value = ev ? ev.quando.slice(11) : '09:00';
+    $('fDescr').value = ev ? ev.descr : '';
+    $('fNote').value = ev ? ev.note : '';
+
+    var sel = $('fFiglio');
+    sel.textContent = '';
+    var o = el('option', '', 'Da assegnare');
+    o.value = '';
+    sel.appendChild(o);
+    st.figli.forEach(function (f) {
+      var o = el('option', '', f.nome + (f.id === st.io ? ' (io)' : ''));
+      o.value = f.id;
+      sel.appendChild(o);
+    });
+    sel.value = ev ? ev.figlio : '';
+
+    var quando = function (t) { return new Date(t).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }); };
+    $('fStoria').textContent = !ev ? '' : 'Scritto da ' + nomeFiglio(ev.creato_da) + ' il ' + quando(ev.creato_il) +
+      (ev.rev > 1 ? ' · ultima modifica di ' + nomeFiglio(ev.mod_da) + ' il ' + quando(ev.mod_il) : '');
+    $('fStoria').hidden = !ev;
+    $('fTogli').hidden = !ev;
+    $('fErrore').hidden = true;
+    occupato(false);
+    $('scheda').showModal();
+    if (!ev) $('fDescr').focus();
+  }
+
+  function occupato(si) {
+    ['fSalva', 'fTogli', 'fAnnulla'].forEach(function (id) { $(id).disabled = si; });
+  }
+  function chiudi() { $('scheda').close(); inScheda = null; }
+
+  $('modulo').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var chi = document.querySelector('input[name="chi"]:checked');
+    var dati = {
+      chi: chi ? chi.value : '', quando: $('fGiorno').value + 'T' + $('fOra').value.slice(0, 5),
+      descr: $('fDescr').value, note: $('fNote').value, figlio: $('fFiglio').value, da: st.io,
+    };
+    if (!dati.descr.trim()) {
+      $('fErrore').textContent = 'Scrivi una descrizione.';
+      $('fErrore').hidden = false;
+      return;
+    }
+    var ev = inScheda;
+    if (ev) dati.rev = ev.rev;
+    occupato(true);
+    chiama(ev ? 'PUT' : 'POST', ev ? '/eventi/' + ev.id : '/eventi', dati).then(function (r) {
+      occupato(false);
+      if (r.stato === 0 || r.stato >= 500 || r.stato === 400 || r.stato === 413) {
+        // la finestra resta aperta: quello che è stato scritto non va perso
+        $('fErrore').textContent = r.stato === 0 ? 'Non riesco a collegarmi: controlla la connessione e riprova.'
+          : r.stato >= 500 ? 'Non sono riuscito a salvare. Riprova fra un momento.'
+          : 'C\'è qualcosa che non va in quello che hai scritto (' + (r.perche || '?') + ').';
+        $('fErrore').hidden = false;
+        return;
+      }
+      chiudi();
+      if (esito(r)) return vai(dati.quando.slice(0, 10)), carica();
+      carica();
+    });
+  });
+
+  $('fTogli').addEventListener('click', function () {
+    var ev = inScheda;
+    if (!ev || !confirm('Elimino "' + ev.descr + '" del ' + ev.quando.slice(8, 10) + '/' + ev.quando.slice(5, 7) + '?')) return;
+    occupato(true);
+    chiama('DELETE', '/eventi/' + ev.id + '?da=' + st.io).then(function (r) {
+      chiudi();
+      esito(r);
+      carica();
+    });
+  });
+  $('fAnnulla').addEventListener('click', chiudi);
+  $('scheda').addEventListener('close', function () { inScheda = null; });
+  $('fIo').addEventListener('click', function () { $('fFiglio').value = st.io; });
+
+  // ---------- i comandi della testata ----------
+  $('prima').addEventListener('click', function () { sposta(-1); });
+  $('dopo').addEventListener('click', function () { sposta(1); });
+  $('oggi').addEventListener('click', function () { vai(iso(new Date())); });
+  $('nuovo').addEventListener('click', function () { apri(null); });
+  $('nuovoGiorno').addEventListener('click', function () { apri(null); });
+  function vista(v) {
+    st.vista = v; salva();
+    disegna();
+    carica();
+  }
+  $('vMese').addEventListener('click', function () { vista('mese'); });
+  $('vSettimana').addEventListener('click', function () { vista('settimana'); });
+  $('io').addEventListener('change', function () { st.io = $('io').value; salva(); disegna(); });
+  $('esci').addEventListener('click', function () {
+    st.gettone = ''; st.io = ''; st.figli = []; salva();
+    eventi = [];
+    mostra();
+  });
+
+  // ---------- la porta ----------
+  $('formEntra').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var b = $('formEntra').querySelector('button');
+    b.disabled = true;
+    $('erroreEntra').textContent = '';
+    chiama('POST', '/entra', { parola: $('parola').value }).then(function (r) {
+      b.disabled = false;
+      if (r.ok) {
+        $('parola').value = '';
+        st.gettone = r.gettone; st.figli = r.figli; salva();
+        return mostra();
+      }
+      $('erroreEntra').textContent = r.stato === 403 ? 'La parola d\'ordine non è giusta.'
+        : r.stato === 429 ? 'Troppi tentativi sbagliati: riprova fra un quarto d\'ora.'
+        : r.stato === 0 ? 'Non riesco a collegarmi: controlla la connessione.'
+        : 'Il calendario adesso non risponde. Riprova più tardi.';
+    });
+  });
+
+  function mostra() {
+    var dentro = !!st.gettone, so = dentro && st.figli.some(function (f) { return f.id === st.io; });
+    if ($('scheda').open) $('scheda').close();
+    $('entra').hidden = dentro;
+    $('chisei').hidden = !dentro || so;
+    $('app').hidden = !so;
+    if (!dentro) return $('parola').focus();
+    if (!so) {
+      var box = $('bottoniChi');
+      box.textContent = '';
+      st.figli.forEach(function (f) {
+        var b = el('button', '', f.nome);
+        b.type = 'button';
+        b.addEventListener('click', function () { st.io = f.id; salva(); mostra(); });
+        box.appendChild(b);
+      });
+      return;
+    }
+    disegna();
+    carica();
+  }
+
+  // gli altri scrivono mentre questa pagina è aperta: si riguarda ogni minuto e ogni volta che
+  // si torna sulla pagina, ma non mentre si sta scrivendo un appuntamento
+  function rinfresca() {
+    if (!document.hidden && !$('scheda').open) carica();
+  }
+  setInterval(rinfresca, OGNI);
+  document.addEventListener('visibilitychange', rinfresca);
+
+  scelto = iso(new Date());
+  mostra();
+})();
+</script>
+</body>
+</html>
