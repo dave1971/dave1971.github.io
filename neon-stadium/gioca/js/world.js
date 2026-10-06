@@ -18,6 +18,13 @@
 
 const WORLD_URL = 'https://dave1971.github.io/olimpiadi/records.json';
 
+const WORLD_TOP = 10;      // quanti giocatori tiene la classifica per ogni gara (come il Worker)
+// In che campionato di carriera e' stato fatto un risultato: la lettera che lo accompagna in classifica.
+// I risultati mandati prima che la lettera esistesse erano tutti del Mondiale.
+const LIVELLO_LETTERA = { uni: 'U', trials: 'T', olympic: 'W' };
+const LETTERA_COL = { U: '#66bb6a', T: '#42a5f5', W: '#ffa726' };
+const letteraDi = r => (r && LETTERA_COL[r.lv] ? r.lv : 'W');
+
 const World = {
   KEY: 'olimpiadi_world_v1', SEEN: 'olimpiadi_world_seen',
   d: null,                 // quello che abbiamo in mano: scaricato adesso o ritrovato da prima
@@ -75,13 +82,19 @@ const World = {
    */
   postUrl() { return (this.d && typeof this.d.post === 'string' && /^https:\/\//.test(this.d.post)) ? this.d.post : ''; },
 
-  /** Un risultato entrerebbe fra i primi? Se no, non vale la pena disturbare il giocatore. */
-  wouldEnter(id, v) {
+  /**
+   * Un risultato entrerebbe fra i primi dieci? Se no, non vale la pena disturbare il giocatore.
+   * `who` e' il nome con cui partirebbe: chi in classifica c'e' gia' con di meglio non rimanda niente
+   * (di ogni giocatore si tiene solo il migliore).
+   */
+  wouldEnter(id, v, who) {
     if (typeof v !== 'number' || !isFinite(v)) return false;
     const meta = EVENTS.find(e => e.id === id);
     const giu = !!(meta && meta.lowerBetter);
     const t = this.top(id);
-    if (t.length < 5) return true;
+    const mio = who ? t.find(r => r.who === who) : null;
+    if (mio && !(giu ? v < mio.v : v > mio.v)) return false;
+    if (t.length < WORLD_TOP) return true;
     const peggio = t[t.length - 1].v;
     return giu ? v < peggio : v > peggio;
   },
@@ -187,52 +200,58 @@ const Share = {
     this.save();
   },
   /**
-   * I migliori di carriera al Mondiale che entrerebbero fra i primi cinque, di nuovo in coda. Si leggono
-   * dalle carriere salvate e non dai record personali: quelli puo' averli fatti una gara singola, che
-   * in classifica non va.
+   * I migliori di carriera che entrerebbero fra i primi dieci, di nuovo in coda: di ogni gara il migliore
+   * fra tutti i campionati e tutte le carriere salvate. Si leggono dalle carriere e non dai record
+   * personali: quelli puo' averli fatti una gara singola, che in classifica non va.
    */
   ricoda() {
     let slots = null;
     try { slots = JSON.parse(World.read(CIRCUITO_BASE.key)); } catch (e) { /* nessuna carriera */ }
     if (!Array.isArray(slots)) return;
     slots.forEach((d, i) => {
-      const pr = typeof Profiles !== 'undefined' && Profiles.data[i], B = d && d.best && d.best.olympic;
-      if (!pr || !B) return;
+      const pr = typeof Profiles !== 'undefined' && Profiles.data[i];
+      if (!pr || !d || !d.best) return;
       const who = pulisciNome(pr.name), nat = (typeof FLAGS !== 'undefined' && FLAGS[pr.code]) ? pr.code : '';
       if (!who) return;
-      for (const id in B) {
-        const v = B[id], meta = EVENTS.find(e => e.id === id);
-        if (!meta || typeof v !== 'number' || !World.wouldEnter(id, v)) continue;
-        // con due carriere si manda la migliore delle due
-        const gia = this.d.coda.find(x => x.ev === id);
-        if (gia && (meta.lowerBetter ? gia.v <= v : gia.v >= v)) continue;
-        // oltre il record vero si arriva solo con un oggetto leggendario: va detto, o il server lo scarta
-        const wr = World.wr(id), leg = !!(wr && (meta.lowerBetter ? v < wr.v : v > wr.v));
-        this.d.coda = this.d.coda.filter(x => x.ev !== id);
-        this.d.coda.push(leg ? { ev: id, v, who, nat, leg: true } : { ev: id, v, who, nat });
+      // dal Mondiale in giu': a parita' di misura resta scritto il campionato piu' alto
+      for (const liv of ['olympic', 'trials', 'uni']) {
+        const B = d.best[liv];
+        if (!B) continue;
+        for (const id in B) {
+          const v = B[id], meta = EVENTS.find(e => e.id === id);
+          if (!meta || typeof v !== 'number' || !World.wouldEnter(id, v, who)) continue;
+          const gia = this.d.coda.find(x => x.ev === id);
+          if (gia && (meta.lowerBetter ? gia.v <= v : gia.v >= v)) continue;
+          // oltre il record vero si arriva solo con un oggetto leggendario: va detto, o il server lo scarta
+          const wr = World.wr(id), leg = !!(wr && (meta.lowerBetter ? v < wr.v : v > wr.v));
+          const r = { ev: id, v, who, nat, lv: LIVELLO_LETTERA[liv] };
+          if (leg) r.leg = true;
+          this.d.coda = this.d.coda.filter(x => x.ev !== id);
+          this.d.coda.push(r);
+        }
       }
     });
-    this.d.coda = this.d.coda.slice(-12);
+    this.d.coda = this.d.coda.slice(-24);
   },
 
   /**
-   * Finita una gara di carriera: se e' il nuovo primato di quella carriera ed entrerebbe in classifica,
-   * si mette in coda. Mandarlo subito no: il giocatore sta guardando il risultato, e la domanda va
-   * fatta con calma. Le gare singole e il decathlon non arrivano qui (vedi Game.eventDone).
+   * Finita una gara di carriera, in qualunque campionato: se e' il nuovo primato di quella carriera ed
+   * entrerebbe fra i primi dieci, si mette in coda (con la lettera del campionato: U, T o W). Mandarlo
+   * subito no: il giocatore sta guardando il risultato, e la domanda va fatta con calma. Le gare singole
+   * e il decathlon non arrivano qui (vedi Game.eventDone).
    */
   offer(id, v, p, leg) {
     if (!this.attivo() || this.d.ok === false) return;
-    if (Lv.id() !== 'olympic') return;
-    if (!World.wouldEnter(id, v)) return;
     const pr = (typeof Profiles !== 'undefined' && Profiles.data[p]) || {};
     // la bandiera deve essere una di quelle che il gioco conosce: finisce su una pagina pubblica
     const who = pulisciNome(pr.name);
     const nat = (typeof FLAGS !== 'undefined' && FLAGS[pr.code]) ? pr.code : '';
-    if (!who) return;
+    if (!who || !World.wouldEnter(id, v, who)) return;
+    const r = { ev: id, v, who, nat, lv: LIVELLO_LETTERA[Lv.id()] || 'W' };
+    if (leg) r.leg = true;                  // fatto con un oggetto leggendario: va in classifica con l'asterisco
     this.d.coda = this.d.coda.filter(x => x.ev !== id);
-    // fatto con un oggetto leggendario: va in classifica con l'asterisco
-    this.d.coda.push(leg ? { ev: id, v, who, nat, leg: true } : { ev: id, v, who, nat });
-    this.d.coda = this.d.coda.slice(-12);
+    this.d.coda.push(r);
+    this.d.coda = this.d.coda.slice(-24);
     this.save();
   },
 
@@ -248,9 +267,11 @@ const Share = {
       if (!r) return this.fine(mandati, primi, false, fermo);
       // col leggendario la firma porta anche il segno: il server lo accetta oltre il record vero.
       // 'car' dice che viene da una gara di carriera: dalla 1.6.2 il server prende solo quelli.
+      // `lv` e' il campionato (U, T, W): sta anche nella firma. Quello che era in coda da prima era del Mondiale.
+      const lv = LETTERA_COL[r.lv] ? r.lv : 'W';
       const corpo = {
-        ev: r.ev, v: r.v, who: r.who, nat: r.nat, car: 1,
-        s: firmaRecord(r.ev + '|' + r.v + '|' + r.who + '|' + r.nat + (r.leg ? '|L' : '') + '|C'),
+        ev: r.ev, v: r.v, who: r.who, nat: r.nat, car: 1, lv,
+        s: firmaRecord(r.ev + '|' + r.v + '|' + r.who + '|' + r.nat + (r.leg ? '|L' : '') + '|C' + lv),
       };
       if (r.leg) corpo.leg = 1;
       let late = false;

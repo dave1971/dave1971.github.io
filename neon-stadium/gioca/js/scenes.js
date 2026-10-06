@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.7.0.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.7.1.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -75,8 +75,9 @@ const Game = {
     if (this.n > 1) order.forEach(o => { if (o.place && o.place <= 3) this.medals[o.p][o.place - 1]++; });
     this.table.push({ ev: evIdx, res, order });
     const pay = this.careerMode ? Career.eventDone(meta, res, order) : null;
-    // Nella classifica mondiale vanno solo le gare di carriera, al Mondiale: una gara singola si puo'
-    // ripetere finche' non esce il colpo fortunato, una carriera no. Conta il primato di quella carriera
+    // Nella classifica mondiale vanno solo le gare di carriera, di qualunque campionato (la classifica
+    // dice quale: U, T, W): una gara singola si puo' ripetere finche' non esce il colpo fortunato, una
+    // carriera no, e cosi' c'e' un motivo per cominciarla. Conta il primato di quella carriera
     // (pay.better), non il record personale, che puo' averlo fatto una gara singola. Si mette in coda:
     // la domanda si fa dal titolo, con calma.
     if (this.careerMode && !this.special && pay && pay.better) Share.offer(meta.id, res[0].value, Career.slot, leg(0));
@@ -894,6 +895,9 @@ class RecordsScene extends Screen {
     // l'invio dei propri record alla classifica mondiale: si accende e si spegne da qui (anche dopo
     // aver detto MAI alla domanda del titolo); riacceso, i record del Mondiale che entrerebbero fra i
     // primi cinque si mettono in coda e partono tornando al titolo
+    // i primi dieci di ogni gara: dal pulsante, o toccando la riga della gara
+    if (World.anyTop()) this.btns.push({ x: 196, y: G.H - 68, w: 150, h: 50, label: 'I PRIMI 10', sub: 'o tocca una gara', size: 17, color: '#1565c0',
+      fn: () => G.setScene(new TopScene()) });
     if (Share.attivo()) {
       const acceso = Share.d.ok === true;
       this.btns.push({ x: G.W - 214, y: 12, w: 194, h: 44, label: acceso ? 'INVIO MONDIALE: SÌ' : 'INVIO MONDIALE: NO', size: 14,
@@ -942,11 +946,17 @@ class RecordsScene extends Screen {
     if (r.leg) this.conLeg = true;
     return { v: fmt(r.v) + (r.leg ? '*' : ''), who, nat: FLAGS[r.nat] ? r.nat : '', col };
   }
+  // quella dei giocatori dice anche in che campionato e' stato fatto: U, T o W
+  voceTop(id, fmt) {
+    const r = World.top(id)[0], c = this.voce(r, fmt, '#90caf9');
+    if (c.who) c.lv = letteraDi(r);
+    return c;
+  }
   cella(id, i, n) {
     const meta = EVENTS.find(e => e.id === id), fmt = v => meta ? meta.fmt(v) : v + ' pt';
     const mio = this.voce(Records.get(id), fmt, '#ffcc80');
     const mondo = this.nuovo(this.voce(World.wr(id), fmt, '#a5d6a7', !this.corto), id, 'wr');
-    if (n === 3) return [mio, this.nuovo(this.voce(World.top(id)[0], fmt, '#90caf9'), id, 'top'), mondo][i];
+    if (n === 3) return [mio, this.nuovo(this.voceTop(id, fmt), id, 'top'), mondo][i];
     return [mio, mondo][i];
   }
   // una casella arrivata nuova col file dall'ultima volta che si e' guardata la schermata
@@ -958,7 +968,7 @@ class RecordsScene extends Screen {
     const fmt = v => v + ' pt';
     const mio = this.voce(Records.get('decathlon'), fmt, '#ffd600');
     const niente = { v: '—', who: '', nat: '', col: '#a5d6a7' };
-    if (n === 3) return [mio, this.nuovo(this.voce(World.top('decathlon')[0], fmt, '#90caf9'), 'decathlon', 'top'), niente][i];
+    if (n === 3) return [mio, this.nuovo(this.voceTop('decathlon', fmt), 'decathlon', 'top'), niente][i];
     return [mio, niente][i];
   }
   // quanto e' larga una casella a quella grandezza, senza il nome: misura, spazio, bandiera, spazio
@@ -967,6 +977,7 @@ class RecordsScene extends Screen {
     let w = ctx.measureText(T(c.v)).width;
     if (c.who) w += s * 0.6;
     if (c.nat) w += Math.round(s * 0.8) * 1.5 + s * 0.3;
+    if (c.lv) w += s * 1.15;
     return w;
   }
   // ...e col nome, che conta al massimo quanto 'tetto'
@@ -981,6 +992,11 @@ class RecordsScene extends Screen {
   // La casella si scrive da destra: il nome, la bandiera, e a sinistra la misura. Un nome che non
   // entra nello spazio rimasto prima si stringe un poco, poi si accorcia coi puntini.
   casella(ctx, c, x, y, s, largo) {
+    if (c.lv) {
+      // la lettera del campionato, col suo colore, in fondo alla casella
+      txt(ctx, c.lv, x, y, s * 0.9, LETTERA_COL[c.lv], 'right', { italic: false, crudo: true });
+      x -= s * 1.15;
+    }
     if (c.who) {
       const nm = nomeIn(ctx, c.who, largo - this.base(ctx, c, s), s, Math.max(9, Math.round(s * 0.85)));
       txt(ctx, nm.t, x, y, nm.s, c.col, 'right', { italic: false, crudo: true });
@@ -1016,9 +1032,26 @@ class RecordsScene extends Screen {
   }
   update(dt) { super.update(dt); this.sc.update(dt); }
   // il dito trascina l'elenco, la rotella lo fa girare: i pulsanti restano per il telecomando
-  pointerDown(x, y, id) { super.pointerDown(x, y, id); if (this.t > 0.3) this.sc.down(x, y, id); }
-  pointerMove(x, y, id) { this.sc.move(x, y, id); }
-  pointerUp(id) { this.sc.up(id); }
+  // Un tocco dentro l'elenco che non diventa un trascinamento apre i primi dieci di quella gara.
+  pointerDown(x, y, id) {
+    super.pointerDown(x, y, id);
+    if (this.t <= 0.3) return;
+    this.sc.down(x, y, id);
+    this.tocco = this.sc.inside(x, y) ? { id, x, y, fermo: true } : null;
+  }
+  pointerMove(x, y, id) {
+    this.sc.move(x, y, id);
+    if (this.tocco && this.tocco.id === id && Math.hypot(x - this.tocco.x, y - this.tocco.y) > 10) this.tocco.fermo = false;
+  }
+  pointerUp(id) {
+    this.sc.up(id);
+    const t = this.tocco;
+    this.tocco = null;
+    if (!t || t.id !== id || !t.fermo) return;
+    const i = Math.floor((t.y - (this.sc.box.y - this.sc.off + 12) + ROW_H / 2) / ROW_H);
+    const e = EVENTS[i];
+    if (e && World.top(e.id).length) { Snd.click(); G.setScene(new TopScene(e.id)); }
+  }
   wheel(dy) { this.sc.by(dy); }
   // Le colonne: il nome della gara a sinistra, poi i risultati a destra in parti uguali. Quella dei
   // giocatori compare solo quando in classifica c'è davvero qualcuno: finché non c'è nessuno sarebbe
@@ -1077,6 +1110,72 @@ class RecordsScene extends Screen {
     else if (this.conLeg) txt(ctx, '* con un oggetto leggendario', cx, G.H - 82, 12, '#ffd54f', 'center', { italic: false });
     // sotto il pulsante dell'invio: che cosa finisce nella classifica dei giocatori
     if (Share.attivo()) txt(ctx, 'vanno in classifica solo le gare di carriera', W - 20, 66, 11, '#b0bec5', 'right', { italic: false, outline: false });
+    // che cosa vogliono dire le lettere accanto ai nomi dei giocatori
+    if (C.n === 3) legendaLivelli(ctx, 88, 64, 11);
+  }
+}
+
+// U, T, W: il campionato di carriera in cui e' stato fatto un risultato della classifica dei giocatori.
+function legendaLivelli(ctx, x, y, s) {
+  for (const [l, nome] of [['U', 'University'], ['T', 'Trials'], ['W', 'World']]) {
+    txt(ctx, l, x, y, s + 1, LETTERA_COL[l], 'left', { italic: false, crudo: true });
+    ctx.font = 'bold ' + (s + 1) + 'px ' + FONT;
+    x += ctx.measureText(l).width + 4;
+    txt(ctx, nome, x, y, s, '#b0bec5', 'left', { italic: false, crudo: true, outline: false });
+    ctx.font = 'bold ' + s + 'px ' + FONT;
+    x += ctx.measureText(nome).width + 12;
+  }
+}
+
+// ---------- i primi dieci di una gara ----------
+// La classifica dei giocatori tiene dieci nomi per gara (di ognuno il suo migliore). Qui si vedono
+// tutti, una gara alla volta: col posto, la bandiera, il nome, il campionato (U, T, W), la misura e il
+// giorno in cui e' stata mandata. Le frecce passano alla gara prima e a quella dopo.
+class TopScene extends Screen {
+  constructor(id) {
+    super();
+    this.gare = EVENTS.map(e => e.id);
+    if (World.top('decathlon').length) this.gare.push('decathlon');   // quelli mandati prima che ne uscisse
+    // senza una gara scelta si apre la prima che ha qualcuno
+    this.i = Math.max(0, id ? this.gare.indexOf(id) : this.gare.findIndex(g => World.top(g).length));
+  }
+  layout() {
+    const cx = G.W / 2;
+    this.btns = [
+      { x: 20, y: G.H - 68, w: 160, h: 50, label: '‹ INDIETRO', size: 18, color: '#546e7a', fn: () => this.back() },
+      { x: cx - 150, y: G.H - 68, w: 140, h: 50, label: '◄', sub: 'gara prima', size: 22, color: '#37474f', fn: () => this.gira(-1) },
+      { x: cx + 10, y: G.H - 68, w: 140, h: 50, label: '►', sub: 'gara dopo', size: 22, color: '#37474f', fn: () => this.gira(1) },
+    ];
+  }
+  gira(d) { const n = this.gare.length; this.i = (this.i + d + n) % n; }
+  back() { G.setScene(new RecordsScene()); return true; }
+  onKey(p, b) { this.gira(b === 0 ? 1 : -1); }
+  draw(ctx) {
+    menuBg(ctx, this.t);
+    const W = G.W, cx = W / 2, id = this.gare[this.i];
+    const meta = EVENTS.find(e => e.id === id), fmt = v => meta ? meta.fmt(v) : v + ' pt';
+    panel(ctx, 70, 12, W - 140, G.H - 90);
+    txt(ctx, 'I PRIMI 10', cx, 38, 24, '#ffd600');
+    txtFit(ctx, meta ? meta.name : 'DECATHLON', cx, 68, 20, '#fff', 'center', W - 420);
+    legendaLivelli(ctx, 88, 40, 11);
+    txt(ctx, (this.i + 1) + ' / ' + this.gare.length, W - 88, 40, 13, '#90caf9', 'right', { italic: false, crudo: true });
+    const t = World.top(id), wr = World.wr(id);
+    if (wr) txt(ctx, 'RECORD DEL MONDO: ' + wrText(id), cx, 92, 13, '#a5d6a7', 'center', { italic: false });
+    const y0 = 122, passo = Math.min(30, (G.H - 96 - y0) / WORLD_TOP), s = 16;
+    const xn = cx - 250, xv = cx + 150, xd = cx + 250;
+    if (!t.length) txt(ctx, 'ancora nessuno: il primo posto ti aspetta', cx, y0 + passo * 3, 17, '#b0bec5', 'center', { italic: false });
+    t.slice(0, WORLD_TOP).forEach((r, k) => {
+      const y = y0 + k * passo, lv = letteraDi(r);
+      if (k % 2 === 0) { ctx.fillStyle = 'rgba(255,255,255,0.05)'; rrect(ctx, xn - 46, y - passo / 2 + 1, xd - xn + 60, passo - 2, 6); ctx.fill(); }
+      txt(ctx, String(k + 1), xn - 14, y, s, k === 0 ? '#ffd600' : '#cfd8dc', 'right', { italic: false, crudo: true });
+      const fh = 15, fw = 23;
+      if (FLAGS[r.nat]) drawFlag(ctx, r.nat, xn, Math.round(y - fh / 2), fw, fh);
+      txt(ctx, nomeCorto(r.who || ''), xn + fw + 10, y, s, k === 0 ? '#ffd600' : '#fff', 'left', { italic: false, crudo: true });
+      txt(ctx, lv, xn + fw + 196, y, s, LETTERA_COL[lv], 'center', { italic: false, crudo: true });
+      txt(ctx, fmt(r.v) + (r.leg ? '*' : ''), xv, y, s, '#90caf9', 'right', { italic: false });
+      if (r.il) txt(ctx, String(r.il).split('-').reverse().join('/'), xd, y, 12, '#78909c', 'right', { italic: false, crudo: true, outline: false });
+    });
+    this.drawButtons(ctx);
   }
 }
 

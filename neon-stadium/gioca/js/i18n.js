@@ -710,6 +710,8 @@ Object.assign(EN, {
   'il pagamento in euro non e\' ancora aperto: presto': 'paying in euros is not open yet: soon',
   '* con un oggetto leggendario': '* with a legendary item',
   'vanno in classifica solo le gare di carriera': 'only career events reach the leaderboard',
+  'I PRIMI 10': 'TOP 10', 'o tocca una gara': 'or tap an event', 'gara prima': 'previous event', 'gara dopo': 'next event',
+  'ancora nessuno: il primo posto ti aspetta': 'nobody yet: first place is waiting for you',
   'LE SCARPE DEL FULMINE GIAMAICANO': 'THE JAMAICAN LIGHTNING\'S SHOES', 'ancora calde dal 2009: non lavarle, mai': 'still warm since 2009: never wash them',
   'MEZZA BARBA DEL SALTATORE MARCHIGIANO': 'HALF A BEARD OF THE HIGH JUMPER FROM THE MARCHE', 'l\'altra meta\' la tiene lui, per scaramanzia': 'he keeps the other half, for luck',
   'LE ALETTE AI TALLONI DI HERMES': 'HERMES\'S HEEL WINGS', 'consegna garantita, anche oltre gli ostacoli': 'delivery guaranteed, even over the hurdles',
