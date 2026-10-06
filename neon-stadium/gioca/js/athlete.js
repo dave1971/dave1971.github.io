@@ -5,6 +5,7 @@
 // l* = far side limbs (drawn behind), r* = near side limbs.
 
 const BODY = { torso: 0.55, head: 0.72, headR: 0.12, ua: 0.3, fa: 0.28, th: 0.45, sh: 0.45 };
+const COLLO_MAX = 1.0;        // quanto puo' piegare il collo rispetto al busto, in radianti (57 gradi)
 
 // Come ci si veste dove non si va in canotta e scarpette: lo dice la posa.
 const NUOTO = { petto: true, nudi: true, cuffia: true }, TUFFO = { petto: true, nudi: true }, SCALZO = { nudi: true };
@@ -49,7 +50,14 @@ function drawAthlete(ctx, x, y, ppm, pose, col, facing) {
   const limb = (x0, y0, a, L) => [x0 + Math.sin(a) * L, y0 + Math.cos(a) * L];
 
   const shB = [Math.sin(pose.torso) * BODY.torso, -Math.cos(pose.torso) * BODY.torso];
-  const hdB = [Math.sin(pose.torso + (pose.neck || 0)) * BODY.head, -Math.cos(pose.torso + (pose.neck || 0)) * BODY.head];
+  // La testa. `neck` dice di quanto la posa piega il collo. Una volta la testa si metteva a BODY.head
+  // dall'anca in quella direzione: ma cosi' piu' il collo piegava, piu' la testa si allontanava dalle
+  // spalle (con 0,6 il collo veniva lungo il doppio, e piegato a squadra). Da quel punto ora si prende
+  // solo la direzione in cui guardano le spalle: la testa sta sempre alla stessa distanza, e il collo
+  // non piega oltre quello che un collo puo'.
+  const piega = pose.neck || 0, lungo = BODY.head - BODY.torso;
+  const fi = clamp(Math.atan2(BODY.head * Math.sin(piega), BODY.head * Math.cos(piega) - BODY.torso), -COLLO_MAX, COLLO_MAX);
+  const hdB = [shB[0] + Math.sin(pose.torso + fi) * lungo, shB[1] - Math.cos(pose.torso + fi) * lungo];
   const kR = limb(0, 0, pose.rt, BODY.th), fR = limb(kR[0], kR[1], pose.rs, BODY.sh);
   const kL = limb(0, 0, pose.lt, BODY.th), fL = limb(kL[0], kL[1], pose.ls, BODY.sh);
   const eR = limb(shB[0], shB[1], pose.ru, BODY.ua), hR = limb(eR[0], eR[1], pose.rf, BODY.fa);
