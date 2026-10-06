@@ -1,5 +1,5 @@
 {
-  "rev": 43,
+  "rev": 44,
   "aggiornato": "2026-10-06",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -187,6 +187,13 @@
         "who": "MELLO",
         "nat": "ITA",
         "il": "2026-09-24"
+      },
+      {
+        "v": 12.39963094187064,
+        "who": "WLAMB",
+        "nat": "FIN",
+        "il": "2026-10-06",
+        "lv": "U"
       }
     ],
     "volteggio": [
@@ -247,8 +254,35 @@
         "il": "2026-10-06",
         "lv": "U"
       }
+    ],
+    "200m": [
+      {
+        "v": 22.059029328097544,
+        "who": "WLAMB",
+        "nat": "FIN",
+        "il": "2026-10-06",
+        "lv": "U"
+      }
+    ],
+    "disco": [
+      {
+        "v": 37.48751354665162,
+        "who": "WLAMB",
+        "nat": "FIN",
+        "il": "2026-10-06",
+        "lv": "U"
+      }
+    ],
+    "martello": [
+      {
+        "v": 40.51564570927133,
+        "who": "WLAMB",
+        "nat": "FIN",
+        "il": "2026-10-06",
+        "lv": "U"
+      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 110
+  "postRev": 114
 }
