@@ -1,5 +1,5 @@
 {
-  "rev": 38,
+  "rev": 39,
   "aggiornato": "2026-10-06",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -97,6 +97,13 @@
         "who": "MELLO",
         "nat": "ITA",
         "il": "2026-09-29"
+      },
+      {
+        "v": 12.248366191657547,
+        "who": "WLAMB",
+        "nat": "FIN",
+        "il": "2026-10-06",
+        "lv": "U"
       }
     ],
     "tuffi": [
@@ -167,8 +174,35 @@
         "nat": "ITA",
         "il": "2026-10-04"
       }
+    ],
+    "trampolino": [
+      {
+        "v": 157.3,
+        "who": "WLAMB",
+        "nat": "FIN",
+        "il": "2026-10-06",
+        "lv": "U"
+      }
+    ],
+    "lungo": [
+      {
+        "v": 5.71253399985182,
+        "who": "WLAMB",
+        "nat": "FIN",
+        "il": "2026-10-06",
+        "lv": "U"
+      }
+    ],
+    "alto": [
+      {
+        "v": 1.85,
+        "who": "WLAMB",
+        "nat": "FIN",
+        "il": "2026-10-06",
+        "lv": "U"
+      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 94
+  "postRev": 98
 }
