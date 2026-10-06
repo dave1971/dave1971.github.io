@@ -125,6 +125,9 @@ const World = {
         if (late) return;                       // ha risposto tardi: chi aspettava è già andato avanti
         if (!d || typeof d.rev !== 'number') { end(false); return; }
         const nuovo = d.rev > this.rev();
+        // dopo un aggiornamento forzato la classifica in mano e' piu' fresca di quella del file, finche'
+        // la pagina pubblica non si rimette in pari (ci mette un minuto): si tiene la piu' fresca
+        if (this.forzato && (d.postRev | 0) < this.forzato.rev) d.top = this.forzato.top;
         this.d = d;
         this.write(this.KEY, JSON.stringify(d));
         end(nuovo);
@@ -310,6 +313,50 @@ const Share = {
             : 'record mandato, sei in classifica';
     this.esitoT = fermo ? 9 : 6;                // se c'è qualcosa che non va, resta scritto di più
     this.save();
+    this.entrati = mandati;
+    if (this.dopo) { const f = this.dopo; this.dopo = null; f(); }
+  },
+
+  /**
+   * L'aggiornamento forzato, dalla schermata dei record e solo con la parola d'ordine. Di norma la
+   * classifica torna sulla pagina pubblica una volta all'ora, e i giochi la scaricano da li': qui si
+   * mandano subito i primati di carriera che entrerebbero, si chiede al Worker di pubblicare adesso, e
+   * la classifica nuova si prende direttamente dalla sua risposta, senza aspettare la pagina.
+   * La parola la controlla il Worker (non basta averla saltata qui): `fine(scritta, riuscito)`.
+   */
+  forza(parola, fine) {
+    if (!this.attivo() || typeof window.fetch !== 'function') { fine('la classifica non risponde: riprova fra poco', false); return; }
+    this.d.ok = true;               // chi preme questo pulsante vuole mandarli
+    this.ricoda();
+    this.save();
+    const inCoda = this.d.coda.length;
+    const chiedi = () => {
+      const entrati = inCoda ? (this.entrati | 0) : 0;
+      this.esito = ''; this.esitoT = 0;
+      let late = false;
+      const timer = setTimeout(() => { late = true; fine('la classifica non risponde: riprova fra poco', false); }, 15000);
+      window.fetch(World.postUrl().replace(/\/r$/, '/ora'), {
+        method: 'POST', cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p: parola }),
+      })
+        .then(x => x.json().catch(() => null))
+        .then(a => {
+          clearTimeout(timer);
+          if (late) return;
+          if (!a || !a.ok) { fine(a && a.perche === 'parola' ? 'PAROLA SBAGLIATA' : 'la classifica non risponde: riprova fra poco', false); return; }
+          if (a.top && World.d) {
+            World.d.top = a.top;
+            World.forzato = { rev: a.rev | 0, top: a.top };
+            World.write(World.KEY, JSON.stringify(World.d));
+          }
+          fine(entrati ? entrati + (entrati === 1 ? ' record mandato, classifica aggiornata' : ' record mandati, classifica aggiornata') : 'classifica aggiornata', true);
+        })
+        .catch(() => { clearTimeout(timer); if (!late) fine('la classifica non risponde: riprova fra poco', false); });
+    };
+    if (!inCoda) { chiedi(); return; }
+    this.dopo = chiedi;
+    this.manda();
   },
 };
 Share.load();

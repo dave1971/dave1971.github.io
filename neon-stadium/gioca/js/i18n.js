@@ -265,6 +265,7 @@ const EN = {
 
 // Strings built with numbers: every matching rule is applied, in order.
 const EN_RULES = [
+  [/^(\d+) record mandati, classifica aggiornata$/, '$1 records sent, table updated'],
   [/^Tastiera: G1 = (.+) \/ (.+)   •   G2 = (.+) \/ (.+)   •   Esc = pausa$/,
     'Keyboard: P1 = $1 / $2   •   P2 = $3 / $4   •   Esc = pause'],
   [/^Tastiera: (.+) = mirino sinistro, (.+) = mirino destro\.$/, 'Keyboard: $1 = left sight, $2 = right sight.'],
@@ -710,6 +711,11 @@ Object.assign(EN, {
   'il pagamento in euro non e\' ancora aperto: presto': 'paying in euros is not open yet: soon',
   '* con un oggetto leggendario': '* with a legendary item',
   'vanno in classifica solo le gare di carriera': 'only career events reach the leaderboard',
+  'AGGIORNA ORA': 'UPDATE NOW', 'con la parola d\'ordine': 'password needed', 'cambia livello': 'change level',
+  'manda i tuoi primati e scarica la classifica adesso: serve la parola d\'ordine': 'send your bests and download the table now: password needed',
+  'mando i primati e aggiorno la classifica...': 'sending your bests and updating the table...',
+  'classifica aggiornata': 'table updated', 'la classifica non risponde: riprova fra poco': 'the table is not answering: try again shortly',
+  '1 record mandato, classifica aggiornata': '1 record sent, table updated',
   'I PRIMI 10': 'TOP 10', 'o tocca una gara': 'or tap an event', 'gara prima': 'previous event', 'gara dopo': 'next event',
   'ancora nessuno: il primo posto ti aspetta': 'nobody yet: first place is waiting for you',
   'LE SCARPE DEL FULMINE GIAMAICANO': 'THE JAMAICAN LIGHTNING\'S SHOES', 'ancora calde dal 2009: non lavarle, mai': 'still warm since 2009: never wash them',

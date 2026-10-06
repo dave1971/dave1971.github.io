@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.7.1.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.7.2.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -877,27 +877,36 @@ class FinalScene extends Screen {
 // ---------- records ----------
 const ROW_H = 28;                            // l'altezza di una riga dell'elenco
 class RecordsScene extends Screen {
-  constructor() { super(); this.sc = new Scroller(); }
+  // forza = la parola d'ordine appena scritta: si arriva qui dal pulsante AGGIORNA ORA, passando da lei
+  constructor(o) { super(); this.sc = new Scroller(); this.forza = (o && o.forza) || ''; }
   // diciotto gare più il decathlon: l'elenco è più alto dello schermo e scorre
   rows() { return EVENTS.length + 1; }
   layout() {
     const L = Lv.cur(), W = G.W, cx = W / 2;
     const top = 102, bot = G.H - 86;             // sotto le intestazioni, sopra la riga dei pulsanti
     this.sc.set({ x: 78, y: top, w: W - 156, h: bot - top }, this.rows() * ROW_H + 14);
-    this.btns = [
-      { x: 20, y: G.H - 68, w: 160, h: 50, label: '‹ INDIETRO', size: 18, color: '#546e7a', fn: () => G.setScene(new TitleScene()) },
-      { x: G.W - 280, y: G.H - 68, w: 260, h: 50, label: L.short, sub: 'tocca per cambiare livello', size: 19, color: L.col,
-        fn: () => { Game.lvlPref = Game.lvlPref % 3 + 1; Lv.i = Game.lvlPref; savePrefs(); this.layout(); } },
-    ];
-    if (this.sc.need) this.btns.push(
-      { x: cx - 76, y: G.H - 68, w: 62, h: 50, label: '▲', size: 24, color: '#37474f', fn: () => this.sc.page(-1) },
-      { x: cx + 14, y: G.H - 68, w: 62, h: 50, label: '▼', size: 24, color: '#37474f', fn: () => this.sc.page(1) });
-    // l'invio dei propri record alla classifica mondiale: si accende e si spegne da qui (anche dopo
-    // aver detto MAI alla domanda del titolo); riacceso, i record del Mondiale che entrerebbero fra i
-    // primi cinque si mettono in coda e partono tornando al titolo
+    // La riga dei pulsanti in basso: quelli che servono, uno dopo l'altro, stretti quanto basta perche'
+    // ci stiano anche sugli schermi meno larghi.
+    const riga = [{ w: 150, label: '‹ INDIETRO', size: 18, color: '#546e7a', fn: () => G.setScene(new TitleScene()) }];
     // i primi dieci di ogni gara: dal pulsante, o toccando la riga della gara
-    if (World.anyTop()) this.btns.push({ x: 196, y: G.H - 68, w: 150, h: 50, label: 'I PRIMI 10', sub: 'o tocca una gara', size: 17, color: '#1565c0',
-      fn: () => G.setScene(new TopScene()) });
+    if (World.anyTop()) riga.push({ w: 150, label: 'I PRIMI 10', sub: 'o tocca una gara', size: 17, color: '#1565c0', fn: () => G.setScene(new TopScene()) });
+    if (this.sc.need) riga.push(
+      { w: 58, label: '▲', size: 24, color: '#37474f', fn: () => this.sc.page(-1) },
+      { w: 58, label: '▼', size: 24, color: '#37474f', fn: () => this.sc.page(1) });
+    // manda subito i propri primati e scarica la classifica senza aspettare il giro dell'ora: solo con
+    // la parola d'ordine (la stessa del torneo), che controlla anche il Worker
+    if (Share.attivo()) riga.push({ w: 170, label: 'AGGIORNA ORA', sub: 'con la parola d\'ordine', size: 16, color: '#6a1b9a', fn: () => G.setScene(new PasswordScene({
+      titolo: 'AGGIORNA ORA', riga: 'manda i tuoi primati e scarica la classifica adesso: serve la parola d\'ordine', medievo: false,
+      ok: v => G.setScene(new RecordsScene({ forza: v })), indietro: () => G.setScene(new RecordsScene()) })) });
+    riga.push({ w: 190, label: L.short, sub: 'cambia livello', size: 19, color: L.col,
+      fn: () => { Game.lvlPref = Game.lvlPref % 3 + 1; Lv.i = Game.lvlPref; savePrefs(); this.layout(); } });
+    const larghi = riga.reduce((a, b) => a + b.w, 0), k = Math.min(1, (W - 40 - (riga.length - 1) * 8) / larghi);
+    const spazio = (W - 40 - larghi * k) / (riga.length - 1);
+    let bx = 20;
+    this.btns = riga.map(b => { const q = Object.assign(b, { x: bx, y: G.H - 68, w: b.w * k, h: 50, size: Math.round(b.size * Math.max(0.85, k)) }); bx += q.w + spazio; return q; });
+    // l'invio dei propri record alla classifica mondiale: si accende e si spegne da qui (anche dopo
+    // aver detto MAI alla domanda del titolo); riacceso, i primati di carriera che entrerebbero fra i
+    // primi dieci si mettono in coda e partono tornando al titolo
     if (Share.attivo()) {
       const acceso = Share.d.ok === true;
       this.btns.push({ x: G.W - 214, y: 12, w: 194, h: 44, label: acceso ? 'INVIO MONDIALE: SÌ' : 'INVIO MONDIALE: NO', size: 14,
@@ -1028,9 +1037,22 @@ class RecordsScene extends Screen {
       this.layout();
       const i = EVENTS.map(e => e.id).concat(['decathlon']).findIndex(id => this.nuovi[id]);
       if (i >= 0) this.sc.by(Math.max(0, i * ROW_H + 12 - this.sc.box.h / 2));
+      if (this.forza) this.aggiorna();
     });
   }
-  update(dt) { super.update(dt); this.sc.update(dt); }
+  // L'aggiornamento forzato: parte una volta sola, appena entrati con la parola d'ordine.
+  aggiorna() {
+    const parola = this.forza;
+    this.forza = ''; this.forzando = true; this.esitoForza = '';
+    Share.forza(parola, (scritta, riuscito) => {
+      this.forzando = false;
+      this.esitoForza = scritta; this.esitoOk = riuscito; this.esitoForzaT = 8;
+      if (riuscito) { Snd.coins(); this.nuovi = Object.assign(this.nuovi || {}, World.novita()); }
+      else Snd.fail();
+      if (G.scene === this) this.layout();
+    });
+  }
+  update(dt) { super.update(dt); this.sc.update(dt); if (this.esitoForzaT > 0 && (this.esitoForzaT -= dt) <= 0) this.esitoForza = ''; }
   // il dito trascina l'elenco, la rotella lo fa girare: i pulsanti restano per il telecomando
   // Un tocco dentro l'elenco che non diventa un trascinamento apre i primi dieci di quella gara.
   pointerDown(x, y, id) {
@@ -1106,7 +1128,9 @@ class RecordsScene extends Screen {
     this.sc.fade(ctx);
     this.sc.drawBar(ctx, W - 84, 6);
     this.drawButtons(ctx);
-    if (this.wait) txt(ctx, 'scarico i record...', cx, G.H - 44, 14, '#90caf9', 'center', { italic: false });
+    if (this.wait) txt(ctx, 'scarico i record...', cx, G.H - 82, 14, '#90caf9', 'center', { italic: false });
+    else if (this.forzando) txt(ctx, 'mando i primati e aggiorno la classifica...', cx, G.H - 82, 15, '#ffd600', 'center', { italic: false });
+    else if (this.esitoForza) txt(ctx, this.esitoForza, cx, G.H - 82, 16, this.esitoOk ? '#7CFC00' : '#ff8a80', 'center', { italic: false });
     else if (this.conLeg) txt(ctx, '* con un oggetto leggendario', cx, G.H - 82, 12, '#ffd54f', 'center', { italic: false });
     // sotto il pulsante dell'invio: che cosa finisce nella classifica dei giocatori
     if (Share.attivo()) txt(ctx, 'vanno in classifica solo le gare di carriera', W - 20, 66, 11, '#b0bec5', 'right', { italic: false, outline: false });

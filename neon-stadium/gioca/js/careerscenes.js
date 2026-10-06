@@ -550,7 +550,7 @@ class PasswordScene extends Screen {
     if (parolaGiusta(this.v)) {
       legSblocca();
       Snd.fanfare();
-      if (this.o) this.o.ok(); else { Specials.aperto = true; G.setScene(new SpecialsScene(1)); }
+      if (this.o) this.o.ok(this.v); else { Specials.aperto = true; G.setScene(new SpecialsScene(1)); }
       return;
     }
     this.errore = 1.2; this.v = '';
