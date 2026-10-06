@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.7.2.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.7.3.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -28,6 +28,8 @@ const Game = {
     // the level sets the ceiling of the whole field, rivals or not; in career it is the tier reached so far
     const lvl = this.careerMode ? Career.data.lvl : this.lvlPref;
     Lv.i = lvl;
+    // l'ultimo campionato in cui si e' gareggiato: la schermata dei record si apre li' (vedi livelloDeiRecord)
+    if (!this.special) { try { localStorage.setItem('olimpiadi_lvl_giocato', lvl); } catch (e) { /* storage unavailable */ } }
     this.humans = n; this.cpu = (this.careerMode || this.rivalsPref) ? lvl : 0; this.n = this.cpu ? this.CAREER_N : n;
     // roster: humans first, then the CPU athletes with skills spread over the level's range
     PCOL.length = 0;
@@ -95,6 +97,26 @@ try {
   const r = localStorage.getItem('olimpiadi_rivals'); if (r != null) Game.rivalsPref = r === '1';
 } catch (e) { /* storage unavailable */ }
 Lv.i = Game.lvlPref;
+
+// Il campionato con cui si apre la schermata dei record. I record personali sono divisi per campionato,
+// e la schermata ne mostra uno alla volta: aprendola appena avviato il gioco mostrava quello delle gare
+// singole (di solito il Mondiale), e chi gioca la carriera all'Universitario vedeva una tabella vuota
+// finche' non faceva una gara. Si apre invece sull'ultimo campionato in cui si e' gareggiato, anche in
+// un'altra sessione; se li' non c'e' niente (o non lo si sa ancora), su quello che ha piu' record.
+function livelloDeiRecord() {
+  const quanti = [0, 0, 0, 0];
+  for (const k in Records.data) {
+    const l = LEVELS.findIndex(L => L && k.endsWith('@' + L.id));
+    if (l > 0) quanti[l]++;
+  }
+  let ultimo = 0;
+  try { ultimo = +localStorage.getItem('olimpiadi_lvl_giocato') || 0; } catch (e) { /* storage unavailable */ }
+  if (ultimo >= 1 && ultimo <= 3 && quanti[ultimo] > 0) return ultimo;
+  let m = clamp(Lv.i, 1, 3);
+  for (let l = 1; l <= 3; l++) if (quanti[l] > quanti[m]) m = l;
+  return m;
+}
+
 function savePrefs() {
   try {
     localStorage.setItem('olimpiadi_lvl', Game.lvlPref);
@@ -285,6 +307,9 @@ function standRow(ctx, x, y, w, h, place, p, value, right, note, medals) {
 
 // ---------- title ----------
 class TitleScene extends Screen {
+  // tornando al titolo il campionato in corso e' di nuovo quello scelto per le gare singole (la
+  // schermata dei record puo' averne mostrato un altro)
+  enter() { Lv.i = Game.lvlPref; super.enter(); }
   layout() {
     const cx = G.W / 2;
     this.btns = [
@@ -295,7 +320,7 @@ class TitleScene extends Screen {
       { x: cx + 15, y: 388, w: 250, h: 58, label: 'RECORD', color: '#7b1fa2', size: 22,
         // la stellina dice che il file dei record è cambiato da quando il giocatore l'ha guardato
         star: World.isFresh(), sub: World.isFresh() ? 'nuovi record!' : null,
-        fn: () => G.setScene(new RecordsScene()) },
+        fn: () => G.setScene(new RecordsScene({ apri: true })) },
       { x: 14, y: 14, w: 64, h: 44, label: '', flag: LANG === 'en' ? 'GBR' : 'ITA', color: '#37474f',
         fn: () => { setLang(LANG === 'en' ? 'it' : 'en'); this.layout(); } },
       { x: G.W - 96, y: 14, w: 82, h: 44, label: !Snd.on ? 'AUDIO OFF' : Music.on ? 'AUDIO ON' : 'MUSICA OFF',
@@ -878,7 +903,11 @@ class FinalScene extends Screen {
 const ROW_H = 28;                            // l'altezza di una riga dell'elenco
 class RecordsScene extends Screen {
   // forza = la parola d'ordine appena scritta: si arriva qui dal pulsante AGGIORNA ORA, passando da lei
-  constructor(o) { super(); this.sc = new Scroller(); this.forza = (o && o.forza) || ''; }
+  // apri = ci si arriva dal titolo: si sceglie il campionato da mostrare (livelloDeiRecord)
+  constructor(o) {
+    super(); this.sc = new Scroller(); this.forza = (o && o.forza) || '';
+    if (o && o.apri) Lv.i = livelloDeiRecord();
+  }
   // diciotto gare più il decathlon: l'elenco è più alto dello schermo e scorre
   rows() { return EVENTS.length + 1; }
   layout() {
@@ -899,7 +928,7 @@ class RecordsScene extends Screen {
       titolo: 'AGGIORNA ORA', riga: 'manda i tuoi primati e scarica la classifica adesso: serve la parola d\'ordine', medievo: false,
       ok: v => G.setScene(new RecordsScene({ forza: v })), indietro: () => G.setScene(new RecordsScene()) })) });
     riga.push({ w: 190, label: L.short, sub: 'cambia livello', size: 19, color: L.col,
-      fn: () => { Game.lvlPref = Game.lvlPref % 3 + 1; Lv.i = Game.lvlPref; savePrefs(); this.layout(); } });
+      fn: () => { Lv.i = Lv.i % 3 + 1; Game.lvlPref = Lv.i; savePrefs(); this.layout(); } });
     const larghi = riga.reduce((a, b) => a + b.w, 0), k = Math.min(1, (W - 40 - (riga.length - 1) * 8) / larghi);
     const spazio = (W - 40 - larghi * k) / (riga.length - 1);
     let bx = 20;

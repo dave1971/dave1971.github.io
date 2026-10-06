@@ -436,8 +436,10 @@ const Pose = {
   straight() { return { torso: 0, lu: Math.PI, lf: Math.PI, ru: Math.PI - 0.04, rf: Math.PI - 0.04, lt: 0.02, ls: 0.02, rt: -0.02, rs: -0.02 }; },
   armsOut() { return { torso: 0, lu: 1.6, lf: 1.6, ru: 1.5, rf: 1.5, lt: 0.02, ls: 0.02, rt: -0.02, rs: -0.02 }; },
   // weightlifting
-  liftDown() { return { torso: 0.95, neck: -0.6, lu: 0.1, lf: 0.1, ru: 0.05, rf: 0.05, lt: 1.45, ls: -0.25, rt: 1.35, rs: -0.2 }; },
-  liftPull() { return { torso: 0.25, neck: -0.2, lu: 0.1, lf: 0.1, ru: 0.05, rf: 0.05, lt: 0.5, ls: -0.1, rt: 0.45, rs: -0.1 }; },
+  // il collo: la testa si misura dall'anca, quindi un angolo grande col busto piegato la porta lontano dalle
+  // spalle (con -0.6 il collo veniva lungo il doppio e piegato all'indietro). Basta poco per alzare lo sguardo.
+  liftDown() { return { torso: 0.95, neck: -0.15, lu: 0.1, lf: 0.1, ru: 0.05, rf: 0.05, lt: 1.45, ls: -0.25, rt: 1.35, rs: -0.2 }; },
+  liftPull() { return { torso: 0.25, neck: -0.06, lu: 0.1, lf: 0.1, ru: 0.05, rf: 0.05, lt: 0.5, ls: -0.1, rt: 0.45, rs: -0.1 }; },
   liftRack() { return { torso: 0.02, lu: 0.5, lf: 2.95, ru: 0.45, rf: 2.9, lt: 0.12, ls: -0.05, rt: 0.08, rs: -0.05 }; },
   liftOver() { return { torso: -0.05, lu: 3.0, lf: 3.08, ru: 2.95, rf: 3.05, lt: -0.45, ls: -0.65, rt: 0.55, rs: 0.1 }; },
   // pole vault
