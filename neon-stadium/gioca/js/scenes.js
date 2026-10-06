@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.6.2.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.7.0.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -437,38 +437,51 @@ class MenuScene extends Screen {
 
 // ---------- event intro / instructions ----------
 class IntroScene extends Screen {
-  constructor(evIdx) { super(); this.evIdx = evIdx; this.meta = evMeta(evIdx); this.music = 'race'; }
+  constructor(evIdx) {
+    super(); this.evIdx = evIdx; this.meta = evMeta(evIdx); this.music = 'race';
+    // le istruzioni a immagini: dietro gira la gara vera, da cui si prendono le fotografie (guida.js)
+    this.guida = new Guida(this.meta);
+  }
   start() { G.setScene(new EventScene(this.evIdx)); }
-  pointerDown() { if (this.t > 0.6) { Snd.click(); this.start(); } }
+  // Si parte solo dal pulsante (o da un tasto): prima bastava toccare lo schermo dovunque, e le
+  // istruzioni non le guardava nessuno.
+  layout() {
+    const cx = G.W / 2;
+    this.btns = [{ x: cx - 170, y: G.H - 92, w: 340, h: 58, label: 'TUTTO CHIARO!', color: '#43a047', size: 28, fn: () => this.start() }];
+  }
+  update(dt) { super.update(dt); this.guida.avanza(7); }
   onKey() { this.start(); }
   back() { G.setScene(Game.menu()); return true; }
   draw(ctx) {
     menuBg(ctx, this.t);
     const W = G.W, cx = W / 2, m = this.meta;
-    panel(ctx, 50, 24, W - 100, G.H - 48);
-    txt(ctx, Game.deca ? 'DECATHLON  •  GARA ' + (Game.idx + 1) + ' DI ' + Game.order.length : (Game.careerMode ? 'CARRIERA' : 'GARA SINGOLA'), cx, 58, 18, '#90caf9');
-    txt(ctx, m.name, cx, 108, 50, '#ffd600');
-    const help = typeof m.help === 'function' ? m.help() : m.help;
-    help.forEach((l, i) => txt(ctx, l, cx, 170 + i * 30, 20, '#fff', 'center', { italic: false }));
-    // due tasti, o tre nelle gare che hanno anche il C (la caccia al maiale)
-    const labels = metaLabels(m, 0), nb = labels.length, passo = nb > 2 ? 205 : 220;
-    for (let b = 0; b < nb; b++) {
-      const x = cx + (b - (nb - 1) / 2) * passo, y = 320;
-      ctx.fillStyle = TASTO_COL[b];
-      ctx.beginPath(); ctx.arc(x - 60, y, 26, 0, Math.PI * 2); ctx.fill();
-      txt(ctx, 'ABC'[b], x - 60, y + 1, 26, '#fff');
-      txt(ctx, labels[b], x - 24, y, 20, '#fff', 'left');
+    panel(ctx, 40, 14, W - 80, G.H - 28);
+    txt(ctx, 'ISTRUZIONI PER LA GARA!', cx, 44, 28, '#ffd600');
+    txtFit(ctx, m.name, cx, 78, 22, '#fff', 'center', W - 140);
+    if (this.guida.passi) guidaDisegna(ctx, this.guida, 56, 98, W - 112, G.H - 98 - 152, this.t);
+    else {
+      // una gara senza istruzioni a immagini: restano le righe scritte e i nomi dei tasti
+      const help = typeof m.help === 'function' ? m.help() : m.help;
+      help.forEach((l, i) => txt(ctx, l, cx, 150 + i * 30, 20, '#fff', 'center', { italic: false }));
+      const labels = metaLabels(m, 0), nb = labels.length, passo = nb > 2 ? 205 : 220;
+      for (let b = 0; b < nb; b++) {
+        const x = cx + (b - (nb - 1) / 2) * passo, y = 290;
+        ctx.fillStyle = TASTO_COL[b];
+        ctx.beginPath(); ctx.arc(x - 60, y, 26, 0, Math.PI * 2); ctx.fill();
+        txt(ctx, 'ABC'[b], x - 60, y + 1, 26, '#fff');
+        txt(ctx, labels[b], x - 24, y, 20, '#fff', 'left');
+      }
     }
-    if (nb > 2 && window.OLIMPIADI_PLATFORM) txt(ctx, 'Tastiera: il tasto C è ' + T(Keys.name(keyIdx(0, 2))) + ' per G1, ' + T(Keys.name(keyIdx(1, 2))) + ' per G2', cx, m.medievo ? 394 : 350, 14, '#b3e5fc', 'center', { italic: false });
-    txt(ctx, 'IL TUO RECORD: ' + recText(m.id), cx, 368, 17, '#ffcc80', 'center', { italic: false });
-    if (!m.medievo) txt(ctx, 'RECORD DEL MONDO: ' + wrText(m.id), cx, 392, 17, '#a5d6a7', 'center', { italic: false });   // il torneo non ha record del mondo
-    let y = 420;
-    if (Game.humans > 1) { txt(ctx, 'G1: pulsanti a SINISTRA   •   G2: pulsanti a DESTRA', cx, y, 16, '#b3e5fc', 'center', { italic: false }); y += 24; }
-    // livelloDi sta coi file del torneo, che nella versione web non ci sono
-    const lv = typeof livelloDi === 'function' ? livelloDi(m) : LEVELS[clamp(Lv.i, 1, 3)];
-    txt(ctx, lv.name + (Game.cpu ? '   •   ' + (Game.n - Game.humans) + ' avversari CPU, classifica e medaglie' : ''),
-      cx, y, 16, lv.col, 'center', { italic: false });
-    if (Math.sin(this.t * 5) > -0.3) txt(ctx, 'TOCCA LO SCHERMO PER INIZIARE', cx, G.H - 58, 26, '#7CFC00');
+    // sotto, in piccolo, quello che non e' un'istruzione: i record, e a chi toccano i tasti
+    const nb = metaLabels(m, 0).length;
+    let y = G.H - 146;
+    if (nb > 2 && window.OLIMPIADI_PLATFORM) { txt(ctx, 'Tastiera: il tasto C è ' + T(Keys.name(keyIdx(0, 2))) + ' per G1, ' + T(Keys.name(keyIdx(1, 2))) + ' per G2', cx, y, 13, '#b3e5fc', 'center', { italic: false }); y += 20; }
+    if (Game.humans > 1) { txt(ctx, 'G1: pulsanti a SINISTRA   •   G2: pulsanti a DESTRA', cx, y, 14, '#b3e5fc', 'center', { italic: false }); y += 20; }
+    // i record ai due lati del pulsante, su due righe perche' non lo tocchino
+    const lato = (x, a, capo, val, col) => { txt(ctx, capo, x, G.H - 74, 12, col, a, { italic: false }); txtFit(ctx, val, x, G.H - 54, 15, col, a, cx - 170 - 72, { italic: false }); };
+    lato(60, 'left', 'IL TUO RECORD', recText(m.id), '#ffcc80');
+    if (!m.medievo) lato(W - 60, 'right', 'RECORD DEL MONDO', wrText(m.id), '#a5d6a7');   // il torneo non ha record del mondo
+    this.drawButtons(ctx);
   }
 }
 

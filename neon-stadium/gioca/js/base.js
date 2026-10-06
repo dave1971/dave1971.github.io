@@ -165,7 +165,8 @@ const Superate = {
   save() { try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) { /* storage unavailable */ } },
   k(id, p) { return id + '@' + Lv.id() + '#' + p; },
   // vale solo per chi gioca davvero, nelle gare singole (non in carriera, che ha la sua, ne' nel decathlon)
-  conta(p) { return !Game.careerMode && !Game.deca && !Game.special && p < Game.humans; },
+  // (e non per l'atleta di dimostrazione delle istruzioni, Game.demo)
+  conta(p) { return !Game.demo && !Game.careerMode && !Game.deca && !Game.special && p < Game.humans; },
   get(id, p) { const v = this.data[this.k(id, p)]; return typeof v === 'number' ? v : null; },
   metti(id, p, v) {
     if (!this.conta(p) || v == null) return;

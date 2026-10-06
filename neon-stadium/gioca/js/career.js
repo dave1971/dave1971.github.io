@@ -313,6 +313,8 @@ const Career = {
   factorFor(p, id) {
     // free play: everybody runs at the tier ceiling. Nel torneo medievale no: li' gli avversari sono
     // scalati come in carriera, dal piu' debole (LIBERO_F) al favorito (1), se no finivano tutti pari.
+    // l'atleta di dimostrazione delle istruzioni (guida.js) e' sempre al massimo della forma
+    if (Game.demo) return 1;
     if (!Game.careerMode || !this.data) {
       const s = Game.special && p >= Game.humans && Game.cpuSkill ? Game.cpuSkill[p] : null;
       return s == null ? 1 : lerp(LIBERO_F_EV[id] || LIBERO_F, 1, clamp(s, 0, 1));
