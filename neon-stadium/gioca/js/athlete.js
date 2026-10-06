@@ -464,3 +464,119 @@ function lerpPose(a, b, t) {
   for (const k in b) if (o[k] === undefined) o[k] = lerp(0, b[k], t);
   return o;
 }
+
+/**
+ * L'atleta visto di fronte, in piedi, che festeggia: le braccia alzate tengono la bandiera del suo paese
+ * stesa dietro la schiena, e al collo ha la medaglia. E' quello del podio, nella schermata dei risultati.
+ *
+ * (cx, by) = il punto fra i piedi; sc = pixel per unita' (la figura e' alta 100 unita', le mani arrivano a
+ * 104). `medaglia` = 1, 2 o 3 (0 = nessuna); `t` fa ondeggiare la bandiera. I colori sono quelli di sempre
+ * (maglia, pantaloncini, pelle, capelli), il fisico e i capelli quelli di fisicoDi.
+ */
+function drawDiFronte(ctx, col, cx, by, sc, medaglia, t) {
+  const X = d => cx + d * sc, Y = d => by - d * sc, BORDO = '#17171f';
+  const F = fisicoDi(col), donna = F.donna, cap = F.capelli;
+  const sp = donna ? 12.5 : 15, vita = donna ? 8.2 : 10.5, fianchi = donna ? 11.5 : 11;   // mezze larghezze
+  const top = donna && (TENUTE.f[col.tenuta | 0] === 'TOP E CULOTTE');
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+  // la bandiera, dietro a tutto: da una mano all'altra, giu' fino ai fianchi, con l'orlo che cede in mezzo
+  const fx0 = -31, fx1 = 31, fy1 = 99, fy0 = 52, cede = 5;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(X(fx0), Y(fy1)); ctx.quadraticCurveTo(X(0), Y(fy1 - cede), X(fx1), Y(fy1));
+  ctx.lineTo(X(fx1 - 2), Y(fy0 + 2)); ctx.quadraticCurveTo(X(0), Y(fy0 - 3), X(fx0 + 2), Y(fy0 + 2));
+  ctx.closePath();
+  ctx.strokeStyle = BORDO; ctx.lineWidth = 2 * sc; ctx.stroke();
+  ctx.clip();
+  const band = typeof FLAGS !== 'undefined' && FLAGS[col.short];
+  if (band) band(ctx, X(fx0), Y(fy1), (fx1 - fx0) * sc, (fy1 - fy0 + 3) * sc);
+  else { ctx.fillStyle = col.ui || '#90a4ae'; ctx.fillRect(X(fx0), Y(fy1), (fx1 - fx0) * sc, (fy1 - fy0 + 3) * sc); }
+  // le pieghe della stoffa, che si spostano piano
+  for (let k = 0; k < 5; k++) {
+    const u = fx0 + (k + 0.5 + 0.25 * Math.sin((t || 0) * 2.2 + k * 1.3)) * (fx1 - fx0) / 5;
+    ctx.fillStyle = k % 2 ? 'rgba(0,0,0,0.13)' : 'rgba(255,255,255,0.13)';
+    ctx.fillRect(X(u - 2.2), Y(fy1), 4.4 * sc, (fy1 - fy0 + 3) * sc);
+  }
+  ctx.restore();
+
+  const pezzo = (punti, colore, largo) => {         // un pezzo pieno col suo bordo scuro
+    ctx.beginPath(); ctx.moveTo(X(punti[0][0]), Y(punti[0][1]));
+    for (let i = 1; i < punti.length; i++) ctx.lineTo(X(punti[i][0]), Y(punti[i][1]));
+    ctx.closePath();
+    ctx.strokeStyle = BORDO; ctx.lineWidth = (largo || 2) * sc; ctx.stroke();
+    ctx.fillStyle = colore; ctx.fill();
+  };
+  const arto = (a, b, la, lb, colore) => {          // un arto affusolato da a a b
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    pezzo([[a[0] + nx * la, a[1] + ny * la], [b[0] + nx * lb, b[1] + ny * lb], [b[0] - nx * lb, b[1] - ny * lb], [a[0] - nx * la, a[1] - ny * la]], colore, 1.8);
+    ctx.beginPath(); ctx.arc(X(b[0]), Y(b[1]), lb * sc, 0, Math.PI * 2); ctx.fillStyle = colore; ctx.fill();
+  };
+
+  // le gambe e le scarpe
+  for (const m of [-1, 1]) {
+    arto([m * 6.2, 40], [m * 6.6, 22], 5.2, 3.9, col.skin);
+    arto([m * 6.6, 22], [m * 6.8, 5], 3.8, 2.7, col.skin);
+    ctx.beginPath(); ctx.ellipse(X(m * 7.4), Y(2.2), 4.6 * sc, 2.7 * sc, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = BORDO; ctx.lineWidth = 1.8 * sc; ctx.stroke(); ctx.fillStyle = '#fafafa'; ctx.fill();
+    ctx.fillStyle = col.shirt; ctx.fillRect(X(m * 7.4 - 2.6), Y(3.4), 5.2 * sc, 1.3 * sc);
+  }
+  // i pantaloncini
+  pezzo([[-vita, 50], [vita, 50], [fianchi + 1.6, 36], [1.2, 36], [0, 40], [-1.2, 36], [-fianchi - 1.6, 36]], col.shorts || '#37474f');
+  // il busto: pelle sotto, e sopra la canotta (o il top, che lascia scoperta la vita)
+  pezzo([[-vita, 50], [-sp, 74], [-sp + 3, 77.5], [sp - 3, 77.5], [sp, 74], [vita, 50]], col.skin);
+  const orlo = top ? 62 : 50, lv = lerp(vita, sp, (orlo - 50) / 24);
+  pezzo([[-lv, orlo], [-sp + 0.6, 71], [-7.5, 77.5], [-4.2, 77.5], [0, 72.5], [4.2, 77.5], [7.5, 77.5], [sp - 0.6, 71], [lv, orlo]], col.shirt, 1.4);
+  // le braccia alzate, con le mani che stringono gli angoli della bandiera
+  for (const m of [-1, 1]) {
+    arto([m * (sp - 1), 74.5], [m * 24.5, 84], 3.6, 3.0, col.skin);
+    arto([m * 24.5, 84], [m * 30.5, 98], 2.9, 2.4, col.skin);
+    ctx.beginPath(); ctx.arc(X(m * 30.8), Y(99.5), 3.1 * sc, 0, Math.PI * 2);
+    ctx.strokeStyle = BORDO; ctx.lineWidth = 1.6 * sc; ctx.stroke(); ctx.fillStyle = col.skin; ctx.fill();
+  }
+  // il collo
+  ctx.fillStyle = shade(col.skin, 0.9); ctx.fillRect(X(-3.2), Y(82), 6.4 * sc, 6 * sc);
+
+  // i capelli che stanno dietro la testa: lunghi sulle spalle, il caschetto, la coda di lato
+  ctx.fillStyle = col.hair; ctx.strokeStyle = BORDO; ctx.lineWidth = 1.8 * sc;
+  if (cap === 5) { ctx.beginPath(); rrect(ctx, X(-10.8), Y(96), 21.6 * sc, 24 * sc, 7 * sc); ctx.stroke(); ctx.fill(); }
+  else if (cap === 1) { ctx.beginPath(); rrect(ctx, X(-10.4), Y(96), 20.8 * sc, 15.5 * sc, 6 * sc); ctx.stroke(); ctx.fill(); }
+  else if (cap === 2) { ctx.beginPath(); ctx.ellipse(X(10.5), Y(84), 3.2 * sc, 8 * sc, -0.35, 0, Math.PI * 2); ctx.stroke(); ctx.fill(); }
+  else if (cap === 6) { ctx.beginPath(); ctx.arc(X(0), Y(100.5), 4.6 * sc, 0, Math.PI * 2); ctx.stroke(); ctx.fill(); }
+  // le orecchie e la testa
+  ctx.fillStyle = col.skin;
+  ctx.beginPath(); ctx.arc(X(-8.8), Y(88), 2.3 * sc, 0, Math.PI * 2); ctx.arc(X(8.8), Y(88), 2.3 * sc, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(X(0), Y(88.5), 8.6 * sc, 9.8 * sc, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = BORDO; ctx.lineWidth = 1.8 * sc; ctx.stroke(); ctx.fillStyle = col.skin; ctx.fill();
+  // i capelli davanti: la calotta sulla fronte (rasati: solo un'ombra; ricci: a ciuffi)
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(X(0), Y(88.5), 8.9 * sc, 10.1 * sc, 0, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = col.hair; ctx.globalAlpha = cap === 4 ? 0.45 : 1;
+  if (cap === 3) { for (let k = -3; k <= 3; k++) { ctx.beginPath(); ctx.arc(X(k * 2.8), Y(96.2 - Math.abs(k) * 0.9), 3.4 * sc, 0, Math.PI * 2); ctx.fill(); } }
+  else {
+    ctx.beginPath(); ctx.moveTo(X(-10), Y(100));
+    ctx.lineTo(X(10), Y(100)); ctx.lineTo(X(10), Y(cap === 4 ? 93 : 91)); ctx.quadraticCurveTo(X(4), Y(cap === 4 ? 95 : 96.5), X(-2), Y(cap === 4 ? 94.5 : 93.6));
+    ctx.quadraticCurveTo(X(-7), Y(cap === 4 ? 94 : 92.6), X(-10), Y(cap === 4 ? 93 : 90)); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+  // la faccia: gli occhi e il sorriso di chi ha vinto
+  ctx.fillStyle = '#1b1b24';
+  ctx.beginPath(); ctx.arc(X(-3.1), Y(88.6), 1.05 * sc, 0, Math.PI * 2); ctx.arc(X(3.1), Y(88.6), 1.05 * sc, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#7b2d26'; ctx.lineWidth = 1.2 * sc;
+  ctx.beginPath(); ctx.arc(X(0), Y(86), 3.6 * sc, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke();
+  if (donna) { ctx.fillStyle = 'rgba(229,57,53,0.55)'; ctx.beginPath(); ctx.ellipse(X(0), Y(83.4), 1.6 * sc, 0.7 * sc, 0, 0, Math.PI * 2); ctx.fill(); }
+
+  // la medaglia: il nastro dal collo, e il disco sul petto
+  if (medaglia >= 1 && medaglia <= 3) {
+    const oro = ['#ffd54f', '#cfd8dc', '#d7a26b'][medaglia - 1];
+    ctx.strokeStyle = '#1565c0'; ctx.lineWidth = 2.2 * sc;
+    ctx.beginPath(); ctx.moveTo(X(-4.4), Y(79.5)); ctx.lineTo(X(0), Y(64.5)); ctx.lineTo(X(4.4), Y(79.5)); ctx.stroke();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.7 * sc;
+    ctx.beginPath(); ctx.moveTo(X(-4.4), Y(79.5)); ctx.lineTo(X(0), Y(64.5)); ctx.lineTo(X(4.4), Y(79.5)); ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(0), Y(61), 4.6 * sc, 0, Math.PI * 2);
+    ctx.strokeStyle = BORDO; ctx.lineWidth = 1.6 * sc; ctx.stroke(); ctx.fillStyle = shade(oro, 0.72); ctx.fill();
+    ctx.beginPath(); ctx.arc(X(0), Y(61), 3.5 * sc, 0, Math.PI * 2); ctx.fillStyle = oro; ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.arc(X(-1.2), Y(62.2), 1.1 * sc, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}

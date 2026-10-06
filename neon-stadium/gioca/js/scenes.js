@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.7.4.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.7.5.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -828,6 +828,50 @@ class ResultScene extends Screen {
   }
   onKey() { if (this.t > 1) this.btns[0].fn(); }
   back() { G.setScene(Game.careerMode ? new CareerScene() : Game.menu()); return true; }
+  // Chi sale sul podio: i primi tre dell'ordine d'arrivo che hanno una medaglia. A pari merito (tre
+  // secondi, per dire) i posti sul podio non bastano per tutti: passa avanti chi gioca davvero.
+  podio() {
+    if (Game.n < 2) return [];
+    const m = this.order.filter(o => o.place && o.place <= 3);
+    m.sort((a, b) => a.place - b.place || (Game.isCpu(a.p) ? 1 : 0) - (Game.isCpu(b.p) ? 1 : 0));
+    return m.slice(0, 3);
+  }
+  /**
+   * Il podio, dentro il riquadro dato: il primo in mezzo sul gradino piu' alto, gli altri due ai lati.
+   * Ognuno sta sul gradino del suo posto (due secondi stanno alla stessa altezza), di fronte, con la
+   * medaglia al collo e la bandiera tenuta alta dietro la schiena.
+   */
+  drawPodio(ctx, x, y, w, h) {
+    const chi = this.podio();
+    if (!chi.length) return;
+    // la figura con le braccia alzate e' alta 104 unita'; sotto ci sta il gradino piu' alto
+    const sc = Math.min((h * 0.64) / 104, (w / 3.15) / 66), passo = 66 * sc + Math.min(14, (w - 3 * 66 * sc) / 2);
+    // i gradini: abbastanza alti perche' ci stiano il numero e, sotto, il nome
+    const base = y + h, alti = [0.36 * h, 0.27 * h, Math.max(0.19 * h, 38)];
+    const posti = [[0, chi[0]], [-1, chi[1]], [1, chi[2]]];
+    // prima i gradini, poi gli atleti (le bandiere dei vicini si sfiorano)
+    for (const [lato, o] of posti) {
+      if (!o) continue;
+      const gx = x + w / 2 + lato * passo, gh = alti[o.place - 1], gw = passo - 4;
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; rrect(ctx, gx - gw / 2 + 3, base - gh + 4, gw, gh, 5); ctx.fill();
+      const g = ctx.createLinearGradient(0, base - gh, 0, base);
+      g.addColorStop(0, shade(MEDAL_COL[o.place - 1], 0.95)); g.addColorStop(1, shade(MEDAL_COL[o.place - 1], 0.5));
+      ctx.fillStyle = g; rrect(ctx, gx - gw / 2, base - gh, gw, gh, 5); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(gx - gw / 2 + 4, base - gh + 2, gw - 8, 3);
+      const num = Math.min(26, (gh - 18) * 0.8);
+      txt(ctx, String(o.place), gx, base - gh + 5 + num / 2, num, '#3e2723', 'center', { outline: false, crudo: true });
+      txtFit(ctx, PCOL[o.p].name, gx, base - 10, 12, '#3e2723', 'center', gw - 8, { outline: false, italic: false, crudo: true });
+    }
+    for (const [lato, o] of posti) {
+      if (!o) continue;
+      let col = PCOL[o.p];
+      // al torneo i colori sono quelli del costume
+      if (typeof Vesti !== 'undefined' && Bg.medievo()) col = Vesti.colori(col, Vesti.di(col).veste);
+      // chi ha vinto salta appena, gli altri stanno fermi
+      const su = o.place === 1 ? Math.abs(Math.sin(this.t * 5)) * 3 * sc * Math.max(0, 1 - this.t / 4) : 0;
+      drawDiFronte(ctx, col, x + w / 2 + lato * passo, base - alti[o.place - 1] - su, sc, o.place, this.t + lato);
+    }
+  }
   drawPay(ctx, x, y, w) {
     const p = this.pay, std = Career.std(this.meta.id);
     panel(ctx, x, y, w, 118);
@@ -847,11 +891,15 @@ class ResultScene extends Screen {
     txt(ctx, 'RISULTATI', cx, 32, 15, '#90caf9');
     txt(ctx, this.meta.name, cx, 62, 30, '#ffd600');
     const rowH = Math.min(34, 290 / Math.max(this.order.length, 1));
-    const split = two || !!this.pay;
+    // a destra dell'ordine d'arrivo: la classifica del decathlon, oppure il podio (sotto il riquadro
+    // della carriera, quando c'e')
+    const podio = !two && this.podio().length > 0;
+    const split = two || !!this.pay || podio;
     const colW = split ? (W - 110) / 2 : Math.min(640, W - 120), xa = split ? 45 : cx - colW / 2, y0 = 112 + rowH / 2;
     txt(ctx, 'ORDINE D\'ARRIVO', xa + colW / 2, 96, 15, '#90caf9');
     this.order.forEach((o, i) => standRow(ctx, xa, y0 + i * rowH, colW, rowH, o.place, o.p, o.r.disp, '+' + o.r.pts, this.rec[o.p] ? 'RECORD!' : ''));
     if (this.pay) this.drawPay(ctx, xa + colW + 20, 104, colW);
+    if (podio) { const py = this.pay ? 230 : 100; this.drawPodio(ctx, xa + colW + 20, py, colW, G.H - 110 - py); }
     if (two) {
       const xb = xa + colW + 20;
       txt(ctx, 'CLASSIFICA DOPO ' + (Game.idx + 1) + (Game.idx ? ' GARE' : ' GARA'), xb + colW / 2, 96, 15, '#90caf9');
