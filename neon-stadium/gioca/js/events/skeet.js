@@ -142,7 +142,7 @@ class Skeet extends EventBase {
     }
     txt(ctx, 'LANCIO ' + Math.max(1, this.cur + 1) + '/' + this.vol.length, 56, h * 0.08 + 12, 15, '#fff', 'left');
     txt(ctx, s.hits + '/' + this.total, w - 16, h * 0.12, clamp(h * 0.11, 18, 36), '#fff', 'right');
-    if (this.clock < 0) txt(ctx, 'PRONTI...', w / 2, h * 0.25, clamp(h * 0.13, 22, 46), '#ffeb3b');
+    if (this.clock < 0 && !this.msg[p]) txt(ctx, 'PRONTI...', w / 2, h * 0.25, clamp(h * 0.13, 22, 46), '#ffeb3b');
     this.drawMsg(ctx, p, w, h);
   }
 }

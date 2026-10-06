@@ -200,6 +200,35 @@ class EventBase {
     this.res[p] = { value, disp: disp || (value == null ? 'NULLO' : this.meta.fmt(value)), pts: value == null ? 0 : this.meta.pts(value) };
   }
   isDone(p) { return !!this.res[p]; }
+  /**
+   * Il ritiro: dal menu di pausa il giocatore lascia la gara e si tiene quello che ha fatto fin li'.
+   * Serve da via d'uscita: prima, per chiudere un salto in alto o una gara di lanci senza buttare la
+   * misura gia' fatta, bisognava sbagliare apposta tutti i tentativi che restavano.
+   *
+   * `parziale` e' la misura che resta in mano a chi si ritira adesso, nell'unita' della gara (null =
+   * niente). Dove conta il tentativo migliore e' quello, dove i punti si sommano e' la somma fin qui:
+   * in tutti e due i casi e' `liveScore`, purche' sia davvero una misura (lo dice `liveText`: nelle
+   * corse e' la strada fatta, e li' chi non taglia il traguardo non ha un tempo). Nelle gare a tempo
+   * del torneo `liveScore` e' rovesciato per fare la classifica, ma il tempo vero sta in `val` appena
+   * c'e'. Le poche gare che fanno diversamente si scrivono la loro.
+   */
+  parziale(p) {
+    const s = this.S && this.S[p];
+    if (s && s.val != null) return s.val;
+    if (this.meta.lowerBetter) return null;
+    const v = this.liveScore(p);
+    return v != null && v > 0 && this.liveText(p) ? v : null;
+  }
+  ritira(p) {
+    if (this.res[p]) return;
+    const v = this.parziale(p);
+    // l'atleta torna fermo al suo posto: senza, resterebbe congelato a mezz'aria o col bilanciere in mano
+    if (typeof this.fresh === 'function' && this.S && this.S[p]) this.S[p] = this.fresh(this.S[p], p);
+    this.finish(p, v, v == null ? 'RITIRATO' : undefined);
+    // la scritta resta fino ai risultati: finche' c'e' un messaggio le gare non scrivono "premi A per
+    // partire", e a gara chiusa il tempo corre (si mandano avanti gli avversari) e sparirebbe subito
+    this.say(p, 'RITIRATO', '#ffb74d', 1e6, v == null ? '' : 'vale ' + this.meta.fmt(v));
+  }
   baseUpdate(dt) {
     this.time += dt;
     for (let p = 0; p < this.n; p++) {

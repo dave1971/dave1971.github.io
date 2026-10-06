@@ -17,8 +17,10 @@ class Swim50 extends EventBase {
   }
   resetRace() {
     this.S = [];
-    for (let p = 0; p < this.n; p++) this.S.push({ x: 0, v: 0, e: 0, ph: 'block', dt: 0, o2: 1, breath: 0, fin: null, sph: 0, splash: [] });
+    for (let p = 0; p < this.n; p++) this.S.push({ x: 0, v: 0, e: 0, ph: 'block', dt: 0, o2: 1, breath: 0, fin: this.res[p] ? -1 : null, sph: 0, splash: [] });
   }
+  // chi si ritira e' fuori dalla gara come chi non arriva (vedi le corse)
+  ritira(p) { if (!this.res[p]) this.S[p].fin = -1; super.ritira(p); }
   press(p, b) {
     const s = this.S[p];
     if (s.fin != null || this.res[p]) return;

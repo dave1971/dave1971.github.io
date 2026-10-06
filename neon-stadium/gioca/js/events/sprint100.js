@@ -14,6 +14,7 @@ class Sprint100 extends EventBase {
     this.r = [];
     for (let p = 0; p < this.n; p++) this.r.push(new Runner({ vmax: this.capP(p) }));
     this.fin = Array(this.n).fill(null);
+    for (let p = 0; p < this.n; p++) if (this.res[p]) this.fin[p] = -1;
   }
   press(p, b) {
     if (this.fin[p] != null || this.res[p]) return;
@@ -21,6 +22,8 @@ class Sprint100 extends EventBase {
     if (s === 'ok') this.action(p, b);
   }
   action(p) { this.r[p].tap(); }
+  // chi si ritira e' fuori dalla corsa come chi non arriva: non taglia piu' il traguardo, va in fondo al tabellone
+  ritira(p) { if (!this.res[p]) this.fin[p] = -1; super.ritira(p); }
   stepRunner(p, dt) { this.r[p].update(dt); }
   update(dt) {
     if (this.st.update(dt) === 'restart') this.resetRace();

@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.7.5.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.7.6.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -676,12 +676,28 @@ class EventScene {
     this.ptr = {};
     this.paused = true;
     const cx = G.W / 2;
-    this.btns = [
-      { x: cx - 150, y: 170, w: 300, h: 62, label: 'RIPRENDI', color: '#43a047', fn: () => this.resume() },
-      { x: cx - 150, y: 250, w: 300, h: 62, label: 'RICOMINCIA GARA', color: '#fb8c00', size: 22, fn: () => G.setScene(new EventScene(this.evIdx)) },
-      { x: cx - 150, y: 330, w: 300, h: 62, label: 'MENU PRINCIPALE', color: '#e53935', size: 22, fn: () => G.setScene(Game.menu()) },
-    ];
+    // Chi e' ancora in gara puo' abbandonarla tenendosi quello che ha fatto (EventBase.ritira): sotto
+    // al pulsante c'e' scritto cosa gli resta. In due ognuno ha il suo, col nome.
+    const vivi = [];
+    for (let p = 0; p < this.humans; p++) if (!this.ev.res[p]) vivi.push(p);
+    const cosa = p => { const v = this.ev.parziale(p); return v == null ? 'senza risultato' : 'vale ' + this.meta.fmt(v); };
+    const h = vivi.length ? 60 : 62, passo = vivi.length ? 72 : 80;
+    let y = vivi.length ? 160 : 170;
+    const riga = (label, color, fn) => { this.btns.push({ x: cx - 150, y, w: 300, h, label, color, size: 22, fn }); y += passo; };
+    this.btns = [];
+    riga('RIPRENDI', '#43a047', () => this.resume());
+    if (vivi.length) {
+      const w = (300 - 10 * (vivi.length - 1)) / vivi.length;
+      vivi.forEach((p, i) => this.btns.push({ x: cx - 150 + i * (w + 10), y, w, h, color: '#1e88e5', size: 22,
+        label: this.humans > 1 ? 'RITIRA ' + PCOL[p].name : 'ABBANDONA LA GARA', sub: cosa(p), fn: () => this.ritira(p) }));
+      y += passo;
+    }
+    riga('RICOMINCIA GARA', '#fb8c00', () => G.setScene(new EventScene(this.evIdx)));
+    riga('MENU PRINCIPALE', '#e53935', () => G.setScene(Game.menu()));
+    this.btns[0].size = 24;
   }
+  // il giocatore p lascia la gara: gli resta la misura fatta fin qui, e la gara va avanti senza di lui
+  ritira(p) { this.resume(); this.ev.ritira(p); }
   resume() { this.paused = false; this.btns = []; }
   back() { if (this.paused) this.resume(); else this.pause(); return true; }
   humansDone() { for (let p = 0; p < this.humans; p++) if (!this.ev.res[p]) return false; return true; }
@@ -765,7 +781,7 @@ class EventScene {
     this.drawControls(ctx);
     if (this.paused) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, W, G.H);
-      txt(ctx, 'PAUSA', W / 2, 110, 48, '#ffd600');
+      txt(ctx, 'PAUSA', W / 2, this.btns.length > 3 ? 104 : 110, 48, '#ffd600');
       for (const b of this.btns) drawBtn(ctx, b);
     }
   }

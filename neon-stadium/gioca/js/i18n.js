@@ -39,6 +39,7 @@ const EN = {
   '‹ INDIETRO': '‹ BACK', 'MENU': 'MENU', 'MENU PRINCIPALE': 'MAIN MENU',
   'RIPROVA': 'RETRY', 'RIPETI': 'REPEAT', 'RIPRENDI': 'RESUME', 'RICOMINCIA GARA': 'RESTART EVENT',
   'PAUSA': 'PAUSED', 'RISULTATI': 'RESULTS', 'GARA SINGOLA': 'SINGLE EVENT',
+  'ABBANDONA LA GARA': 'RETIRE FROM EVENT', 'senza risultato': 'with no result',
   'ORDINE D\'ARRIVO': 'FINISHING ORDER', 'MEDAGLIE': 'MEDALS', 'PUNTI': 'POINTS',
   'PROSSIMA GARA ›': 'NEXT EVENT ›', 'CLASSIFICA FINALE ›': 'FINAL STANDINGS ›',
   'DECATHLON  •  CLASSIFICA FINALE': 'DECATHLON  •  FINAL STANDINGS',
@@ -265,6 +266,8 @@ const EN = {
 
 // Strings built with numbers: every matching rule is applied, in order.
 const EN_RULES = [
+  [/^vale (.+)$/, 'you keep $1'],
+  [/^RITIRA (.+)$/, 'RETIRE $1'],
   [/^(\d+) record mandati, classifica aggiornata$/, '$1 records sent, table updated'],
   [/^Tastiera: G1 = (.+) \/ (.+)   •   G2 = (.+) \/ (.+)   •   Esc = pausa$/,
     'Keyboard: P1 = $1 / $2   •   P2 = $3 / $4   •   Esc = pause'],
