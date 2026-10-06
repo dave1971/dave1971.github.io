@@ -1,5 +1,5 @@
 {
-  "rev": 41,
+  "rev": 42,
   "aggiornato": "2026-10-06",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -217,8 +217,17 @@
         "il": "2026-10-06",
         "lv": "U"
       }
+    ],
+    "50sl": [
+      {
+        "v": 26.408333333332475,
+        "who": "WLAMB",
+        "nat": "FIN",
+        "il": "2026-10-06",
+        "lv": "U"
+      }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 103
+  "postRev": 104
 }
