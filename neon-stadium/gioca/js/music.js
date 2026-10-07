@@ -28,10 +28,20 @@ const Music = {
     Am: 'A3 C4 E4', F: 'A3 C4 F4', C: 'G3 C4 E4', G: 'G3 B3 D4',
     Dm: 'A3 D4 F4', Em: 'G3 B3 E4', E: 'G#3 B3 E4', E7: 'G#3 D4 E4',
     G6: 'G3 B3 E4', Fma: 'A3 C4 F4', Am7: 'G3 C4 E4',
+    // per gli altri due brani dei menu (Mi minore e Re minore)
+    D: 'A3 D4 F#4', B7: 'A3 B3 D#4', Bb: 'A#3 D4 F4', Gm: 'G3 A#3 D4', A7: 'G3 C#4 E4',
   },
 
   on: true,       // si può spegnere la sola musica e tenere gli effetti
   name: '', trk: null, step: 0, at: 0, timer: null, out: null, pad: null,
+
+  // Nei menu i brani sono tre e si danno il cambio: chi resta a lungo a scegliere la gara non
+  // sente sempre lo stesso. Si comincia da quello di sempre; a ogni ritorno ai menu (dopo una gara)
+  // tocca al successivo, e chi resta fermo li sente passare uno dopo l'altro, ognuno per un giro
+  // intero. Per il resto del gioco la musica dei menu continua a chiamarsi 'menu'.
+  MENU: ['menu', 'menu2', 'menu3'],
+  giro: 0,
+  gira() { const k = this.MENU[this.giro % this.MENU.length]; this.giro++; return k; },
 
   freq(n) {
     const m = /^([A-G]#?)(-?\d)$/.exec(n);
@@ -211,7 +221,162 @@ const Music = {
       ordine: 'A A B A C D B A',
     };
 
-    this.T = { menu: this.monta(menu), race: this.monta(race) };
+    // MENU 2 — Mi minore, 104 al minuto. Lo stesso passo del primo, un filo piu' chiaro: la melodia
+    // parte sul battere e ogni battuta finisce con due note di passaggio che portano alla seguente.
+    const menu2 = {
+      bpm: 104, vol: 0.58, filtro: 1400,
+      parti: {
+        // l'entrata: basso che cammina, una frase per battuta
+        A: {
+          pad: 'Em C G D',
+          bass: `E2 .  E2 .  B2 .  E2 .   E3 .  B2 .  E2 .  B2 .
+                 C2 .  C2 .  G2 .  C2 .   C3 .  G2 .  C2 .  G2 .
+                 G2 .  G2 .  D3 .  G2 .   G3 .  D3 .  G2 .  D3 .
+                 D2 .  D2 .  A2 .  D2 .   D3 .  A2 .  D2 .  F#2 .`,
+          lead: `B4 -  -  -  .  .  E5 -   G5 -  -  -  F#5 - E5 -
+                 E5 -  -  -  .  .  G5 -   E5 -  -  -  D5 -  C5 -
+                 D5 -  -  -  .  .  B4 -   D5 -  -  -  E5 -  D5 -
+                 F#5 - -  -  .  .  D5 -   A4 -  -  -  -  -  -  -`,
+          drum: `K  .  h  .  .  .  h  .   .  .  h  .  .  .  h  .
+                 K  .  h  .  .  .  h  .   .  .  h  .  .  .  h  .
+                 K  .  h  .  .  .  h  .   .  .  h  .  .  .  h  .
+                 K  .  h  .  .  .  h  .   .  .  h  .  .  .  h  s`,
+        },
+        // la parte mossa: la melodia scende e risale sull'accordo, a crome
+        B: {
+          pad: 'C G D Em',
+          bass: `C2 .  G2 .  C3 .  E2 .   G2 .  C3 .  E2 .  G2 .
+                 G2 .  D3 .  G2 .  B2 .   D3 .  G2 .  B2 .  D3 .
+                 D2 .  A2 .  D3 .  F#2 .  A2 .  D3 .  F#2 . A2 .
+                 E2 .  B2 .  E3 .  G2 .   B2 .  E3 .  G2 .  B2 .`,
+          lead: `G5 -  E5 -  C5 -  E5 -   G5 -  -  -  .  .  E5 -
+                 D5 -  B4 -  G4 -  B4 -   D5 -  -  -  .  .  B4 -
+                 A5 -  F#5 - D5 -  F#5 -  A5 -  -  -  G5 -  F#5 -
+                 G5! - E5 -  B4 -  E5 -   G5 -  F#5 - E5 -  -  -`,
+          drum: `K  .  h  .  S  .  h  .   K  .  h  .  S  .  h  .
+                 K  .  h  .  S  .  h  .   K  .  h  .  S  .  h  .
+                 K  .  h  .  S  .  h  .   K  .  h  .  S  .  h  .
+                 K  .  h  .  S  .  h  .   K  .  h  K  S  .  s  s`,
+        },
+        // il respiro
+        C: {
+          pad: 'Am Em B7 Em',
+          bass: `A2 -  -  -  -  -  -  -   E2 -  -  -  -  -  -  -
+                 E2 -  -  -  -  -  -  -   B2 -  -  -  -  -  -  -
+                 B1 -  -  -  -  -  -  -   F#2 - -  -  -  -  -  -
+                 E2 -  -  -  -  -  -  -   B2 -  -  -  -  -  -  -`,
+          lead: `.  .  .  .  .  .  .  .   .  .  .  .  .  .  .  .
+                 .  .  .  .  .  .  .  .   .  .  .  .  G4 -  -  -
+                 .  .  .  .  .  .  .  .   .  .  .  .  A4 -  -  -
+                 G4 -  -  -  -  -  -  -   .  .  .  .  .  .  .  .`,
+          drum: `.  .  .  .  .  .  .  .   .  .  .  .  .  .  .  .
+                 .  .  .  .  .  .  .  .   .  .  .  .  .  .  .  .
+                 .  .  .  .  .  .  .  .   .  .  .  .  .  .  .  .
+                 .  .  .  .  .  .  .  .   .  .  .  .  .  .  h  h`,
+        },
+        // la ripresa: la melodia sale per terze, sotto corre l'arpeggio, e in fondo il Si settima
+        // che richiama il Mi minore
+        D: {
+          pad: 'Em C G B7',
+          bass: `E2 .  E3 .  B2 .  E3 .   E2 .  B2 .  E3 .  B2 .
+                 C2 .  C3 .  G2 .  C3 .   C2 .  G2 .  C3 .  G2 .
+                 G1 .  G2 .  D2 .  G2 .   G1 .  D2 .  G2 .  D2 .
+                 B1 .  B2 .  F#2 . B2 .   B1 .  F#2 . B2 .  D#2 .`,
+          lead: `E5 -  -  -  G5 -  -  -   B5 -  -  -  A5 -  G5 -
+                 E5 -  -  -  G5 -  -  -   C6 -  -  -  B5 -  G5 -
+                 D5 -  -  -  G5 -  -  -   B5 -  -  -  A5 -  G5 -
+                 B5! - -  -  A5 -  -  -   F#5 - -  -  D#5 - -  -`,
+          arp: `E4 G4 B4 G4  E4 G4 B4 G4   E4 G4 B4 G4  E4 G4 B4 G4
+                E4 G4 C5 G4  E4 G4 C5 G4   E4 G4 C5 G4  E4 G4 C5 G4
+                D4 G4 B4 G4  D4 G4 B4 G4   D4 G4 B4 G4  D4 G4 B4 G4
+                D#4 F#4 B4 F#4 D#4 F#4 B4 F#4  D#4 F#4 B4 F#4 D#4 F#4 A4 F#4`,
+          drum: `K  .  h  .  .  .  h  .   K  .  h  .  .  .  h  .
+                 K  .  h  .  .  .  h  .   K  .  h  .  .  .  h  .
+                 K  .  h  .  .  .  h  .   K  .  h  .  .  .  h  .
+                 K  .  h  .  S  .  h  .   K  .  S  .  s  s  s  s`,
+        },
+      },
+      ordine: 'A A B A C D B A',
+    };
+
+    // MENU 3 — Re minore, 92 al minuto: il piu' quieto dei tre. Basso a note lunghe, melodia che
+    // sale di grado in grado da un accordo all'altro, e il charleston solo sul secondo e sul quarto.
+    const menu3 = {
+      bpm: 92, vol: 0.58, filtro: 1400,
+      parti: {
+        // l'entrata: quasi niente sotto, la melodia fa tutto
+        A: {
+          pad: 'Dm Bb F C',
+          bass: `D2 -  -  -  .  .  A2 .   D3 -  -  -  .  .  A2 .
+                 A#1 - -  -  .  .  F2 .   A#2 - -  -  .  .  F2 .
+                 F2 -  -  -  .  .  C3 .   F2 -  -  -  .  .  A2 .
+                 C2 -  -  -  .  .  G2 .   C3 -  -  -  .  .  E2 .`,
+          lead: `A4 -  -  -  -  -  D5 -   F5 -  -  -  -  -  E5 -
+                 D5 -  -  -  -  -  F5 -   A#5 - -  -  -  -  A5 -
+                 C5 -  -  -  -  -  F5 -   A5 -  -  -  -  -  G5 -
+                 E5 -  -  -  -  -  G5 -   E5 -  -  -  C5 -  -  -`,
+          drum: `.  .  .  .  h  .  .  .   .  .  .  .  h  .  .  .
+                 .  .  .  .  h  .  .  .   .  .  .  .  h  .  .  .
+                 .  .  .  .  h  .  .  .   .  .  .  .  h  .  .  .
+                 .  .  .  .  h  .  .  .   .  .  .  .  h  .  h  .`,
+        },
+        // la parte mossa: arpeggi che salgono e tornano, rullante appena sfiorato
+        B: {
+          pad: 'Gm Dm A7 Dm',
+          bass: `G2 .  D3 .  G2 .  A#2 .  D3 .  G2 .  A#2 . D3 .
+                 D2 .  A2 .  D3 .  F2 .   A2 .  D3 .  F2 .  A2 .
+                 A1 .  E2 .  A2 .  C#2 .  E2 .  A2 .  C#2 . E2 .
+                 D2 .  A2 .  D3 .  F2 .   A2 .  D3 .  A2 .  D2 .`,
+          lead: `D5 -  G5 -  A#5 - G5 -   D5 -  -  -  .  .  A#4 -
+                 A4 -  D5 -  F5 -  D5 -   A4 -  -  -  .  .  D5 -
+                 E5 -  G5 -  A5 -  G5 -   E5 -  -  -  C#5 - E5 -
+                 F5! - E5 -  D5 -  A4 -   D5 -  -  -  -  -  -  -`,
+          drum: `K  .  h  .  s  .  h  .   K  .  h  .  s  .  h  .
+                 K  .  h  .  s  .  h  .   K  .  h  .  s  .  h  .
+                 K  .  h  .  s  .  h  .   K  .  h  .  s  .  h  .
+                 K  .  h  .  s  .  h  .   K  .  h  .  s  .  s  s`,
+        },
+        // il respiro
+        C: {
+          pad: 'Bb F Gm A7',
+          bass: `A#1 - -  -  -  -  -  -   F2 -  -  -  -  -  -  -
+                 F2 -  -  -  -  -  -  -   C2 -  -  -  -  -  -  -
+                 G2 -  -  -  -  -  -  -   D2 -  -  -  -  -  -  -
+                 A1 -  -  -  -  -  -  -   E2 -  -  -  -  -  -  -`,
+          lead: `.  .  .  .  .  .  .  .   .  .  .  .  .  .  .  .
+                 .  .  .  .  .  .  .  .   .  .  .  .  C5 -  -  -
+                 .  .  .  .  .  .  .  .   .  .  .  .  D5 -  -  -
+                 C#5 - -  -  -  -  -  -   .  .  .  .  .  .  .  .`,
+          drum: `.  .  .  .  .  .  .  .   .  .  .  .  .  .  .  .
+                 .  .  .  .  .  .  .  .   .  .  .  .  .  .  .  .
+                 .  .  .  .  .  .  .  .   .  .  .  .  .  .  .  .
+                 .  .  .  .  .  .  .  .   .  .  .  .  .  .  h  h`,
+        },
+        // la ripresa: la melodia scende invece di salire, e sotto corre l'arpeggio
+        D: {
+          pad: 'Dm Bb F A7',
+          bass: `D2 .  D3 .  A2 .  D3 .   D2 .  A2 .  D3 .  A2 .
+                 A#1 . A#2 . F2 .  A#2 .  A#1 . F2 .  A#2 . F2 .
+                 F1 .  F2 .  C2 .  F2 .   F1 .  C2 .  F2 .  C2 .
+                 A1 .  A2 .  E2 .  A2 .   A1 .  E2 .  A2 .  C#2 .`,
+          lead: `A5 -  -  -  -  -  F5 -   D5 -  -  -  -  -  E5 -
+                 F5 -  -  -  -  -  D5 -   A#4 - -  -  -  -  C5 -
+                 A5 -  -  -  -  -  F5 -   C5 -  -  -  -  -  F5 -
+                 E5! - -  -  -  -  G5 -   E5 -  -  -  C#5 - -  -`,
+          arp: `D4 F4 A4 F4  D4 F4 A4 F4   D4 F4 A4 F4  D4 F4 A4 F4
+                D4 F4 A#4 F4 D4 F4 A#4 F4  D4 F4 A#4 F4 D4 F4 A#4 F4
+                C4 F4 A4 F4  C4 F4 A4 F4   C4 F4 A4 F4  C4 F4 A4 F4
+                C#4 E4 G4 E4 C#4 E4 G4 E4  C#4 E4 G4 E4 C#4 E4 A4 E4`,
+          drum: `K  .  h  .  .  .  h  .   K  .  h  .  .  .  h  .
+                 K  .  h  .  .  .  h  .   K  .  h  .  .  .  h  .
+                 K  .  h  .  .  .  h  .   K  .  h  .  .  .  h  .
+                 K  .  h  .  s  .  h  .   K  .  s  .  s  s  s  s`,
+        },
+      },
+      ordine: 'A A B A C D B D',
+    };
+
+    this.T = { menu: this.monta(menu), menu2: this.monta(menu2), menu3: this.monta(menu3), race: this.monta(race) };
   },
 
   /**
@@ -323,7 +488,8 @@ const Music = {
   tick() {
     if (!this.trk || !Snd.ctx) return;
     if (!Snd.on || !this.on) { this.stop(); return; }
-    const c = Snd.ctx, t = this.trk;
+    const c = Snd.ctx;
+    let t = this.trk;
     if (c.state === 'suspended') return;                    // audio ancora bloccato: si riprova dopo
     if (this.at < c.currentTime) this.at = c.currentTime + 0.05;
     while (this.at < c.currentTime + 0.25) {
@@ -339,10 +505,17 @@ const Music = {
       if (pad) this.chord(pad, at, u * t.BATT * 0.98);
       if (drum) this.hit(drum, at);
       this.step++; this.at += u;
+      // finito il giro di un brano dei menu, attacca il successivo sul battere dopo
+      if (this.step >= t.n && this.name === 'menu' && this.MENU.length > 1) {
+        t = this.trk = this.T[this.gira()];
+        this.step = 0;
+        this.out.gain.setValueAtTime(t.vol, this.at);
+        if (this.pad) this.pad.frequency.setValueAtTime(t.filtro, this.at);
+      }
     }
   },
 
-  /** 'menu', 'race', oppure niente per far tacere tutto. */
+  /** 'menu' (uno dei tre, a turno), 'race', oppure niente per far tacere tutto. */
   play(name) {
     if (!this.on) { this.name = name || ''; this.stop(); return; }
     if (!Snd.on || !Snd.ctx) { this.name = name || ''; return; }   // si ripartirà appena si sblocca
@@ -351,7 +524,7 @@ const Music = {
     this.name = name || '';
     if (!this.name) return;
     if (!this.T) this.build();
-    this.trk = this.T[this.name];
+    this.trk = this.T[this.name === 'menu' ? this.gira() : this.name];
     if (!this.trk) { this.name = ''; return; }
     this.out = Snd.ctx.createGain();
     this.out.gain.value = this.trk.vol;
