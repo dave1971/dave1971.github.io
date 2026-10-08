@@ -448,6 +448,16 @@ function shadow(ctx, x, gy, ppm, sc) {
   ctx.beginPath(); ctx.ellipse(x, gy, 0.45 * ppm * (sc || 1), 0.08 * ppm, 0, 0, Math.PI * 2); ctx.fill();
 }
 
+// Il segno che segue l'atleta in rincorsa, nelle gare dove conta il punto in cui si stacca o si lancia
+// (lungo, triplo, alto, asta, giavellotto): una barra sottile del colore che dice com'e' farlo adesso.
+// Va disegnata PRIMA dell'atleta, cosi' gli resta dietro: spunta sopra la testa, fra le gambe e sotto
+// i piedi. Prima era spessa il doppio, con una freccia in cima, e nel giavellotto stava davanti: troppo.
+function segnoAtleta(ctx, x, h, ppm, col) {
+  const y0 = h * 0.9 - 1.95 * ppm, y1 = h * 0.98;
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(x - 1.75, y0, 3.5, y1 - y0);
+  ctx.fillStyle = col; ctx.fillRect(x - 1, y0, 2, y1 - y0);
+}
+
 // Horizontal meter
 function drawMeter(ctx, x, y, w, h, frac, color, label, zone) {
   h = Math.max(h, 15);

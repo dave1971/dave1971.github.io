@@ -138,7 +138,7 @@ class LongJump extends EventBase {
   }
   // Take-off markings on the runway: every metre left before the board is a metre lost on the measure,
   // so the green band hugs the line. A marker follows the athlete's feet and turns red past the line.
-  drawTakeoff(ctx, sx, h, y0, y1, s) {
+  drawTakeoff(ctx, sx, h, y0, y1, s, ppm) {
     const hh = y1 - y0;
     const band = (a, b, col) => { ctx.fillStyle = col; ctx.fillRect(sx(a), y0, Math.max(2, sx(b) - sx(a)), hh); };
     band(-1.5, 0, 'rgba(255,214,0,0.13)');
@@ -148,10 +148,7 @@ class LongJump extends EventBase {
     if (s.ph !== 'run' && s.ph !== 'ready') return;
     const d = -s.x;
     const col = s.x > 0.02 ? '#ff5252' : d <= 0.45 ? '#00e63c' : d <= 1.5 ? '#ffd600' : '#ff9800';
-    const x = sx(s.x);
-    ctx.fillStyle = col;
-    ctx.fillRect(x - 2, y0, 4, hh);
-    ctx.beginPath(); ctx.moveTo(x - 10, y0 - 14); ctx.lineTo(x + 10, y0 - 14); ctx.lineTo(x, y0 - 1); ctx.closePath(); ctx.fill();
+    segnoAtleta(ctx, sx(s.x), h, ppm, col);
   }
   drawPit(ctx, sx, L, h, ppm, s, p) {
     const y0 = h * 0.71, y1 = h * 0.985;
@@ -160,7 +157,7 @@ class LongJump extends EventBase {
     ctx.fillStyle = '#e3c170'; ctx.fillRect(a, y0, b - a, y1 - y0);
     ctx.fillStyle = 'rgba(160,120,50,0.35)';
     for (let i = 0; i < 40; i++) ctx.fillRect(a + ((i * 97) % 1000) / 1000 * (b - a), y0 + ((i * 53) % 100) / 100 * (y1 - y0), 3, 2);
-    this.drawTakeoff(ctx, sx, h, y0, y1, s);
+    this.drawTakeoff(ctx, sx, h, y0, y1, s, ppm);
     // take-off board
     ctx.fillStyle = '#fafafa'; ctx.fillRect(sx(-0.2), L.gy - 2, 0.2 * ppm, 5);
     ctx.fillStyle = '#e53935'; ctx.fillRect(sx(0), y0, 3, y1 - y0);

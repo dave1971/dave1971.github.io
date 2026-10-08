@@ -51,11 +51,11 @@ const ATTR_CAP = [50, 80, 100];
 // Equipment: one item per family, three tiers, bought in order and never worn out — only replaced
 // by the better version of the same item.
 const GEAR_TIERS = [{ n: 'BASE', b: 0.010, c: 1800 }, { n: 'PRO', b: 0.020, c: 5200 }, { n: 'ELITE', b: 0.030, c: 12000 }];
-// Da quale campionato si puo' comprare ogni gradino: il BASE da subito, PRO ed ELITE solo dal Trials.
-// All'Universitario, con gli allenamenti al loro tetto (50) e gli attrezzi BASE, si va gia' a medaglia in
-// tutte le gare: gli attrezzi migliori li' servivano solo a stravincere (Davide, 08/10/2026). Chi li ha
-// gia' comprati se li tiene.
-const GEAR_LIVELLO = [1, 2, 2];
+// Da quale campionato si puo' comprare ogni gradino, come per gli allenamenti (ATTR_CAP): il BASE da
+// subito, il PRO dal Trials, l'ELITE solo al Mondiale. All'Universitario, con gli allenamenti al loro
+// tetto (50) e gli attrezzi BASE, si va gia' a medaglia in tutte le gare: gli attrezzi migliori li'
+// servivano solo a stravincere (Davide, 08/10/2026). Chi li ha gia' comprati se li tiene.
+const GEAR_LIVELLO = [1, 2, 3];
 const GEAR_TUTTI = [
   { k: 'spikes', name: 'CHIODATE', evs: ['100m', '200m', '110h', 'staffetta'], col: '#ef5350' },
   { k: 'jump', name: 'SCARPE DA SALTO', evs: ['lungo', 'triplo', 'alto'], col: '#ffa726' },

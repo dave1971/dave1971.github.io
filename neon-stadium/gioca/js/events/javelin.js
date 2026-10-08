@@ -186,13 +186,9 @@ class Javelin extends EventBase {
   // fra le gambe e sotto i piedi.
   drawSegno(ctx, sx, h, s, p) {
     if (s.ph !== 'run' && s.ph !== 'ready') return;
-    const y0 = h * 0.5, y1 = h * 0.98, Z = this.zona;
-    const d = -s.x - this.limite(p);       // quanto manca al punto limite
+    const Z = this.zona, d = -s.x - this.limite(p);       // quanto manca al punto limite
     const col = d < 0 ? '#ff5252' : d <= Z[1] ? '#00e63c' : d <= Z[0] ? '#ffd600' : '#ff9800';
-    const x = sx(s.x);
-    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(x - 1.75, y0, 3.5, y1 - y0);
-    ctx.fillStyle = col;
-    ctx.fillRect(x - 1, y0, 2, y1 - y0);
+    segnoAtleta(ctx, sx(s.x), h, h / 4.8, col);
   }
   drawLane(ctx, p, w, h) {
     const s = this.S[p], ax = w * 0.3;

@@ -163,10 +163,7 @@ class BarEvent extends EventBase {
     // how good a take-off right here would be: green in the sweet spot, red once it is too late
     const q = clamp(1 - Math.abs(bodyX - this.ideal) / this.tol, 0, 1);
     const col = bodyX > this.lateX ? '#ff5252' : q > 0.7 ? '#00e63c' : q > 0.3 ? '#ffd600' : '#ff9800';
-    const x = sx(bodyX);
-    ctx.fillStyle = col;
-    ctx.fillRect(x - 2, y0, 4, hh);
-    ctx.beginPath(); ctx.moveTo(x - 10, y0 - 14); ctx.lineTo(x + 10, y0 - 14); ctx.lineTo(x, y0 - 1); ctx.closePath(); ctx.fill();
+    segnoAtleta(ctx, sx(bodyX), h, ppm, col);
   }
   drawReady(ctx, p, w, h, s) {
     if (s.ph !== 'ready' || this.msg[p]) return;
