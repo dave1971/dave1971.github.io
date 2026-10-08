@@ -1,5 +1,5 @@
 {
-  "rev": 52,
+  "rev": 53,
   "aggiornato": "2026-10-08",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -118,6 +118,13 @@
         "nat": "VAT",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 11.329009738851463,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "tuffi": [
@@ -138,6 +145,13 @@
         "v": 267.3,
         "who": "FRANCISCUS",
         "nat": "VAT",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 234.3,
+        "who": "DUNDEE",
+        "nat": "AUS",
         "il": "2026-10-08",
         "lv": "U"
       },
@@ -183,6 +197,13 @@
         "nat": "VAT",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 4.9,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "110h": [
@@ -204,6 +225,13 @@
         "v": 15.503624511479533,
         "who": "THATSALLFOLK",
         "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 15.710313151356617,
+        "who": "DUNDEE",
+        "nat": "AUS",
         "il": "2026-10-08",
         "lv": "U"
       },
@@ -241,6 +269,13 @@
         "nat": "USA",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 13.502066601317626,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "piattello": [
@@ -255,6 +290,13 @@
         "v": 15,
         "who": "FRANCISCUS",
         "nat": "VAT",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 15,
+        "who": "DUNDEE",
+        "nat": "AUS",
         "il": "2026-10-08",
         "lv": "U"
       },
@@ -299,6 +341,13 @@
         "nat": "VAT",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 12.079782625147903,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "volteggio": [
@@ -330,6 +379,13 @@
         "il": "2026-09-28"
       },
       {
+        "v": 127.6,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
         "v": 45,
         "who": "GABB",
         "nat": "ITA",
@@ -348,6 +404,13 @@
         "v": 172.7,
         "who": "FRANCISCUS",
         "nat": "VAT",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 167.2,
+        "who": "DUNDEE",
+        "nat": "AUS",
         "il": "2026-10-08",
         "lv": "U"
       },
@@ -380,6 +443,13 @@
         "nat": "USA",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 6.221655850180947,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "alto": [
@@ -402,6 +472,13 @@
         "who": "WLAMB",
         "nat": "FIN",
         "il": "2026-10-06",
+        "lv": "U"
+      },
+      {
+        "v": 1.95,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
         "lv": "U"
       }
     ],
@@ -426,9 +503,23 @@
         "nat": "VAT",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 150,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "50sl": [
+      {
+        "v": 26.083333333332494,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
       {
         "v": 26.13333333333249,
         "who": "FRANCISCUS",
@@ -472,6 +563,13 @@
         "nat": "VAT",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 22.15104374102113,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "disco": [
@@ -495,6 +593,13 @@
         "nat": "VAT",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 36.42426721471391,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "martello": [
@@ -509,6 +614,13 @@
         "v": 43.01373748608497,
         "who": "FRANCISCUS",
         "nat": "VAT",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 42.01177624080341,
+        "who": "DUNDEE",
+        "nat": "AUS",
         "il": "2026-10-08",
         "lv": "U"
       },
@@ -543,6 +655,13 @@
         "lv": "U"
       },
       {
+        "v": 54.76696483397052,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
         "v": 52.490880719612505,
         "who": "WLAMB",
         "nat": "FIN",
@@ -566,6 +685,13 @@
         "lv": "U"
       },
       {
+        "v": 52,
+        "who": "DUNDEE",
+        "nat": "AUS",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
         "v": 47,
         "who": "WLAMB",
         "nat": "FIN",
@@ -575,5 +701,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 169
+  "postRev": 191
 }
