@@ -1,5 +1,5 @@
 {
-  "rev": 50,
+  "rev": 51,
   "aggiornato": "2026-10-08",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -215,6 +215,13 @@
         "il": "2026-09-29"
       },
       {
+        "v": 14.086331989666112,
+        "who": "FRANCISCUS",
+        "nat": "VAT",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
         "v": 13.688958547096151,
         "who": "WLAMB",
         "nat": "FIN",
@@ -225,13 +232,6 @@
         "v": 13.688958547096151,
         "who": "THATSALLFOLK",
         "nat": "USA",
-        "il": "2026-10-08",
-        "lv": "U"
-      },
-      {
-        "v": 13.688958547096151,
-        "who": "FRANCISCUS",
-        "nat": "VAT",
         "il": "2026-10-08",
         "lv": "U"
       }
@@ -354,6 +354,13 @@
     ],
     "lungo": [
       {
+        "v": 6.306420701019046,
+        "who": "FRANCISCUS",
+        "nat": "VAT",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
         "v": 6.242412204251012,
         "who": "WLAMB",
         "nat": "FIN",
@@ -364,13 +371,6 @@
         "v": 6.242412204251012,
         "who": "THATSALLFOLK",
         "nat": "USA",
-        "il": "2026-10-08",
-        "lv": "U"
-      },
-      {
-        "v": 6.242412204251012,
-        "who": "FRANCISCUS",
-        "nat": "VAT",
         "il": "2026-10-08",
         "lv": "U"
       }
@@ -423,16 +423,16 @@
     ],
     "50sl": [
       {
-        "v": 26.166666666665822,
-        "who": "THATSALLFOLK",
-        "nat": "USA",
+        "v": 26.13333333333249,
+        "who": "FRANCISCUS",
+        "nat": "VAT",
         "il": "2026-10-08",
         "lv": "U"
       },
       {
         "v": 26.166666666665822,
-        "who": "FRANCISCUS",
-        "nat": "VAT",
+        "who": "THATSALLFOLK",
+        "nat": "USA",
         "il": "2026-10-08",
         "lv": "U"
       },
@@ -568,5 +568,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 165
+  "postRev": 168
 }
