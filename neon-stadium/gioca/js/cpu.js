@@ -91,10 +91,17 @@ function formaBar(c, ev) {
   });
 }
 
-// Il tetto di piattelli di ogni avversario, deciso una volta per gara: vale solo al Trials (negli altri
-// livelli nessun tetto). I piu' bravi del campo sono quelli con la bravura (Game.cpuSkill) piu' alta.
+// Il tetto di piattelli di ogni avversario, deciso una volta per gara. I piu' bravi del campo sono
+// quelli con la bravura (Game.cpuSkill) piu' alta.
+//  - Universitario: una scala. Il migliore al massimo 14, il secondo 13, il terzo 12, e gli altri non
+//    oltre l'obiettivo di qualificazione (11) o sotto. Prima il terzo posto tipico era 13 e con 13/15
+//    si finiva quarti (Davide, 08/10/2026): ora 14 vale l'oro, 13 l'argento, 12 il bronzo, alla pari.
+//  - Trials: uno o due avversari al massimo 14, gli altri 13.
+//  - Mondiale: nessun tetto.
+const PIATTELLO_SCALA_UNI = [14, 13, 12, 11, 11, 10, 10];
 function cpuTettoPiattello(ev, p) {
-  if (clamp(Lv.i, 1, 3) !== 2) return Infinity;
+  const liv = clamp(Lv.i, 1, 3);
+  if (liv === 3) return Infinity;
   if (!ev.tettiCpu) {
     const cpu = [];
     for (let q = 0; q < ev.n; q++) if (Game.isCpu(q)) cpu.push(q);
@@ -102,7 +109,7 @@ function cpuTettoPiattello(ev, p) {
     cpu.sort((a, b) => sk(b) - sk(a));
     const quanti = Math.random() < 0.5 ? 1 : 2;
     ev.tettiCpu = {};
-    cpu.forEach((q, i) => { ev.tettiCpu[q] = i < quanti ? 14 : 13; });
+    cpu.forEach((q, i) => { ev.tettiCpu[q] = liv === 1 ? PIATTELLO_SCALA_UNI[Math.min(i, PIATTELLO_SCALA_UNI.length - 1)] : i < quanti ? 14 : 13; });
   }
   return ev.tettiCpu[p] != null ? ev.tettiCpu[p] : Infinity;
 }
@@ -173,8 +180,8 @@ const CPU_AI = {
   piattello(ev) {
     const s = ev.S[this.p], w = s.dim[0];
     // Al Trials i piu' bravi arrivavano in tre a 15/15 e con 14 non si prendeva una medaglia. Qui c'e'
-    // un tetto per la gara: uno o due avversari (i piu' bravi del campo) al massimo 14, gli altri al
-    // massimo 13. Raggiunto il tetto si spara fuori tempo, come chi ha perso la concentrazione.
+    // un tetto per la gara (cpuTettoPiattello): raggiunto il tetto si spara fuori tempo, come chi ha
+    // perso la concentrazione.
     const tetto = cpuTettoPiattello(ev, this.p);
     for (const c of s.clays) {
       if (!c.alive) continue;
@@ -226,9 +233,10 @@ const CPU_AI = {
   martello(ev, dt) { cpuThrow.call(this, ev, dt); },
   giavellotto(ev, dt) {
     const s = ev.S[this.p];
-    const m = this.fresh(s, () => ({ wait: rnd(0.5, 1.3), ang: ev.bestAng + this.err(8), margin: 0.5 + this.err(0.6) }));
+    // carica quando gli resta lo spazio per alzare il braccio e fermarsi prima della linea, piu' un margine
+    const m = this.fresh(s, () => ({ wait: rnd(0.5, 1.3), ang: ev.bestAng + this.err(8), margin: Math.max(0.1, 0.45 + this.err(0.6)) }));
     if (s.ph === 'ready') { if ((m.wait -= dt) <= 0) this.tap(ev, 0); return; }
-    if (s.ph === 'run') { this.mash(ev, dt, 0); if (s.x > -m.margin) this.down(ev, 1); return; }
+    if (s.ph === 'run') { this.mash(ev, dt, 0); if (s.x > -(ev.spazio(s.r.v, m.ang) + m.margin)) this.down(ev, 1); return; }
     if (s.ph === 'wind' && s.ang < m.ang) return;
     this.up(ev, 1);
   },

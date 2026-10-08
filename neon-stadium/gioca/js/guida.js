@@ -323,7 +323,7 @@ GUIDE.asta = [
 ];
 GUIDE.giavellotto = [
   { t: [['A', 'rapido']], q: ev => ev.S[0].ph === 'run' && ev.S[0].r.v > 0.8 * ev.S[0].r.vmax },
-  { t: [['B', 'tieni']], q: ev => ev.S[0].ph === 'run' && ev.S[0].x > -1.6, nota: 'PRIMA DELLA LINEA', m: 5.4, dx: 0.8 },
+  { t: [['B', 'tieni']], q: ev => ev.S[0].ph === 'run' && ev.S[0].x > -(ev.limite(0) + 0.9), nota: 'COL SEGNO VERDE', m: 6.4, dx: 1.6 },
   { t: [['B', 'rilascia']], q: ev => ev.S[0].ph === 'wind' && ev.S[0].ang >= 32, nota: 'LANCETTA NEL VERDE', hud: GUIDA_HUD.alzo },
 ];
 GUIDE.peso = GUIDE.disco = GUIDE.martello = [

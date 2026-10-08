@@ -150,6 +150,9 @@ Object.assign(STD.olympic, { staffetta: 38.85, arrampicata: 4.95, ciclismo: 9.35
 // scarpe ELITE ci arrivava due volte su trenta salti (le simulazioni perfette fanno 7,56: fra rincorsa,
 // stacco e angolo una persona perde mezzo metro). Abbassato su richiesta di Davide.
 STD.trials.lungo = 6.95;
+// Il giavellotto: il terzo posto del campo dopo lo scostamento degli avversari (CPU_F_ADJ, qui sotto).
+// Erano 53,50 / 73,00 / 90,50.
+STD.uni.giavellotto = 51.40; STD.trials.giavellotto = 69.40; STD.olympic.giavellotto = 85.00;
 
 // L'obiettivo e' centrato se lo e' la misura che si vede: si confronta al centesimo, come la si scrive.
 // Prima un 7,096 compariva come "7.10" ma non centrava un obiettivo di 7,10.
@@ -165,7 +168,11 @@ const LIBERO_F = 0.90;      // il piu' debole degli avversari del torneo medieva
 const LIBERO_F_EV = { orso: 0.965 };   // con l'orso meno: l'orso corre al massimo del livello, e i lenti li prende
 // Per-event nudge on top of that band, where the rivals' technique flattered them: the vault rewards a
 // clean plant so heavily that the whole university field cleared more than a player ever could.
-const CPU_F_ADJ = { asta: [-0.085, 0, 0] };
+// Il giavellotto: gli avversari caricano a mezzo metro dalla linea e rilasciano al grado, ogni volta;
+// un giocatore con gli allenamenti al massimo e il giavellotto BASE doveva fare il lancio perfetto anche
+// solo per qualificarsi, e l'oro restava di chi comprava PRO o ELITE (Davide, 08/10/2026). Con questo
+// scostamento il vincitore tipico lancia il 96,5% di quello che vale quel giocatore, e il terzo il 91,5%.
+const CPU_F_ADJ = { asta: [-0.085, 0, 0], giavellotto: [-0.02, -0.024, -0.038] };
 
 // Un circuito e' tutto quello che distingue una carriera dall'altra: le specialita', gli allenamenti,
 // l'attrezzatura, gli obiettivi, i nomi dei campionati e dove si salva. Il motore (Career) e le

@@ -1,8 +1,12 @@
 'use strict';
 // ===== Lancio del giavellotto =====
-// A = rincorsa. Tieni premuto B per alzare l'angolo di lancio e rilascia per scagliarlo: la pedana
-// non va superata. L'attrezzo plana, quindi l'angolo giusto è più basso di quello di un salto.
-// 3 lanci, conta il migliore.
+// A = rincorsa. Tieni premuto B per alzare l'angolo di lancio e rilascia per scagliarlo. L'attrezzo
+// plana, quindi l'angolo giusto è più basso di quello di un salto. 3 lanci, conta il migliore.
+//
+// La linea in fondo alla pedana non va passata MAI, nemmeno dopo il lancio: come nel giavellotto
+// vero, mentre carica il braccio l'atleta fa ancora qualche passo e dopo il rilascio gli serve
+// spazio per fermarsi. Quindi B si preme due o tre metri prima della linea (di piu' chi corre di
+// piu'), e la misura si prende dalla linea: lo spazio lasciato in piu' sono metri regalati.
 
 class Javelin extends EventBase {
   constructor(n, meta) {
@@ -10,15 +14,32 @@ class Javelin extends EventBase {
     this.runup = 30; this.attempts = 3; this.view = 105; this.step = 10; this.flyView = 26;
     this.bestAng = 36; this.band = 16; // ideal release angle and how wide the band that still glides is
     this.angBand = [31, 42]; this.angWide = [22, 52]; // green and yellow wedges of the dial
-    this.vk = 2.66;                    // how much of the run-up speed ends up in the javelin
+    // Dove la planata e' piena. Sta due gradi sotto l'angolo ideale perche' alzando il tiro la
+    // parabola da sola porta piu' lontano: sommate, le due cose mettono il lancio migliore a 36 gradi.
+    this.glideAng = 34;
+    this.zona = [3, 1];                // metri prima del punto limite: dove va bene caricare, e dove va benissimo
+    this.passo = 0.35;                 // quanta rincorsa resta nelle gambe mentre si carica il braccio
+    this.frena = 2.5;                  // la frenata dopo il rilascio (m/s^2)
+    this.vk = 2.70;                    // how much of the run-up speed ends up in the javelin
     this.S = [];
     for (let p = 0; p < n; p++) this.S.push(this.fresh({ att: 0, best: null }, p));
   }
   fresh(o, p) {
     return { att: o.att, best: o.best, ph: 'ready', r: new Runner({ x: -this.runup, vmax: this.capP(p), gain: passoUnDito(this.capP(p)) }),   // col solo A: B e' il lancio
       x: -this.runup, ang: 0, pt: 0, t: 0, jx: 0, jy: 0, vx: 0, vy: 0, rot: 0, dist: null, why: '',
-      foul: false, landX: null, landRot: -1, zoom: 1, slide: false };
+      foul: false, landX: null, landRot: -1, zoom: 1, slide: false, bv: 0, bph: 0 };
   }
+  /**
+   * Quanti metri servono da quando si preme B a quando l'atleta e' fermo: i passi fatti mentre il
+   * braccio sale fino all'angolo `ang`, piu' la frenata dopo il rilascio. E' la distanza dalla linea
+   * a cui B va premuto, al piu' tardi, correndo a `v`.
+   */
+  spazio(v, ang) {
+    const u = v * this.passo;
+    return u * (ang / 120) + u * u / (2 * this.frena);
+  }
+  // il punto limite per questo atleta lanciato al massimo: da li' in poi premere B e' nullo sicuro
+  limite(p) { return this.spazio(this.capP(p), this.bestAng); }
   press(p, b) {
     const s = this.S[p];
     if (this.res[p]) return;
@@ -32,16 +53,35 @@ class Javelin extends EventBase {
     s.x = s.r.x; s.v0 = s.r.v; s.ang = 0; s.pt = 0; s.ph = 'wind';
     Snd.step();
   }
+  /**
+   * Quanto plana il giavellotto a quest'angolo: fino al 30% di velocita' in piu'.
+   *
+   * Prima la planata scendeva a punta dall'angolo ideale: due gradi di errore, cioe' 17 millesimi di
+   * secondo sul rilascio di B, costavano 5 metri su 95, e la gara si decideva tutta li'. Un avversario
+   * della CPU quei millesimi li ha, un pollice no. Adesso la curva ha la cima tonda: in tutta la
+   * fascia verde della lancetta si perde poco (meno del 2% fra 34 e 38 gradi, il 5% ai bordi), e fuori
+   * dal verde si paga come prima. Il lancio perfetto non e' cambiato.
+   */
+  glide(ang) {
+    const o = Math.abs(ang - this.glideAng) / this.band;
+    return 1 + 0.30 * clamp(1 - o * o, 0, 1);
+  }
   launch(p, s) {
     const a = Math.max(6, s.ang) * Math.PI / 180;
     // a javelin glides: releasing near the ideal angle carries it much further than a bare projectile
-    const off = Math.abs(s.ang - this.bestAng);
-    const glide = 1 + 0.30 * clamp(1 - off / this.band, 0, 1);
-    const v = Math.max(3, s.v0) * this.vk * glide;
+    const v = Math.max(3, s.v0) * this.vk * this.glide(s.ang);
     s.vx = v * Math.cos(a); s.vy = v * Math.sin(a);
     s.jx = s.x; s.jy = 2.0; s.ph = 'fly'; s.t = 0; s.rot = a;
+    s.bv = s.v0 * this.passo;          // lanciato: adesso c'e' da fermarsi
     Snd.whoosh();
     if (s.foul) { s.why = 'piede oltre la pedana'; }
+  }
+  // dopo il rilascio l'atleta frena; se passa la linea, il lancio e' nullo anche se e' gia' partito
+  frenata(s, dt) {
+    if (s.bv <= 0) return;
+    s.x += s.bv * dt; s.bph += dt * (2.5 + s.bv * 2.4);
+    s.bv = Math.max(0, s.bv - this.frena * dt);
+    if (s.x > 0.02 && !s.foul) { s.foul = true; s.why = 'non ti sei fermato prima della linea'; }
   }
   update(dt) {
     for (let p = 0; p < this.n; p++) {
@@ -58,10 +98,12 @@ class Javelin extends EventBase {
           }
           break;
         case 'wind':
-          s.pt += dt; s.ang = Math.min(70, s.pt * 120); s.x += s.v0 * 0.3 * dt;
+          s.pt += dt; s.ang = Math.min(70, s.pt * 120); s.x += s.v0 * this.passo * dt;
+          if (s.x > 0.02) s.foul = true;
           if (s.ang >= 70) this.launch(p, s);
           break;
         case 'fly': {
+          this.frenata(s, dt);
           s.zoom = Math.max(0, s.zoom - dt * 2.2);
           s.jx += s.vx * dt; s.vy -= 9.8 * dt; s.jy += s.vy * dt;
           s.rot = Math.atan2(s.vy, s.vx);
@@ -70,6 +112,7 @@ class Javelin extends EventBase {
         }
         case 'done':
           if (s.slide) { s.r.e = 0; s.r.update(dt); s.x = s.r.x; }
+          else this.frenata(s, dt);
           if (s.t > 2.2) this.nextAttempt(p, s);
           break;
       }
@@ -80,6 +123,8 @@ class Javelin extends EventBase {
     s.jy = 0; s.landX = s.jx; s.ph = 'done'; s.t = 0;
     // it stays stuck at the angle it arrived at, never flatter than looks believable
     s.landRot = clamp(s.rot, -1.35, -0.45);
+    // un lancio corto atterra prima che l'atleta si sia fermato: si guarda dove si fermera'
+    if (!s.foul && s.x + s.bv * s.bv / (2 * this.frena) > 0.02) { s.foul = true; s.why = 'non ti sei fermato prima della linea'; }
     if (s.foul) {
       s.dist = null;
       this.say(p, 'NULLO!', '#ff5555', 1.9, s.why);
@@ -117,6 +162,38 @@ class Javelin extends EventBase {
     ctx.beginPath(); ctx.moveTo(len * 0.28, 0); ctx.lineTo(len * 0.5, 0); ctx.stroke();
     ctx.restore();
   }
+  /**
+   * I segni sulla pedana. Dalla linea all'indietro: il tratto che serve per fermarsi (rosso: chi
+   * preme B li' finisce oltre la linea), poi il metro buono per caricare il lancio (verde), poi due
+   * metri dove si puo' ma si regala misura (giallo). Quanto e' lungo il tratto rosso dipende da
+   * quanto corre l'atleta: e' quello di una rincorsa al massimo.
+   * In piu' un segno segue l'atleta passo passo, sul punto che conta per il nullo (il bacino), e
+   * dice col colore com'e' premere B adesso.
+   */
+  drawLancio(ctx, sx, w, h, s, p) {
+    const y0 = h * 0.72, hh = h * 0.26, Z = this.zona, N = this.limite(p);
+    const band = (a, b, col) => { ctx.fillStyle = col; ctx.fillRect(sx(a), y0, Math.max(2, sx(b) - sx(a)), hh); };
+    band(-N - Z[0], -N - Z[1], 'rgba(255,214,0,0.16)');
+    band(-N - Z[1], -N, 'rgba(0,230,60,0.34)');
+    band(-N, 0, 'rgba(229,57,53,0.22)');
+    const sz = Math.max(11, h * 0.042), ty = y0 + hh - 12;
+    const lx = sx(-N - Z[0] / 2), fx = sx(-N / 2);
+    if (lx > 40 && lx < w - 40) txt(ctx, 'LANCIO', lx, ty, sz, '#fff');
+    if (fx > 40 && fx < w - 40) txtFit(ctx, 'FRENATA', fx, ty, sz, '#ffcdd2', 'center', Math.max(20, sx(0) - sx(-N) - 8));
+  }
+  // il segno che segue l'atleta: si disegna dopo di lui, se no le gambe lo coprono
+  drawSegno(ctx, sx, h, s, p) {
+    if (s.ph !== 'run' && s.ph !== 'ready') return;
+    const y0 = h * 0.6, y1 = h * 0.98, Z = this.zona;
+    const d = -s.x - this.limite(p);       // quanto manca al punto limite
+    const col = d < 0 ? '#ff5252' : d <= Z[1] ? '#00e63c' : d <= Z[0] ? '#ffd600' : '#ff9800';
+    const x = sx(s.x);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(x - 3.5, y0, 7, y1 - y0);
+    ctx.fillStyle = col;
+    ctx.fillRect(x - 2, y0, 4, y1 - y0);
+    ctx.beginPath(); ctx.moveTo(x - 11, y0 - 15); ctx.lineTo(x + 11, y0 - 15); ctx.lineTo(x, y0 - 1); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
   drawLane(ctx, p, w, h) {
     const s = this.S[p], ax = w * 0.3;
     // the camera runs with the athlete, then travels with the javelin and pulls back to hold the arc
@@ -130,6 +207,10 @@ class Javelin extends EventBase {
     drawSector(ctx, sx, L, w, h, 0);
     ctx.fillStyle = '#fafafa'; ctx.fillRect(sx(-0.3), L.gy - 2, 0.3 * ppm, 5);
     ctx.fillStyle = '#e53935'; ctx.fillRect(sx(0), L.gy - 0.5 * ppm, Math.max(2, 0.05 * ppm), 0.5 * ppm);
+    if (!flying) {
+      this.drawLancio(ctx, sx, w, h, s, p);
+      ctx.fillStyle = '#e53935'; ctx.fillRect(sx(0) - 2, h * 0.72, 4, h * 0.26);    // la linea da non passare
+    }
     if (s.best != null) {
       const x = sx(s.best);
       ctx.fillStyle = '#eee'; ctx.fillRect(x - 1, L.gy - 0.6 * ppm, 2, 0.6 * ppm);
@@ -144,6 +225,12 @@ class Javelin extends EventBase {
     let pose, hipY = L.gy - 0.9 * ppm;
     if (s.ph === 'ready') { pose = Pose.stand(); hipY = L.gy - 0.93 * ppm; }
     else if (s.ph === 'run' || s.slide) { pose = Pose.run(s.r.ph, s.r.k()); hipY = L.gy - (0.87 + 0.05 * Math.abs(Math.sin(s.r.ph))) * ppm; }
+    else if (s.ph === 'fly' || s.ph === 'done') {
+      // rilasciato: gli ultimi passi di frenata, sempre piu' corti, e poi fermo a guardare il lancio
+      const k = clamp(s.bv / 2.2, 0, 1);
+      pose = lerpPose(Pose.stand(), Pose.run(s.bph, 0.55), k);
+      hipY = L.gy - lerp(0.93, 0.88, k) * ppm;
+    }
     else {
       const k = clamp(s.ang / 70, 0, 1);
       pose = Pose.run(1.2, 0.8);
@@ -152,6 +239,7 @@ class Javelin extends EventBase {
     }
     shadow(ctx, sx(s.x), L.gy, ppm);
     const J = drawAthlete(ctx, sx(s.x), hipY, ppm, pose, PCOL[p]);
+    if (!flying) this.drawSegno(ctx, sx, h, s, p);
     if (s.ph === 'fly' && s.jy > 0) this.drawJavelin(ctx, sx(s.jx), L.gy - s.jy * ppm, Math.max(26, 2.6 * ppm), s.rot);
     else if (s.ph === 'run' || s.ph === 'wind' || s.ph === 'ready') {
       const rot = s.ph === 'wind' ? s.ang * Math.PI / 180 : 0.1;
@@ -173,7 +261,7 @@ Javelin.prototype.drawAngle = LongJump.prototype.drawAngle;
 registerEvent({
   id: 'giavellotto', name: 'LANCIO DEL GIAVELLOTTO', cls: Javelin, lowerBetter: false,
   labels: ['CORRI', 'LANCIA'],
-  help: ['A: premi velocemente per prendere la rincorsa.', 'B: tienilo premuto per alzare l\'angolo (ideale ~36°)',
-    'e rilascia prima della pedana. 3 lanci, conta il migliore.'],
+  help: ['A: premi velocemente per prendere la rincorsa.', 'B: tienilo premuto 2-3 metri prima della linea (segno verde)',
+    'per alzare l\'angolo (ideale ~36°) e rilascia: devi fermarti prima della linea.'],
   fmt: Fmt.m, pts: (f => m => f(m == null ? null : m * 100))(Pts.field(0.0712, 700, 1.08)),
 });
