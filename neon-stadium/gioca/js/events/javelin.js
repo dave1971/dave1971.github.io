@@ -181,10 +181,11 @@ class Javelin extends EventBase {
     if (lx > 40 && lx < w - 40) txt(ctx, 'LANCIO', lx, ty, sz, '#fff');
     if (fx > 40 && fx < w - 40) txtFit(ctx, 'FRENATA', fx, ty, sz, '#ffcdd2', 'center', Math.max(20, sx(0) - sx(-N) - 8));
   }
-  // il segno che segue l'atleta: si disegna dopo di lui, se no le gambe lo coprono
+  // Il segno che segue l'atleta. Sta dietro di lui (davanti era troppo invadente), quindi e' alto
+  // abbastanza da spuntare sopra la testa con la sua freccia, oltre che fra le gambe e sotto i piedi.
   drawSegno(ctx, sx, h, s, p) {
     if (s.ph !== 'run' && s.ph !== 'ready') return;
-    const y0 = h * 0.6, y1 = h * 0.98, Z = this.zona;
+    const y0 = h * 0.5, y1 = h * 0.98, Z = this.zona;
     const d = -s.x - this.limite(p);       // quanto manca al punto limite
     const col = d < 0 ? '#ff5252' : d <= Z[1] ? '#00e63c' : d <= Z[0] ? '#ffd600' : '#ff9800';
     const x = sx(s.x);
@@ -237,9 +238,9 @@ class Javelin extends EventBase {
       pose.ru = -0.9 + 1.9 * k; pose.rf = pose.ru + 0.25; pose.lu = 1.5; pose.lf = 1.7;
       pose.torso = 0.25 - 0.3 * k;
     }
+    if (!flying) this.drawSegno(ctx, sx, h, s, p);      // dietro l'atleta: davanti dava fastidio
     shadow(ctx, sx(s.x), L.gy, ppm);
     const J = drawAthlete(ctx, sx(s.x), hipY, ppm, pose, PCOL[p]);
-    if (!flying) this.drawSegno(ctx, sx, h, s, p);
     if (s.ph === 'fly' && s.jy > 0) this.drawJavelin(ctx, sx(s.jx), L.gy - s.jy * ppm, Math.max(26, 2.6 * ppm), s.rot);
     else if (s.ph === 'run' || s.ph === 'wind' || s.ph === 'ready') {
       const rot = s.ph === 'wind' ? s.ang * Math.PI / 180 : 0.1;
