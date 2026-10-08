@@ -1,6 +1,6 @@
 {
-  "rev": 46,
-  "aggiornato": "2026-10-06",
+  "rev": 47,
+  "aggiornato": "2026-10-08",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
     "100m": {
@@ -104,6 +104,13 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 11.036333365834828,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "tuffi": [
@@ -118,6 +125,13 @@
         "who": "WLAMB",
         "nat": "FIN",
         "il": "2026-10-06",
+        "lv": "U"
+      },
+      {
+        "v": 207.9,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
         "lv": "U"
       }
     ],
@@ -134,6 +148,13 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 5.1,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "110h": [
@@ -142,6 +163,13 @@
         "who": "WLAMB",
         "nat": "FIN",
         "il": "2026-10-06",
+        "lv": "U"
+      },
+      {
+        "v": 15.503624511479533,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
         "lv": "U"
       },
       {
@@ -164,6 +192,13 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 13.688958547096151,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "piattello": [
@@ -172,6 +207,13 @@
         "who": "WLAMB",
         "nat": "FIN",
         "il": "2026-10-06",
+        "lv": "U"
+      },
+      {
+        "v": 13,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
         "lv": "U"
       },
       {
@@ -194,6 +236,13 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 12.39963094187064,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "volteggio": [
@@ -202,6 +251,13 @@
         "who": "WLAMB",
         "nat": "FIN",
         "il": "2026-10-06",
+        "lv": "U"
+      },
+      {
+        "v": 162.8,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
         "lv": "U"
       },
       {
@@ -224,6 +280,13 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 157.3,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "lungo": [
@@ -232,6 +295,13 @@
         "who": "WLAMB",
         "nat": "FIN",
         "il": "2026-10-06",
+        "lv": "U"
+      },
+      {
+        "v": 6.242412204251012,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
         "lv": "U"
       }
     ],
@@ -242,6 +312,13 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 1.95,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "pesi": [
@@ -250,6 +327,13 @@
         "who": "WLAMB",
         "nat": "FIN",
         "il": "2026-10-06",
+        "lv": "U"
+      },
+      {
+        "v": 150,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
         "lv": "U"
       }
     ],
@@ -260,6 +344,13 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 26.408333333332475,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "200m": [
@@ -268,6 +359,13 @@
         "who": "WLAMB",
         "nat": "FIN",
         "il": "2026-10-06",
+        "lv": "U"
+      },
+      {
+        "v": 22.059029328097544,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
         "lv": "U"
       }
     ],
@@ -278,6 +376,13 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 37.48751354665162,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "martello": [
@@ -287,9 +392,23 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 40.51564570927133,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ],
     "giavellotto": [
+      {
+        "v": 52.60430243086485,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
+      },
       {
         "v": 52.490880719612505,
         "who": "WLAMB",
@@ -305,9 +424,16 @@
         "nat": "FIN",
         "il": "2026-10-06",
         "lv": "U"
+      },
+      {
+        "v": 47,
+        "who": "THATSALLFOLK",
+        "nat": "USA",
+        "il": "2026-10-08",
+        "lv": "U"
       }
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 118
+  "postRev": 136
 }
