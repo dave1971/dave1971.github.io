@@ -223,12 +223,17 @@ class ShopScene extends Screen {
     this.fissi = this.btns;
     this.righe = Career.C.gear.map((g, i) => {
       const n = Career.nextGear(g.k), can = Career.canBuy(g.k), t = Career.gearOf(g.k);
+      // il gradino che si aprira' solo in un campionato piu' alto: il pulsante lo dice, e non vende
+      const chiuso = Career.gearChiuso(g.k), dove = chiuso ? Career.C.livello(chiuso).short : '';
       // col nome del gradino il pulsante e' piu' alto: il nome sopra, il prezzo sotto
       return {
         g, y0: top + i * RH, x: x + 430, y: 0, w: 170, h: RH - 3, buy: true,
-        label: n ? (g.gradi ? g.gradi[t] : n.n + '  ' + Money(n.c)) : 'COMPLETO', sub: n && g.gradi ? Money(n.c) : '', size: 14,
-        color: n ? (can ? '#43a047' : '#455a64') : '#2e7d32',
+        // (la riga e' bassa: al posto del prezzo, sulla stessa riga, da che campionato si compra)
+        label: n ? (g.gradi ? g.gradi[t] : n.n + '  ' + (chiuso ? 'dal ' + dove : Money(n.c))) : 'COMPLETO',
+        sub: n && g.gradi ? (chiuso ? 'dal ' + dove : Money(n.c)) : '', size: 14,
+        color: n ? (chiuso ? '#37474f' : can ? '#43a047' : '#455a64') : '#2e7d32',
         fn: () => {
+          if (chiuso) { Snd.click(); this.nota = { testo: 'si compra dopo il passaggio al ' + dove, t: 3.5 }; return; }
           if (!Career.buy(g.k)) { Snd.click(); return; }
           Snd.coins();
           if (g.battute) this.nota = { testo: g.battute[Career.gearOf(g.k) - 1], t: 3.5 };

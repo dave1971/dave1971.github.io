@@ -181,19 +181,18 @@ class Javelin extends EventBase {
     if (lx > 40 && lx < w - 40) txt(ctx, 'LANCIO', lx, ty, sz, '#fff');
     if (fx > 40 && fx < w - 40) txtFit(ctx, 'FRENATA', fx, ty, sz, '#ffcdd2', 'center', Math.max(20, sx(0) - sx(-N) - 8));
   }
-  // Il segno che segue l'atleta. Sta dietro di lui (davanti era troppo invadente), quindi e' alto
-  // abbastanza da spuntare sopra la testa con la sua freccia, oltre che fra le gambe e sotto i piedi.
+  // Il segno che segue l'atleta: una barra sottile e nient'altro (la freccia in cima e lo spessore
+  // di prima erano troppo). Sta dietro di lui, alta abbastanza da spuntare sopra la testa, oltre che
+  // fra le gambe e sotto i piedi.
   drawSegno(ctx, sx, h, s, p) {
     if (s.ph !== 'run' && s.ph !== 'ready') return;
     const y0 = h * 0.5, y1 = h * 0.98, Z = this.zona;
     const d = -s.x - this.limite(p);       // quanto manca al punto limite
     const col = d < 0 ? '#ff5252' : d <= Z[1] ? '#00e63c' : d <= Z[0] ? '#ffd600' : '#ff9800';
     const x = sx(s.x);
-    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(x - 3.5, y0, 7, y1 - y0);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(x - 1.75, y0, 3.5, y1 - y0);
     ctx.fillStyle = col;
-    ctx.fillRect(x - 2, y0, 4, y1 - y0);
-    ctx.beginPath(); ctx.moveTo(x - 11, y0 - 15); ctx.lineTo(x + 11, y0 - 15); ctx.lineTo(x, y0 - 1); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillRect(x - 1, y0, 2, y1 - y0);
   }
   drawLane(ctx, p, w, h) {
     const s = this.S[p], ax = w * 0.3;

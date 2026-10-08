@@ -51,6 +51,11 @@ const ATTR_CAP = [50, 80, 100];
 // Equipment: one item per family, three tiers, bought in order and never worn out — only replaced
 // by the better version of the same item.
 const GEAR_TIERS = [{ n: 'BASE', b: 0.010, c: 1800 }, { n: 'PRO', b: 0.020, c: 5200 }, { n: 'ELITE', b: 0.030, c: 12000 }];
+// Da quale campionato si puo' comprare ogni gradino: il BASE da subito, PRO ed ELITE solo dal Trials.
+// All'Universitario, con gli allenamenti al loro tetto (50) e gli attrezzi BASE, si va gia' a medaglia in
+// tutte le gare: gli attrezzi migliori li' servivano solo a stravincere (Davide, 08/10/2026). Chi li ha
+// gia' comprati se li tiene.
+const GEAR_LIVELLO = [1, 2, 2];
 const GEAR_TUTTI = [
   { k: 'spikes', name: 'CHIODATE', evs: ['100m', '200m', '110h', 'staffetta'], col: '#ef5350' },
   { k: 'jump', name: 'SCARPE DA SALTO', evs: ['lungo', 'triplo', 'alto'], col: '#ffa726' },
@@ -180,7 +185,7 @@ const CPU_F_ADJ = { asta: [-0.085, 0, 0], giavellotto: [-0.02, -0.024, -0.038] }
 // js/specials/carriera.js, con un salvataggio a parte.
 const CIRCUITO_BASE = {
   key: 'olimpiadi_career_v2', oldKey: 'olimpiadi_career_v1',
-  events: EVENTS, attrs: ATTRS, evAttr: EV_ATTR, gear: GEAR, tiers: GEAR_TIERS, std: STD, need: PROMO_NEED, leggendari: LEGGENDARI,
+  events: EVENTS, attrs: ATTRS, evAttr: EV_ATTR, gear: GEAR, tiers: GEAR_TIERS, gradoDa: GEAR_LIVELLO, std: STD, need: PROMO_NEED, leggendari: LEGGENDARI,
   idx: i => i,                          // l'indice di gara che capisce Game
   livello: l => LEVELS[clamp(l, 1, 3)],  // nome, sigla e colore di ogni campionato
   valuta: ' €',
@@ -361,7 +366,13 @@ const Career = {
     return c;
   },
   nextGear(k) { const t = this.gearOf(k); return t >= 3 ? null : this.C.tiers[t]; },
-  canBuy(k) { const n = this.nextGear(k); return !!n && this.data.money >= n.c; },
+  // Il prossimo gradino di questo attrezzo e' ancora chiuso? Dice da quale campionato si apre (0 = aperto).
+  // Un circuito senza `gradoDa` (il torneo medievale) non chiude niente.
+  gearChiuso(k) {
+    const t = this.gearOf(k), da = this.C.gradoDa;
+    return da && t < 3 && this.data.lvl < da[t] ? da[t] : 0;
+  },
+  canBuy(k) { const n = this.nextGear(k); return !!n && !this.gearChiuso(k) && this.data.money >= n.c; },
   buy(k) {
     if (!this.canBuy(k)) return false;
     this.data.money -= this.nextGear(k).c;

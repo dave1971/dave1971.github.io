@@ -269,6 +269,9 @@ const EN = {
 
 // Strings built with numbers: every matching rule is applied, in order.
 const EN_RULES = [
+  [/^dal (UNIVERSITY|TRIALS|WORLD)$/, 'from $1'],
+  [/^(BASE|PRO|ELITE)  dal (UNIVERSITY|TRIALS|WORLD)$/, '$1  from $2'],
+  [/^si compra dopo il passaggio al (.+)$/, 'you can buy it once you reach the $1'],
   [/^vale (.+)$/, 'you keep $1'],
   [/^RITIRA (.+)$/, 'RETIRE $1'],
   [/^(\d+) record mandati, classifica aggiornata$/, '$1 records sent, table updated'],
