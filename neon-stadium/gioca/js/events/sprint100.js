@@ -72,8 +72,8 @@ class Sprint100 extends EventBase {
       const x = ax + (this.r[q].x - camX) * ppm;
       if (x < -60 || x > w + 60) continue;
       const gp = ppm * (0.92 - 0.03 * k), gg = gy - k * 0.13 * ppm;
-      const [pose, hipY] = this.poseFor(q, gg, gp);
-      drawAthlete(ctx, x, hipY, gp, pose, PCOL[q]);
+      const [pose, hipY, dx] = this.poseFor(q, gg, gp);
+      drawAthlete(ctx, x + (dx || 0) * gp, hipY, gp, pose, PCOL[q]);
     }
     ctx.restore();
   }
@@ -96,17 +96,30 @@ class Sprint100 extends EventBase {
     }
   }
   drawProps() { }
+  /**
+   * La posa di un corridore, l'altezza del bacino, e di quanti metri va disegnato piu' indietro.
+   *
+   * Sui blocchi sono le MANI a stare sulla linea di partenza, non il corpo: prima il bacino era
+   * disegnato sopra la linea, e veniva il piede dietro sulla riga con le mani mezzo metro oltre.
+   * Adesso l'atleta parte arretrato di quanto sporgono le mani, e nei primi metri di corsa
+   * l'arretramento si scioglie: la corsa e il cronometro non cambiano, e' solo dove lo si disegna.
+   */
   poseFor(p, gy, ppm) {
     const r = this.r[p], s = this.st.state;
-    if (this.st.dq[p]) return [Pose.stand(), gy - 0.93 * ppm];
+    if (this.st.dq[p]) return [Pose.stand(), gy - 0.93 * ppm, -this.dietro];
     if (r.x === 0 && s !== 'go') {
       if (s === 'set') {
         const q = Pose.crouch(); q.rt = 1.5; q.rs = -0.15; q.lt = 0.35; q.ls = -1.0; q.torso = 1.45;
-        return [q, gy - 0.66 * ppm];
+        return [q, gy - 0.66 * ppm, -this.dietro];
       }
-      return [Pose.crouch(), gy - 0.55 * ppm];
+      return [Pose.crouch(), gy - 0.55 * ppm, -this.dietro];
     }
-    return [Pose.run(r.ph, r.k()), gy - (0.87 + 0.05 * Math.abs(Math.sin(r.ph))) * ppm];
+    return [Pose.run(r.ph, r.k()), gy - (0.87 + 0.05 * Math.abs(Math.sin(r.ph))) * ppm, -this.dietro * clamp(1 - r.x / 3, 0, 1)];
+  }
+  // quanto sporgono le mani davanti al bacino nella posa sui blocchi (piu' due dita di margine dalla linea)
+  get dietro() {
+    const q = Pose.crouch(), m = (u, f) => Math.sin(q.torso) * BODY.torso + Math.sin(u) * BODY.ua + Math.sin(f) * BODY.fa;
+    return Math.max(m(q.ru, q.rf), m(q.lu, q.lf)) + 0.05;
   }
   // l'inquadratura: quanti pixel per metro e dove sta il corridore; chi estende la corsa la puo' cambiare
   vista(w, h, p) { return { ppm: h / 5, ax: w * 0.32 }; }
@@ -118,9 +131,9 @@ class Sprint100 extends EventBase {
     this.drawLines(ctx, w, h, camX, ppm, ax);
     this.drawProps(ctx, p, w, h, camX, ppm, ax, L);
     this.drawGhosts(ctx, p, camX, ppm, ax, L.gy, w);
-    const [pose, hipY] = this.poseFor(p, L.gy, ppm);
-    shadow(ctx, ax, L.gy, ppm);
-    drawAthlete(ctx, ax, hipY, ppm, pose, PCOL[p]);
+    const [pose, hipY, dx] = this.poseFor(p, L.gy, ppm);
+    shadow(ctx, ax + (dx || 0) * ppm, L.gy, ppm);
+    drawAthlete(ctx, ax + (dx || 0) * ppm, hipY, ppm, pose, PCOL[p]);
     // HUD
     const t = this.fin[p] != null && this.fin[p] >= 0 ? this.fin[p] : this.st.raceT;
     txt(ctx, t.toFixed(2), w - 16, h * 0.12, clamp(h * 0.11, 18, 36), '#fff', 'right');
