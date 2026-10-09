@@ -1,5 +1,5 @@
 {
-  "rev": 54,
+  "rev": 55,
   "aggiornato": "2026-10-09",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -709,6 +709,13 @@
     ],
     "martello": [
       {
+        "v": 43.060614031666184,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 43.01373748608497,
         "who": "THATSALLFOLK",
         "nat": "USA",
@@ -720,13 +727,6 @@
         "who": "FRANCISCUS",
         "nat": "VAT",
         "il": "2026-10-08",
-        "lv": "U"
-      },
-      {
-        "v": 43.01373748608497,
-        "who": "LUPIN3",
-        "nat": "FRA",
-        "il": "2026-10-09",
         "lv": "U"
       },
       {
@@ -827,5 +827,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 209
+  "postRev": 210
 }
