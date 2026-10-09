@@ -34,7 +34,7 @@ class Swim50 extends EventBase {
     if (this.st.update(dt) === 'restart') this.resetRace();
     for (let p = 0; p < this.n; p++) if (this.st.dq[p] && !this.res[p]) this.finish(p, null, 'SQUALIF.');
     if (this.st.running()) {
-      for (let p = 0; p < this.n; p++) {
+      for (let p = 0; this.tocca(p); p++) {
         const s = this.S[p];
         if (this.st.dq[p]) continue;
         if (s.ph === 'dive') {

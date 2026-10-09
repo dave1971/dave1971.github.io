@@ -201,6 +201,17 @@ class EventBase {
   }
   isDone(p) { return !!this.res[p]; }
   /**
+   * Di chi si occupa adesso la gara: e' la condizione dei cicli sugli atleti dentro update
+   * (`for (let p = 0; this.tocca(p); p++)`). Serve all'audio: in gara si sentono solo i giocatori, e gli
+   * effetti degli atleti della CPU (passi, tonfi, applausi) tacciono. Chi decide e' la schermata di gara,
+   * che lascia in `muti` un vero o falso per ogni atleta, piu' uno in fondo per quello che la gara fa
+   * fuori dal ciclo (lo sparo, i segnali di tutti); senza `muti` non cambia niente.
+   */
+  tocca(p) {
+    if (this.muti) Snd.zitto = !!this.muti[Math.min(p, this.n)];
+    return p < this.n;
+  }
+  /**
    * Il ritiro: dal menu di pausa il giocatore lascia la gara e si tiene quello che ha fatto fin li'.
    * Serve da via d'uscita: prima, per chiudere un salto in alto o una gara di lanci senza buttare la
    * misura gia' fatta, bisognava sbagliare apposta tutti i tentativi che restavano.

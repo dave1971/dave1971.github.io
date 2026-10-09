@@ -90,7 +90,7 @@ class Breaking extends EventBase {
   update(dt) {
     this.clock += dt;
     this.music();
-    for (let p = 0; p < this.n; p++) {
+    for (let p = 0; this.tocca(p); p++) {
       const s = this.S[p];
       for (const q of s.pop) q.t -= dt;
       s.pop = s.pop.filter(q => q.t > 0);

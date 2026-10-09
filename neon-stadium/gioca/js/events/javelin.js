@@ -84,7 +84,7 @@ class Javelin extends EventBase {
     if (s.x > 0.02 && !s.foul) { s.foul = true; s.why = 'non ti sei fermato prima della linea'; }
   }
   update(dt) {
-    for (let p = 0; p < this.n; p++) {
+    for (let p = 0; this.tocca(p); p++) {
       const s = this.S[p];
       if (this.res[p]) continue;
       s.t += dt;

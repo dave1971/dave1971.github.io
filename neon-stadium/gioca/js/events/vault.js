@@ -96,7 +96,7 @@ class Vault extends EventBase {
     Snd.step();
   }
   update(dt0) {
-    for (let p = 0; p < this.n; p++) {
+    for (let p = 0; this.tocca(p); p++) {
       const s = this.S[p];
       if (this.res[p]) continue;
       const dt = dt0;

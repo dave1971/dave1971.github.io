@@ -50,7 +50,7 @@ class Equitazione extends EventBase {
     Snd.jump();
   }
   update(dt) {
-    for (let p = 0; p < this.n; p++) {
+    for (let p = 0; this.tocca(p); p++) {
       const s = this.S[p];
       if (this.res[p]) { s.v = Math.max(0, s.v - 3 * dt); s.x += s.v * dt; s.gait += s.v / 3.4 * TAU * dt; continue; }
       s.t += dt;

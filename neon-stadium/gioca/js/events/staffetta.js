@@ -52,7 +52,7 @@ class Staffetta extends EventBase {
   gap(s) { return s.r.x - s.inX; }
   update(dt) {
     this.clock += dt;
-    for (let p = 0; p < this.n; p++) {
+    for (let p = 0; this.tocca(p); p++) {
       const s = this.S[p], r = s.r;
       if (this.res[p]) { this.coast(s, dt); continue; }
       // l'ultimo frazionista

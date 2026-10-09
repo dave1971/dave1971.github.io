@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.8.6.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.8.7.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -708,19 +708,25 @@ class EventScene {
   /** Nessuno dei giocatori sta facendo niente: si può mostrare il tabellone senza dare fastidio. */
   humansFermi() { for (let p = 0; p < this.humans; p++) if (!this.ev.res[p] && !this.ev.fermo(p)) return false; return true; }
   waitingCpus() { return this.cpus.length > 0 && this.humansDone() && !this.ev.res.every(r => r); }
-  step(dt) {
-    for (const c of this.cpus) c.tick(this.ev, dt);
-    this.ev.update(dt);
+  // Un passo di gara. L'audio e' dei giocatori: tacciono i tasti premuti dalla CPU e, dentro la gara,
+  // tutto quello che riguarda i suoi atleti (EventBase.tocca); restano lo sparo e i segnali di tutti.
+  // `attesa`: i giocatori hanno finito e gli altri vanno avanti veloce, allora tace tutto.
+  step(dt, attesa) {
+    const ev = this.ev, m = [];
+    for (let p = 0; p <= ev.n; p++) m.push(attesa || (p >= this.humans && p < ev.n));
+    Snd.zitto = true;
+    for (const c of this.cpus) c.tick(ev, dt);
+    ev.muti = m; Snd.zitto = m[ev.n];
+    ev.update(dt);
+    ev.muti = null; Snd.zitto = false;
   }
   update(dt) {
     if (this.paused) return;
     // the humans are done: fast-forward the CPU athletes still competing, and in silence. Nobody wants
     // to hear twelve times the crowd, the thuds and the steps of a race he is no longer in. What was
     // already playing (the applause for the player's own last attempt) goes on to its end.
-    Snd.zitto = this.waitingCpus();
-    this.step(dt);
-    for (let i = 0; i < 11 && this.waitingCpus(); i++) { Snd.zitto = true; this.step(dt); }
-    Snd.zitto = false;
+    this.step(dt, this.waitingCpus());
+    for (let i = 0; i < 11 && this.waitingCpus(); i++) this.step(dt, true);
     // il tabellone si muove col tempo vero, non undici volte più in fretta
     if (this.tab) this.tab.update(dt, this.humansDone() || this.humansFermi());
     if (this.ev.finished && !this.sent) { this.sent = true; Game.eventDone(this.evIdx, this.ev.res); }

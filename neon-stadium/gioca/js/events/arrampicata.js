@@ -74,7 +74,7 @@ class Arrampicata extends EventBase {
     if (this.st.update(dt) === 'restart') for (const s of this.S) Object.assign(s, { k: 0, ready: 0, slip: 0, anim: 1 });
     for (let p = 0; p < this.n; p++) if (this.st.dq[p] && !this.res[p]) this.finish(p, null, 'SQUALIF.');
     if (this.st.running()) {
-      for (let p = 0; p < this.n; p++) {
+      for (let p = 0; this.tocca(p); p++) {
         const s = this.S[p];
         if (this.st.dq[p] || s.fin != null) continue;
         if (s.slip > 0) s.slip -= dt; else s.ready += dt;

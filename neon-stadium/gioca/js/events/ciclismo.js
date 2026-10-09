@@ -33,7 +33,7 @@ class Ciclismo extends EventBase {
     }
   }
   update(dt) {
-    for (let p = 0; p < this.n; p++) {
+    for (let p = 0; this.tocca(p); p++) {
       const s = this.S[p];
       s.crank += (s.v / 8.6) * TAU * dt;               // rapporto da velocista: 8,6 m a pedalata
       if (this.res[p]) { s.v = Math.max(0, s.v - 1.2 * dt); s.s += s.v * dt; continue; }
