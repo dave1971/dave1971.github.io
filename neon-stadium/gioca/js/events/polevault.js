@@ -94,12 +94,13 @@ class PoleVault extends BarEvent {
     const sx = X => ax + (X - camX) * ppm, sy = Y => L.gy - Y * ppm;
     this.drawTakeoff(ctx, sx, h, ppm, s, B.x);
     Bg.distMarks(ctx, w, h, camX, ppm, ax, L, -25, -5, 5, d => (-d) + ' m');
-    this.drawMat(ctx, sx, sy, ppm, 0.4, 5.5, this.matTop);
     // planting box
     ctx.fillStyle = '#37474f';
     ctx.beginPath(); ctx.moveTo(sx(-0.9), sy(0)); ctx.lineTo(sx(0), sy(0)); ctx.lineTo(sx(0), sy(0) + 0.15 * ppm); ctx.closePath(); ctx.fill();
     this.drawRig(ctx, sx, sy, ppm, s, 0.4, 6.4, 'back');
-    this.drawOmbra(ctx, sx, sy, ppm, B.x, 0.4, 5.5);
+    this.drawMat(ctx, sx, sy, ppm, 0.6, 5.5, this.matTop);
+    this.drawRig(ctx, sx, sy, ppm, s, 0.4, 6.4, 'bar');
+    this.drawOmbra(ctx, sx, sy, ppm, B.x, 0.6, 5.5);
     const J = drawAthlete(ctx, sx(B.x), sy(B.y), ppm, B.pose, PCOL[p], B.f);
     this.drawPole(ctx, s, J, sx, sy, ppm);
     this.drawRig(ctx, sx, sy, ppm, s, 0.4, 6.4, 'front');

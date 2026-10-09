@@ -3,6 +3,7 @@
 // A = run-up, B = take off near the white mark, B again in the air (over the bar) to arch the back.
 // Bar rises after every clearance; 3 consecutive failures end the competition.
 
+const MAT_K = 0.3;   // di quanto il materasso sporge oltre i ritti, in frazioni della loro distanza
 class BarEvent extends EventBase {
   constructor(n, meta) {
     super(n, meta);
@@ -113,7 +114,8 @@ class BarEvent extends EventBase {
     return 'Asticella ' + Fmt.m(s.bar) + '  •  Errori ' + s.fails + '/3';
   }
   liveScore(q) { return this.S[q].best; }
-  // uprights + bar with a little depth perspective; part = 'back' | 'front'
+  // uprights + bar with a little depth perspective; part = 'back' | 'bar' | 'front'.
+  // Order: far upright, mat, bar, athlete, near upright. A knocked bar drops forward onto the mat.
   drawRig(ctx, sx, sy, ppm, s, postX, postH, part) {
     const d = 0.4 * ppm, lift = 0.28 * ppm, x = sx(postX);
     ctx.save();
@@ -121,16 +123,16 @@ class BarEvent extends EventBase {
     ctx.strokeStyle = '#cfd8dc'; ctx.lineWidth = Math.max(2, ppm * 0.07);
     if (part === 'back') {
       ctx.beginPath(); ctx.moveTo(x + d, sy(0) - lift); ctx.lineTo(x + d, sy(postH) - lift); ctx.stroke();
-      // bar
-      let by = s.bar, tilt = 0;
-      if (s.knock >= 0) { const k = clamp(s.knock / 0.45, 0, 1); by = lerp(s.bar, this.matTop + 0.05, k * k); tilt = k * 0.25 * ppm; }
+    } else if (part === 'bar') {
+      let by = s.bar, tilt = 0, dx = 0;
+      if (s.knock >= 0) { const k = clamp(s.knock / 0.45, 0, 1); by = lerp(s.bar, this.matTop + 0.05, k * k); tilt = k * 0.25 * ppm; dx = k * 0.55 * ppm; }
       const n = 8;
       ctx.lineWidth = Math.max(3, ppm * 0.06); ctx.lineCap = 'butt';
       for (let i = 0; i < n; i++) {
         ctx.strokeStyle = i % 2 ? '#fdd835' : '#fafafa';
         ctx.beginPath();
-        ctx.moveTo(x + d * i / n + tilt * i / n, sy(by) - lift * i / n);
-        ctx.lineTo(x + d * (i + 1) / n + tilt * (i + 1) / n, sy(by) - lift * (i + 1) / n);
+        ctx.moveTo(x + dx + d * i / n + tilt * i / n, sy(by) - lift * i / n);
+        ctx.lineTo(x + dx + d * (i + 1) / n + tilt * (i + 1) / n, sy(by) - lift * (i + 1) / n);
         ctx.stroke();
       }
     } else {
@@ -147,14 +149,17 @@ class BarEvent extends EventBase {
     if (x >= x0 + 0.3 && x <= x1) shadow(ctx, sx(x) + 0.2 * ppm, sy(this.matTop) - 0.14 * ppm, ppm, 0.8);
     else shadow(ctx, sx(x), sy(0), ppm, 0.8);
   }
+  // Il materasso e' piu' largo dello spazio fra i due ritti: sporge di MAT_K da una parte e dall'altra,
+  // verso chi guarda e verso il fondo. Va disegnato dopo il ritto lontano, che ha il piede dietro di lui.
   drawMat(ctx, sx, sy, ppm, x0, x1, top) {
-    const d = 0.4 * ppm, lift = 0.28 * ppm;
+    const k = MAT_K, d = 0.4 * ppm, lift = 0.28 * ppm, fd = (1 + 2 * k) * d, fl = (1 + 2 * k) * lift;
+    const a = sx(x0) - k * d, b = sx(x1) - k * d, y = sy(top) + k * lift, g = sy(0) + k * lift;   // la faccia davanti
     ctx.fillStyle = '#1565c0';
-    ctx.beginPath();
-    ctx.moveTo(sx(x0), sy(top)); ctx.lineTo(sx(x0) + d, sy(top) - lift); ctx.lineTo(sx(x1) + d, sy(top) - lift); ctx.lineTo(sx(x1), sy(top));
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#0d47a1'; ctx.fillRect(sx(x0), sy(top), sx(x1) - sx(x0), sy(0) - sy(top));
-    ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(sx(x0), sy(top), sx(x1) - sx(x0), 3);
+    ctx.beginPath(); ctx.moveTo(a, y); ctx.lineTo(a + fd, y - fl); ctx.lineTo(b + fd, y - fl); ctx.lineTo(b, y); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#0a3880';
+    ctx.beginPath(); ctx.moveTo(b, y); ctx.lineTo(b + fd, y - fl); ctx.lineTo(b + fd, g - fl); ctx.lineTo(b, g); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#0d47a1'; ctx.fillRect(a, y, b - a, g - y);
+    ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(a, y, b - a, 3);
   }
   // Take-off markings on the runway: the band where the take-off still counts, the sweet spot inside it,
   // the line not to cross, and a marker that follows the athlete's feet so the run-up can be judged.
@@ -211,8 +216,9 @@ class HighJump extends BarEvent {
     const L = Bg.stadium(ctx, w, h, camX, ppm, ax);
     const sx = X => ax + (X - camX) * ppm, sy = Y => L.gy - Y * ppm;
     this.drawTakeoff(ctx, sx, h, ppm, s, B.x);
-    this.drawMat(ctx, sx, sy, ppm, 0.25, 4.2, this.matTop);
     this.drawRig(ctx, sx, sy, ppm, s, 0, 2.6, 'back');
+    this.drawMat(ctx, sx, sy, ppm, 0.25, 4.2, this.matTop);
+    this.drawRig(ctx, sx, sy, ppm, s, 0, 2.6, 'bar');
     this.drawOmbra(ctx, sx, sy, ppm, B.x, 0.25, 4.2);
     drawAthlete(ctx, sx(B.x), sy(B.y), ppm, B.pose, PCOL[p], B.f);
     this.drawRig(ctx, sx, sy, ppm, s, 0, 2.6, 'front');
