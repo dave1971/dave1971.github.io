@@ -1,5 +1,5 @@
 {
-  "rev": 55,
+  "rev": 56,
   "aggiornato": "2026-10-09",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -268,6 +268,13 @@
         "who": "GABB",
         "nat": "ITA",
         "il": "2026-10-04"
+      },
+      {
+        "v": 18.200599345061306,
+        "who": "LAMBOTV",
+        "nat": "ITA",
+        "il": "2026-10-09",
+        "lv": "U"
       }
     ],
     "triplo": [
@@ -557,6 +564,13 @@
         "nat": "AUS",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 1.9,
+        "who": "LAMBOTV",
+        "nat": "ITA",
+        "il": "2026-10-09",
+        "lv": "U"
       }
     ],
     "pesi": [
@@ -827,5 +841,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 210
+  "postRev": 212
 }
