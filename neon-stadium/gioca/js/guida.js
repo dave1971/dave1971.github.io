@@ -174,8 +174,9 @@ const GUIDA_FOTO = { w: 200, h: 150, dpr: 2 };
 
 // ---------- il disegno ----------
 // Un tasto come quelli della gara, piu' piccolo, col segno di come si preme.
-function guidaTasto(ctx, x, y, r, lettera, tipo, t) {
-  const i = 'ABC'.indexOf(lettera), base = i === 0 ? PCOL[0].ui : i === 2 ? '#ef6c00' : '#607d8b';
+// `come`: la lettera del tasto di cui prende il colore (il C dei pesi e' un secondo A, rosso come lui).
+function guidaTasto(ctx, x, y, r, lettera, tipo, t, come) {
+  const i = 'ABC'.indexOf(come || lettera), base = i === 0 ? PCOL[0].ui : i === 2 ? '#ef6c00' : '#607d8b';
   // il tasto "vive": chi va premuto in fretta batte, chi va tenuto resta giu', chi va lasciato torna su
   let giu = 0;
   if (tipo === 'rapido' || tipo === 'alterna') giu = Math.sin(t * 22 + (tipo === 'alterna' && i ? Math.PI : 0)) > 0 ? 1 : 0;
@@ -261,7 +262,7 @@ function guidaDisegna(ctx, guida, x, y, w, h, t) {
     const righe = Math.max.apply(null, scritte.map(s => s.length));
     tasti.forEach((tt, j) => {
       const bx = px + col * (j + 0.5);
-      guidaTasto(ctx, bx, by, r, tt[0], tt[1], t + i * 0.3);
+      guidaTasto(ctx, bx, by, r, tt[0], tt[1], t + i * 0.3, tt[2]);
       scritte[j].forEach((s, l) => txtFit(ctx, s, bx, by + r + 18 + l * 15, 13, '#fff', 'center', col - 4, { italic: false, crudo: true }));
       if (j < k - 1) txt(ctx, tt[1] === 'alterna' ? '⇄' : '+', px + col * (j + 1), by, 20, '#ffd600', 'center', { italic: false, crudo: true });
     });
@@ -336,9 +337,9 @@ GUIDE.peso = GUIDE.disco = GUIDE.martello = [
 GUIDA_HUD.giroscopio = (w, h) => { const R = clamp(h * 0.16, 34, 74), cx = w - R - 22, cy = h * 0.46; return [cx - R - 8, cy - R - 22, cx + R + 8, cy + R + 22]; };
 
 GUIDE.pesi = [
-  { t: [['A', 'rapido']], q: ev => ev.S[0].ph === 'pull' && ev.S[0].prog > 0.35 && ev.S[0].prog < 0.8, nota: 'SOPRA LA TACCA', m: 3.6, hud: GUIDA_HUD.forza },
+  { t: [['A', 'rapido'], ['C', 'rapido', 'A']], q: ev => ev.S[0].ph === 'pull' && ev.S[0].prog > 0.35 && ev.S[0].prog < 0.8, nota: 'SOPRA LA TACCA', m: 3.6, hud: GUIDA_HUD.forza },
   { t: [['B', 'click']], q: ev => ev.S[0].ph === 'rack' && Math.abs(ev.S[0].needle - 0.5) < 0.16, nota: 'LANCETTA NEL VERDE', m: 3.6, hud: GUIDA_HUD.barra(0.36, 0.06, 0.27) },
-  { t: [['A', 'rapido']], q: ev => ev.S[0].ph === 'hold' && ev.S[0].t > 0.3, nota: 'TIENILO SU', m: 3.6 },
+  { t: [['A', 'rapido'], ['C', 'rapido', 'A']], q: ev => ev.S[0].ph === 'hold' && ev.S[0].t > 0.3, nota: 'TIENILO SU', m: 3.6 },
 ];
 GUIDE['50sl'] = [
   { t: [['A', 'fermo'], ['B', 'fermo']], q: ev => ev.st.state === 'set' && ev.S[0].ph === 'block', dopo: 0.3, nota: 'ASPETTA LO SPARO' },

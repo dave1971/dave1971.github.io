@@ -2,6 +2,8 @@
 // ===== Sollevamento pesi (slancio) =====
 // A = mash to build power and pull the bar to the shoulders. B = jerk overhead when the needle is in the green.
 // Keep mashing A to hold the weight until the judges give three white lights.
+// C is a twin of A: on a touch screen it sits beside it, so the bar can be driven with two fingers
+// taking turns, which is twice the pace of one (Davide, 09/10/2026).
 
 class Weightlifting extends EventBase {
   constructor(n, meta) {
@@ -47,6 +49,7 @@ class Weightlifting extends EventBase {
   press(p, b) {
     const s = this.S[p];
     if (this.res[p]) return;
+    if (b === 2) b = 0;
     if (s.ph === 'ready' && b === 1) { if (this.canSkip(p, s)) this.skip(p, s); return; }
     if (b === 0) {
       if (s.ph === 'ready') { s.ph = 'pull'; s.t = 0; }
@@ -175,11 +178,11 @@ class Weightlifting extends EventBase {
       ctx.fillRect(cx - w * 0.18 + w * 0.36 * s.needle - 3, h * 0.1 - 6, 6, Math.max(12, h * 0.06) + 12);
       txt(ctx, 'B: SLANCIO!', cx, h * 0.1 + Math.max(12, h * 0.06) + 16, clamp(h * 0.07, 13, 22), '#ffeb3b');
     }
-    if (s.ph === 'hold') txt(ctx, 'TIENI! (A)', cx, h * 0.14, clamp(h * 0.09, 16, 30), '#ffeb3b');
+    if (s.ph === 'hold') txt(ctx, 'TIENI! (A o C)', cx, h * 0.14, clamp(h * 0.09, 16, 30), '#ffeb3b');
     if (s.ph === 'ready' && !this.msg[p]) {
       const y = h * 0.18, st = clamp(h * 0.09, 15, 30);
       txt(ctx, 'BILANCIERE ' + Fmt.kg(s.W), cx, y, clamp(h * 0.1, 18, 38), '#ffeb3b');
-      txt(ctx, 'premi A velocemente per sollevare', cx, y + st, clamp(h * 0.065, 12, 22), '#fff');
+      txt(ctx, 'premi A o C velocemente per sollevare', cx, y + st, clamp(h * 0.065, 12, 22), '#fff');
       if (this.canSkip(p, s)) txt(ctx, 'B: passa a ' + Fmt.kg(s.W + this.inc), cx, y + st * 1.8, clamp(h * 0.06, 12, 20), '#7CFC00');
     }
     this.drawMsg(ctx, p, w, h);
@@ -188,8 +191,8 @@ class Weightlifting extends EventBase {
 
 registerEvent({
   id: 'pesi', name: 'SOLLEVAMENTO PESI', cls: Weightlifting, lowerBetter: false,
-  labels: ['FORZA', 'SLANCIO'],
-  help: ['A: premi velocemente per portare il bilanciere al petto', 'B: slancio sopra la testa quando l\'indicatore è nel verde,', 'poi continua con A per tenerlo. 3 errori consecutivi = fine.',
+  labels: ['FORZA', 'SLANCIO', 'FORZA'], cConA: true,
+  help: ['A o C: premi velocemente per portare il bilanciere al petto', 'B: slancio sopra la testa quando l\'indicatore è nel verde,', 'poi continua con A o C per tenerlo. 3 errori consecutivi = fine.',
     'A gara ferma B passa i pesi che hai già sollevato.'],
   fmt: Fmt.kg, pts: Pts.field(1.5, 50, 1.25),
 });

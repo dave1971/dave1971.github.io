@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.8.7.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.8.8.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -633,6 +633,11 @@ class EventScene {
     const L = p => (PCOL[p] && PCOL[p].lefty ? [0, 1] : [1, 0]); // [button on the left, button on the right]
     const a = L(0);
     if (this.humans === 1) {
+      // Dove C fa coppia con A (i pesi: e' un secondo A, da battere a turno con l'altro dito) i due stanno
+      // dalla stessa parte e B da solo dall'altra; per i mancini si scambia tutto, A e C insieme.
+      if (tre && this.meta.cConA) return a[0] === 1
+        ? [{ p: 0, b: 1, x0: 0, x1: W / 2, cx: W * 0.1 }, { p: 0, b: 2, x0: W / 2, x1: W * 0.8, cx: W * 0.7 }, { p: 0, b: 0, x0: W * 0.8, x1: W, cx: W * 0.9 }]
+        : [{ p: 0, b: 0, x0: 0, x1: W * 0.2, cx: W * 0.1 }, { p: 0, b: 2, x0: W * 0.2, x1: W / 2, cx: W * 0.3 }, { p: 0, b: 1, x0: W / 2, x1: W, cx: W * 0.9 }];
       if (tre) return a[0] === 1
         ? [{ p: 0, b: 1, x0: 0, x1: W * 0.2, cx: W * 0.1 }, { p: 0, b: 2, x0: W * 0.2, x1: W / 2, cx: W * 0.3 }, { p: 0, b: 0, x0: W / 2, x1: W, cx: W * 0.9 }]
         : [{ p: 0, b: 0, x0: 0, x1: W / 2, cx: W * 0.1 }, { p: 0, b: 2, x0: W / 2, x1: W * 0.8, cx: W * 0.7 }, { p: 0, b: 1, x0: W * 0.8, x1: W, cx: W * 0.9 }];
@@ -809,7 +814,7 @@ class EventScene {
     for (const z of this.zones()) {
       // piu' grandi dalla 1.4.3 (prima 47): sui telefoni si prendevano male
       const on = this.held[z.p][z.b] > 0, r = on ? 51 : 55;
-      const base = z.b === 0 ? PCOL[z.p].ui : z.b === 2 ? '#ef6c00' : '#607d8b';
+      const base = z.b === 0 || (z.b === 2 && this.meta.cConA) ? PCOL[z.p].ui : z.b === 2 ? '#ef6c00' : '#607d8b';
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
       ctx.beginPath(); ctx.arc(z.cx + 3, cy + 5, r, 0, Math.PI * 2); ctx.fill();
       const gr = ctx.createRadialGradient(z.cx - r * 0.3, cy - r * 0.4, 4, z.cx, cy, r);
