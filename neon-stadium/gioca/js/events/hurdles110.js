@@ -57,8 +57,13 @@ class Hurdles110 extends Sprint100 {
   poseFor(p, gy, ppm) {
     const j = this.j[p];
     if (j.air) {
-      const t = clamp(1 - Math.abs(j.vy) / 5, 0, 1);
-      return [lerpPose(Pose.run(this.r[p].ph, 1), Pose.hurdle(), 0.35 + 0.65 * t), gy - (0.85 + j.y) * ppm];
+      // Dallo stacco (5 m/s in su) all'atterraggio (5 in giu') la velocita' cala in modo regolare: e'
+      // l'orologio del salto. Busto, braccia e gamba d'attacco entrano ed escono dalla corsa con
+      // dolcezza; la gamba di richiamo segue la sua strada per intero (vedi Pose.ostacolo).
+      const u = clamp((5 - j.vy) / 10, 0, 1), H = Pose.ostacolo(u);
+      const q = lerpPose(Pose.run(this.r[p].ph, 1), H, clamp(0.45 + 2.2 * Math.sin(Math.PI * u), 0, 1));
+      q.lt = H.lt; q.ls = H.ls; q.ltk = H.ltk;
+      return [q, gy - (0.85 + j.y) * ppm];
     }
     return super.poseFor(p, gy, ppm);
   }

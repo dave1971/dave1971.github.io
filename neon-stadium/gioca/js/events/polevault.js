@@ -99,7 +99,7 @@ class PoleVault extends BarEvent {
     ctx.fillStyle = '#37474f';
     ctx.beginPath(); ctx.moveTo(sx(-0.9), sy(0)); ctx.lineTo(sx(0), sy(0)); ctx.lineTo(sx(0), sy(0) + 0.15 * ppm); ctx.closePath(); ctx.fill();
     this.drawRig(ctx, sx, sy, ppm, s, 0.4, 6.4, 'back');
-    shadow(ctx, sx(B.x), L.gy, ppm, 0.8);
+    this.drawOmbra(ctx, sx, sy, ppm, B.x, 0.4, 5.5);
     const J = drawAthlete(ctx, sx(B.x), sy(B.y), ppm, B.pose, PCOL[p], B.f);
     this.drawPole(ctx, s, J, sx, sy, ppm);
     this.drawRig(ctx, sx, sy, ppm, s, 0.4, 6.4, 'front');

@@ -139,6 +139,14 @@ class BarEvent extends EventBase {
     }
     ctx.restore();
   }
+  // L'ombra dell'atleta: sulla pista finche' corre e stacca, sul materasso da quando ci sta sopra
+  // (in volo e dopo l'atterraggio). Prima restava sempre per terra, e a salto finito si vedeva
+  // sbucare da sotto il materasso. Il piano del materasso e' disegnato in prospettiva: l'ombra va
+  // in mezzo, un po' piu' in la' e un po' piu' in su del suo bordo davanti (vedi drawMat).
+  drawOmbra(ctx, sx, sy, ppm, x, x0, x1) {
+    if (x >= x0 + 0.3 && x <= x1) shadow(ctx, sx(x) + 0.2 * ppm, sy(this.matTop) - 0.14 * ppm, ppm, 0.8);
+    else shadow(ctx, sx(x), sy(0), ppm, 0.8);
+  }
   drawMat(ctx, sx, sy, ppm, x0, x1, top) {
     const d = 0.4 * ppm, lift = 0.28 * ppm;
     ctx.fillStyle = '#1565c0';
@@ -205,7 +213,7 @@ class HighJump extends BarEvent {
     this.drawTakeoff(ctx, sx, h, ppm, s, B.x);
     this.drawMat(ctx, sx, sy, ppm, 0.25, 4.2, this.matTop);
     this.drawRig(ctx, sx, sy, ppm, s, 0, 2.6, 'back');
-    shadow(ctx, sx(B.x), L.gy, ppm, 0.8);
+    this.drawOmbra(ctx, sx, sy, ppm, B.x, 0.25, 4.2);
     drawAthlete(ctx, sx(B.x), sy(B.y), ppm, B.pose, PCOL[p], B.f);
     this.drawRig(ctx, sx, sy, ppm, s, 0, 2.6, 'front');
     drawMeter(ctx, 16, h * 0.09, w * 0.2, Math.max(10, h * 0.045), s.r.v / this.vmax, PCOL[p].ui, (s.r.v * 3.6).toFixed(0) + ' km/h');

@@ -59,7 +59,9 @@ function drawAthlete(ctx, x, y, ppm, pose, col, facing) {
   const fi = clamp(Math.atan2(BODY.head * Math.sin(piega), BODY.head * Math.cos(piega) - BODY.torso), -COLLO_MAX, COLLO_MAX);
   const hdB = [shB[0] + Math.sin(pose.torso + fi) * lungo, shB[1] - Math.cos(pose.torso + fi) * lungo];
   const kR = limb(0, 0, pose.rt, BODY.th), fR = limb(kR[0], kR[1], pose.rs, BODY.sh);
-  const kL = limb(0, 0, pose.lt, BODY.th), fL = limb(kL[0], kL[1], pose.ls, BODY.sh);
+  // ltk: quanto si vede lunga la coscia lontana (1 = tutta). Serve alla gamba che si apre di lato
+  // sopra l'ostacolo: girata verso chi guarda, di profilo la coscia si accorcia (vedi Pose.ostacolo).
+  const kL = limb(0, 0, pose.lt, BODY.th * (pose.ltk == null ? 1 : pose.ltk)), fL = limb(kL[0], kL[1], pose.ls, BODY.sh);
   const eR = limb(shB[0], shB[1], pose.ru, BODY.ua), hR = limb(eR[0], eR[1], pose.rf, BODY.fa);
   const eL = limb(shB[0], shB[1], pose.lu, BODY.ua), hL = limb(eL[0], eL[1], pose.lf, BODY.fa);
 
@@ -424,6 +426,51 @@ const Pose = {
   // mani sui fianchi: braccio appena indietro, avambraccio in avanti, la mano torna all'anca
   hips() { return { torso: 0.0, neck: 0.02, lu: -0.52, lf: 1.22, ru: -0.46, rf: 1.16, lt: 0.07, ls: 0.02, rt: -0.06, rs: -0.02 }; },
   hurdle() { return { torso: 0.75, neck: -0.4, lu: -0.5, lf: 0.5, ru: 1.7, rf: 1.65, lt: 0.9, ls: -0.6, rt: 1.6, rs: 1.55 }; },
+  /**
+   * Il passaggio dell'ostacolo, da u = 0 (lo stacco) a u = 1 (l'atterraggio): le due gambe fanno
+   * cose diverse, come in pista.
+   *
+   * La gamba d'attacco (quella vicina) sale col ginocchio, si distende in avanti fino a essere quasi
+   * parallela al terreno sopra l'ostacolo, e poi scende a cercare la pista.
+   *
+   * La gamba di richiamo (quella lontana) non puo' passare sotto il corpo: la coscia sale in
+   * orizzontale dietro, si apre di lato e ruota in avanti restando all'altezza del bacino, e la
+   * gamba le sta dietro piegata: sopra l'ostacolo passa PRIMA il ginocchio e POI il piede. Passato
+   * l'ostacolo il ginocchio e' davanti, alto, e la gamba si distende in giu' per il passo dopo.
+   *
+   * La coscia che ruota di lato, vista di profilo, non cambia inclinazione: si accorcia (quando punta
+   * verso chi guarda non se ne vede quasi niente) e poi si riallunga dall'altra parte. Per questo la
+   * si pensa nello spazio (quanto e' alzata, e quanto e' girata da dietro a davanti) e se ne disegna
+   * l'ombra sul piano della corsa: l'inclinazione va in `lt`, la lunghezza che si vede in `ltk`. Un
+   * primo tentativo la faceva girare nel piano della corsa, e il ginocchio veniva piegato al contrario.
+   */
+  ostacolo(u) {
+    u = clamp(u, 0, 1);
+    // una grandezza lungo i suoi punti chiave [u, valore], con le giunte morbide
+    const lungo = K => {
+      for (let i = 1; i < K.length; i++) if (u <= K[i][0]) {
+        const k = (u - K[i - 1][0]) / (K[i][0] - K[i - 1][0]);
+        return lerp(K[i - 1][1], K[i][1], k * k * (3 - 2 * k));
+      }
+      return K[K.length - 1][1];
+    };
+    // la coscia di richiamo: alzata (0 = giu', 1,57 = orizzontale) e girata (0 = indietro, 1,57 = di lato, 3,14 = avanti)
+    const su = lungo([[0, 0.55], [0.3, 1.2], [0.45, 1.5], [0.8, 1.48], [1, 1.0]]);
+    const giro = lungo([[0, 0], [0.4, 0.15], [0.6, 1.57], [0.8, 2.95], [1, Math.PI]]);
+    const cx = -Math.cos(giro) * Math.sin(su), cy = Math.cos(su);
+    return {
+      torso: lungo([[0, 0.45], [0.35, 0.8], [0.65, 0.8], [1, 0.4]]), neck: lungo([[0, -0.2], [0.4, -0.45], [0.7, -0.45], [1, -0.15]]),
+      // il braccio opposto alla gamba d'attacco va avanti verso il piede, l'altro resta piegato indietro
+      lu: lungo([[0, 0.9], [0.4, 1.5], [0.65, 1.45], [1, 0.4]]), lf: lungo([[0, 1.6], [0.4, 1.6], [0.65, 1.6], [1, 1.5]]),
+      ru: lungo([[0, -0.3], [0.4, -0.7], [0.65, -0.6], [1, 0.3]]), rf: lungo([[0, 0.9], [0.4, 0.5], [0.65, 0.6], [1, 1.4]]),
+      // l'attacco: ginocchio su, gamba distesa e quasi parallela al terreno, poi giu'
+      rt: lungo([[0, 0.95], [0.28, 1.5], [0.5, 1.56], [0.68, 1.5], [1, 0.55]]),
+      rs: lungo([[0, -0.2], [0.28, 1.25], [0.5, 1.53], [0.68, 1.4], [1, 0.3]]),
+      // il richiamo: la coscia come la si vede di profilo, e la gamba che segue il ginocchio standogli dietro
+      lt: Math.atan2(cx, cy), ltk: Math.max(0.06, Math.hypot(cx, cy)),
+      ls: lungo([[0, -1.0], [0.3, -1.85], [0.45, -1.8], [0.62, -1.7], [0.8, -1.15], [1, -0.25]]),
+    };
+  },
   stride(k) { // bounding stride (triple jump hop/step)
     return { torso: 0.2, lu: -0.7 * k, lf: 0.3, ru: 1.2 * k, rf: 1.8, lt: -0.5 * k, ls: -1.2 * k, rt: 1.3 * k, rs: 0.3 };
   },

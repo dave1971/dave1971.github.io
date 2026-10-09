@@ -208,18 +208,30 @@ class SpinThrow extends EventBase {
     // athlete: turning on the spot is a horizontal squeeze, like a twist in the air
     const hx = sx(0), hy = L.gy - 0.93 * ppm;
     const c = Math.cos(s.ang), f = c >= 0 ? 1 : -1;
-    const pose = s.ph === 'ready' ? Pose.stand() : s.ph === 'lift' ? this.liftPose(s) : this.spinPose(s);
+    const pose = s.ph === 'ready' ? this.readyPose(s) : s.ph === 'lift' ? this.liftPose(s) : s.ph === 'spin' ? this.spinPose(s) : this.flyPose(s);
     shadow(ctx, hx, L.gy, ppm);
+    // il giro si vede come uno schiacciamento in orizzontale: sq e' quanto resta della larghezza
+    const sq = s.ph === 'spin' || s.ph === 'lift' || s.ph === 'fly' ? Math.max(0.18, Math.abs(c)) : 1;
+    // L'attrezzo attaccato a un filo (il martello) gira attorno all'atleta: mezzo giro gli passa
+    // dietro, e allora va disegnato prima di lui.
+    const filo = !!this.drawFilo && s.ph !== 'done' && !(s.ph === 'fly' && !s.out);
+    const dietro = filo && Math.sin(s.ang) < 0;
+    if (dietro) this.drawFilo(ctx, s, hx, hy, ppm, c, f, sq, pose);
     ctx.save();
-    if (s.ph === 'spin' || s.ph === 'lift' || s.ph === 'fly') {
-      ctx.translate(hx, hy); ctx.scale(Math.max(0.18, Math.abs(c)), 1); ctx.translate(-hx, -hy);
-    }
-    drawAthlete(ctx, hx, hy, ppm, pose, PCOL[p], f);
+    if (sq < 1) { ctx.translate(hx, hy); ctx.scale(sq, 1); ctx.translate(-hx, -hy); }
+    const J = drawAthlete(ctx, hx, hy, ppm, pose, PCOL[p], f);
     ctx.restore();
     // implement, in hand or in the air
     if (s.ph === 'fly' && !s.out) {
       this.drawImplement(ctx, sx(s.x), L.gy - s.y * ppm, Math.max(6, this.rad * ppm), s);
       txt(ctx, Fmt.m(Math.max(0, s.x)), w / 2, h * 0.16, clamp(h * 0.1, 18, 34), '#ffeb3b');
+    }
+    // dove l'attrezzo si tiene proprio nella mano (il peso), lo si disegna dove la mano e' davvero
+    else if (filo) { if (!dietro) this.drawFilo(ctx, s, hx, hy, ppm, c, f, sq, pose); }
+    // (appoggiato un po' piu' avanti e piu' su delle dita, contro il collo: `scarto`, in metri)
+    else if (this.inMano && s.ph !== 'done') {
+      const sc = this.scarto || [0, 0];
+      this.drawImplement(ctx, hx + (J.handN[0] - hx + f * sc[0] * ppm) * sq, J.handN[1] - sc[1] * ppm, Math.max(5, this.rad * ppm), s);
     }
     else if (s.ph === 'lift') {
       const k = clamp((s.el - this.elMin) / Math.max(1, this.elMax - this.elMin), 0, 1);
@@ -241,6 +253,9 @@ class SpinThrow extends EventBase {
     }
     this.drawMsg(ctx, p, w, h);
   }
+  readyPose() { return Pose.stand(); }
+  // dopo il rilascio: di solito la stessa posa del giro (il peso invece distende il braccio)
+  flyPose(s) { return this.spinPose(s); }
   spinPose(s) {
     const k = clamp(s.w / 12, 0, 1);
     return { torso: 0.12 + 0.1 * k, neck: -0.05, lu: 1.1 + 0.5 * k, lf: 1.5, ru: 0.9 + 0.6 * k, rf: 1.35,
@@ -266,9 +281,68 @@ class ShotPut extends SpinThrow {
     this.drain = 0.46; this.vk = 1.63; this.rad = 0.06;
     this.view = 26; this.step = 5; this.flyView = 10;
   }
+  /**
+   * Il peso non si lancia, si spinge: sta appoggiato fra il collo e la mandibola, sotto l'orecchio,
+   * col braccio piegato e il gomito dietro, all'altezza della spalla; al rilascio il braccio si
+   * distende in avanti lungo l'alzo. L'altro braccio resta teso in avanti e fa da bilanciere al giro.
+   *
+   * Prima il braccio penzolava lungo il fianco e il peso era disegnato per aria davanti al petto.
+   * Adesso il peso si disegna nella mano (inMano), e la mano si porta dove deve stare: le due
+   * inclinazioni del braccio si ricavano dal punto in cui si vuole la mano (`braccio`).
+   */
+  get inMano() { return true; }
+  get scarto() { return [0.075, 0.035]; }
+  // Le inclinazioni di braccio e avambraccio perche' la mano arrivi a (dx avanti, dy in basso) dalla
+  // spalla, col gomito dalla parte di dietro. Le misure sono quelle del corpo (BODY), in metri.
+  braccio(dx, dy) {
+    const a = BODY.ua, f = BODY.fa, d = clamp(Math.hypot(dx, dy), Math.abs(a - f) + 0.01, a + f - 0.005);
+    const verso = Math.atan2(dx, dy);
+    const a1 = verso + Math.acos(clamp((a * a + d * d - f * f) / (2 * a * d), -1, 1));
+    const k = d / Math.max(1e-6, Math.hypot(dx, dy));
+    const ex = Math.sin(a1) * a, ey = Math.cos(a1) * a;
+    return [a1, Math.atan2(dx * k - ex, dy * k - ey)];
+  }
+  // Il peso al collo: la mano sta alla base del collo, appena dietro la spalla e quattro dita piu'
+  // su, seguendo il busto. Con la mano li' il gomito viene dietro, all'altezza della spalla (con la
+  // mano piu' avanti finiva sopra la testa), e il peso, che si disegna poco oltre le dita (`scarto`),
+  // cade sotto l'orecchio.
+  MANO() { return [-0.022, 0.048]; }             // avanti, su (metri, lungo il busto)
+  alCollo(p) {
+    const t = p.torso, [av, su] = this.MANO();
+    const [ru, rf] = this.braccio(av * Math.cos(t) + su * Math.sin(t), av * Math.sin(t) - su * Math.cos(t));
+    p.ru = ru; p.rf = rf;
+    return p;
+  }
+  readyPose() {
+    const p = Pose.stand();
+    p.lu = 1.35; p.lf = 1.5;                   // l'altro braccio gia' teso in avanti
+    return this.alCollo(p);
+  }
   spinPose(s) {
     const p = super.spinPose(s);
-    p.ru = 0.35; p.rf = 0.2; p.torso = 0.2; // the shot stays tucked against the neck
+    p.torso = 0.2;
+    p.lu = 1.45; p.lf = 1.55;                  // teso in avanti: aiuta a girare
+    return this.alCollo(p);
+  }
+  liftPose(s) {
+    const k = clamp((s.el - this.elMin) / Math.max(1, this.elMax - this.elMin), 0, 1);
+    const p = super.liftPose(s);
+    p.lu = 1.5 + 0.5 * k; p.lf = 1.6 + 0.5 * k;   // l'altro braccio indica dove andra' il peso
+    return this.alCollo(p);                    // caricato sulle gambe, ma il peso resta al collo
+  }
+  // il rilascio: in un decimo e mezzo di secondo il braccio si distende lungo l'alzo scelto
+  flyPose(s) {
+    if (!(s.vx > 0)) return this.spinPose(s);  // fuori settore o fuori dal cerchio: non ha lanciato
+    const al = clamp(s.el || this.elMin, this.elMin, this.elMax) * Math.PI / 180;
+    const k = clamp((s.el - this.elMin) / Math.max(1, this.elMax - this.elMin), 0, 1);
+    const e = s.ph === 'done' ? 1 : clamp(s.t / 0.15, 0, 1), m = e * e * (3 - 2 * e);
+    const p = super.liftPose(s);
+    p.torso = lerp(0.1 - 0.32 * k, 0.28, m);   // dalla schiena inarcata si butta in avanti dietro al peso
+    p.lu = lerp(1.5 + 0.5 * k, 0.9, m); p.lf = lerp(1.6 + 0.5 * k, 1.2, m);
+    const t = p.torso, [av, su] = this.MANO(), L = BODY.ua + BODY.fa - 0.02;
+    const x0 = av * Math.cos(t) + su * Math.sin(t), y0 = av * Math.sin(t) - su * Math.cos(t);
+    const [ru, rf] = this.braccio(lerp(x0, Math.cos(al) * L, m), lerp(y0, -Math.sin(al) * L, m));
+    p.ru = ru; p.rf = rf;
     return p;
   }
   drawImplement(ctx, x, y, r) {
@@ -287,6 +361,26 @@ class Discus extends SpinThrow {
     super.cfg();
     this.drain = 0.42; this.vk = 2.81; this.rad = 0.11;
     this.view = 80; this.step = 10; this.flyView = 22;
+  }
+  /**
+   * Il disco si tiene e si lancia con una mano sola: il braccio che lo porta e' teso, l'altro sta
+   * giu' a 45 gradi e fa da bilanciere al giro. Prima le braccia erano tutte e due tese in avanti e
+   * il disco era disegnato per aria, sotto le mani. Adesso sta nella mano (inMano), appena oltre le dita.
+   */
+  get inMano() { return true; }
+  get scarto() { return [0.07, 0]; }
+  spinPose(s) {
+    const p = super.spinPose(s), k = clamp(s.w / 12, 0, 1);
+    p.ru = p.rf = 1.35 + 0.15 * k;             // teso, e sale verso l'orizzontale man mano che gira piu' forte
+    p.lu = p.lf = Math.PI / 4;                 // l'altro a 45 gradi verso il basso
+    return p;
+  }
+  liftPose(s) {
+    const k = clamp((s.el - this.elMin) / Math.max(1, this.elMax - this.elMin), 0, 1);
+    const p = super.liftPose(s);
+    p.ru = p.rf = 1.4 + 1.0 * k;               // il braccio col disco sale teso insieme all'alzo
+    p.lu = p.lf = Math.PI / 4;
+    return p;
   }
   drawCage(ctx, sx, gy, ppm) {
     ctx.strokeStyle = 'rgba(180,190,200,0.5)'; ctx.lineWidth = Math.max(1, ppm * 0.02);
@@ -327,13 +421,64 @@ class Hammer extends SpinThrow {
       ctx.beginPath(); ctx.moveTo(sx(d), gy); ctx.lineTo(sx(d), gy - 4.2 * ppm); ctx.stroke();
     }
   }
+  /**
+   * Il martello e' una palla in fondo a un cavo d'acciaio lungo un metro e venti, che l'atleta tiene
+   * dall'altro capo con le braccia tese.
+   *
+   * Da fermo la palla e' appoggiata per terra davanti a lui. Girando, la palla si alza e si
+   * allontana: nei primi due giri il cavo si distende, dal secondo in poi e' parallelo al terreno e
+   * la palla gira larga attorno all'atleta, e cosi' resta fino al rilascio. Quando si carica l'alzo
+   * (B) il cavo sale dell'angolo scelto. Prima la palla era disegnata ferma davanti al petto, senza
+   * cavo, per tutta la gara.
+   */
+  get CAVO() { return 1.2; }
+  // quanto il martello si e' alzato: 0 per terra, 1 col cavo parallelo al terreno (dopo due giri)
+  alzata(s) { const u = clamp(s.ang / (2 * TAU), 0, 1); return u * u * (3 - 2 * u); }
+  spinPose(s) {
+    const m = this.alzata(s), a = lerp(0.85, 1.5, m);      // le braccia tese salgono col martello
+    return { torso: lerp(0.2, -0.16, m), neck: -0.05, lu: a, lf: a, ru: a, rf: a,   // e il busto fa da contrappeso
+      lt: 0.25 * Math.sin(s.ang * 2), ls: -0.15, rt: -0.25 * Math.sin(s.ang * 2), rs: -0.15 };
+  }
+  readyPose(s) { const p = this.spinPose(s); p.lt = 0.12; p.rt = -0.1; p.ls = p.rs = -0.05; return p; }
+  liftPose(s) {
+    const k = clamp((s.el - this.elMin) / Math.max(1, this.elMax - this.elMin), 0, 1);
+    const p = this.spinPose(s), a = p.ru + s.el * Math.PI / 180 * 0.55;
+    p.ru = p.rf = p.lu = p.lf = a;
+    p.torso -= 0.16 * k;
+    p.lt = 0.3; p.ls = -0.1; p.rt = -0.35; p.rs = -0.2;
+    return p;
+  }
+  // dove sta la palla finche' e' attaccata alle mani, e il cavo che la tiene
+  drawFilo(ctx, s, hx, hy, ppm, c, f, sq, pose) {
+    const Lc = this.CAVO, B = BODY.ua + BODY.fa, r = Math.max(5, this.rad * ppm);
+    // le mani (insieme): dal bacino, in metri, con la y in giu'
+    const mx = Math.sin(pose.torso) * BODY.torso + Math.sin(pose.ru) * B;
+    const my = -Math.cos(pose.torso) * BODY.torso + Math.cos(pose.ru) * B;
+    const X = hx + f * sq * mx * ppm, Y = hy + my * ppm, terra = hy + 0.93 * ppm;
+    const manoH = 0.93 - my;                               // quanto sono alte le mani da terra
+    const su = s.ph === 'lift' ? Lc * Math.sin(s.el * Math.PI / 180) : 0;
+    const pallaH = Math.max(this.rad, lerp(this.rad, manoH, this.alzata(s)) + su);
+    const dh = clamp(manoH - pallaH, -Lc, Lc), largo = Math.sqrt(Lc * Lc - dh * dh);
+    const px = X + c * largo * ppm, py = terra - pallaH * ppm;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = Math.max(2.4, ppm * 0.03);
+    ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(px, py); ctx.stroke();
+    ctx.strokeStyle = '#cfd8dc'; ctx.lineWidth = Math.max(1.2, ppm * 0.014);
+    ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(px, py); ctx.stroke();
+    ctx.restore();
+    this.testa(ctx, px, py, r);
+  }
   drawImplement(ctx, x, y, r, s) {
-    // head plus the wire trailing behind it
+    // in volo: head plus the wire trailing behind it
     ctx.strokeStyle = 'rgba(200,200,200,0.8)'; ctx.lineWidth = Math.max(1, r * 0.3);
     ctx.beginPath();
     ctx.moveTo(x - Math.cos(s.spin) * r * 3.4, y - Math.sin(s.spin) * r * 3.4);
     ctx.lineTo(x, y);
     ctx.stroke();
+    this.testa(ctx, x, y, r);
+  }
+  testa(ctx, x, y, r) {
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.beginPath(); ctx.arc(x, y, r + 2, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#546e7a';
