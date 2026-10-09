@@ -1,6 +1,6 @@
 {
-  "rev": 53,
-  "aggiornato": "2026-10-08",
+  "rev": 54,
+  "aggiornato": "2026-10-09",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
     "100m": {
@@ -120,6 +120,13 @@
         "lv": "U"
       },
       {
+        "v": 11.036333365834828,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 11.329009738851463,
         "who": "DUNDEE",
         "nat": "AUS",
@@ -146,6 +153,13 @@
         "who": "FRANCISCUS",
         "nat": "VAT",
         "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 267.3,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
         "lv": "U"
       },
       {
@@ -199,6 +213,13 @@
         "lv": "U"
       },
       {
+        "v": 5.1,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 4.9,
         "who": "DUNDEE",
         "nat": "AUS",
@@ -212,6 +233,13 @@
         "who": "FRANCISCUS",
         "nat": "VAT",
         "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 15.399242341114988,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
         "lv": "U"
       },
       {
@@ -254,6 +282,13 @@
         "who": "FRANCISCUS",
         "nat": "VAT",
         "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 14.086331989666112,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
         "lv": "U"
       },
       {
@@ -301,6 +336,13 @@
         "lv": "U"
       },
       {
+        "v": 15,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 13,
         "who": "WLAMB",
         "nat": "FIN",
@@ -343,6 +385,13 @@
         "lv": "U"
       },
       {
+        "v": 12.39963094187064,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 12.079782625147903,
         "who": "DUNDEE",
         "nat": "AUS",
@@ -363,6 +412,13 @@
         "who": "FRANCISCUS",
         "nat": "VAT",
         "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 170.5,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
         "lv": "U"
       },
       {
@@ -408,6 +464,13 @@
         "lv": "U"
       },
       {
+        "v": 172.7,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 167.2,
         "who": "DUNDEE",
         "nat": "AUS",
@@ -428,6 +491,13 @@
         "who": "FRANCISCUS",
         "nat": "VAT",
         "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 6.306420701019046,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
         "lv": "U"
       },
       {
@@ -465,6 +535,13 @@
         "who": "FRANCISCUS",
         "nat": "VAT",
         "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 2,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
         "lv": "U"
       },
       {
@@ -510,6 +587,13 @@
         "nat": "AUS",
         "il": "2026-10-08",
         "lv": "U"
+      },
+      {
+        "v": 150,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
       }
     ],
     "50sl": [
@@ -525,6 +609,13 @@
         "who": "FRANCISCUS",
         "nat": "VAT",
         "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 26.13333333333249,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
         "lv": "U"
       },
       {
@@ -565,6 +656,13 @@
         "lv": "U"
       },
       {
+        "v": 22.059029328097544,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 22.15104374102113,
         "who": "DUNDEE",
         "nat": "AUS",
@@ -595,6 +693,13 @@
         "lv": "U"
       },
       {
+        "v": 37.48751354665162,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 36.42426721471391,
         "who": "DUNDEE",
         "nat": "AUS",
@@ -615,6 +720,13 @@
         "who": "FRANCISCUS",
         "nat": "VAT",
         "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 43.01373748608497,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
         "lv": "U"
       },
       {
@@ -655,6 +767,13 @@
         "lv": "U"
       },
       {
+        "v": 56.1212326802039,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 54.76696483397052,
         "who": "DUNDEE",
         "nat": "AUS",
@@ -685,6 +804,13 @@
         "lv": "U"
       },
       {
+        "v": 54,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-10-09",
+        "lv": "U"
+      },
+      {
         "v": 52,
         "who": "DUNDEE",
         "nat": "AUS",
@@ -701,5 +827,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 191
+  "postRev": 209
 }
