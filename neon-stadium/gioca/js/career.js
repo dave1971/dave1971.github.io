@@ -158,6 +158,8 @@ STD.trials.lungo = 6.95;
 // Il giavellotto: il terzo posto del campo dopo lo scostamento degli avversari (CPU_F_ADJ, qui sotto).
 // Erano 53,50 / 73,00 / 90,50.
 STD.uni.giavellotto = 51.40; STD.trials.giavellotto = 69.40; STD.olympic.giavellotto = 85.00;
+// I pesi al Mondiale: il terzo posto dopo lo scostamento degli avversari. Erano 245.
+STD.olympic.pesi = 240;
 
 // L'obiettivo e' centrato se lo e' la misura che si vede: si confronta al centesimo, come la si scrive.
 // Prima un 7,096 compariva come "7.10" ma non centrava un obiettivo di 7,10.
@@ -177,7 +179,11 @@ const LIBERO_F_EV = { orso: 0.965 };   // con l'orso meno: l'orso corre al massi
 // un giocatore con gli allenamenti al massimo e il giavellotto BASE doveva fare il lancio perfetto anche
 // solo per qualificarsi, e l'oro restava di chi comprava PRO o ELITE (Davide, 08/10/2026). Con questo
 // scostamento il vincitore tipico lancia il 96,5% di quello che vale quel giocatore, e il terzo il 91,5%.
-const CPU_F_ADJ = { asta: [-0.085, 0, 0], giavellotto: [-0.02, -0.024, -0.038] };
+// I pesi al Mondiale: il favorito ha forza piena e batte a 13 colpi al secondo, e alzava 255 kg; a un
+// giocatore con tutto al massimo e la cintura ELITE servivano quasi 8 colpi al secondo per sette secondi
+// solo per pareggiarlo, e con PRO o BASE l'oro non c'era a nessun ritmo (Davide, 09/10/2026). Cosi' il
+// vincitore tipico alza 250 kg e il terzo 240: con ELITE 250 kg vengono a 5,5 colpi al secondo.
+const CPU_F_ADJ = { asta: [-0.085, 0, 0], giavellotto: [-0.02, -0.024, -0.038], pesi: [0, 0, -0.02] };
 
 // Un circuito e' tutto quello che distingue una carriera dall'altra: le specialita', gli allenamenti,
 // l'attrezzatura, gli obiettivi, i nomi dei campionati e dove si salva. Il motore (Career) e le

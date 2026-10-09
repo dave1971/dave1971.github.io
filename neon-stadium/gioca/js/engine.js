@@ -158,6 +158,9 @@ function hitBtn(btns, x, y) {
 // ---------- audio (synthesized, no assets) ----------
 const Snd = {
   ctx: null, on: true, noiseBuf: null,
+  // zitto: gli effetti tacciono senza toccare la scelta del giocatore (on) ne' la musica. Lo accende la
+  // gara mentre manda avanti veloce gli atleti della CPU rimasti, e lo spegne subito dopo.
+  zitto: false,
   unlock() {
     if (!this.ctx) {
       try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
@@ -200,7 +203,7 @@ const Snd = {
     } catch (e) { /* niente da fare: si resta come prima */ }
   },
   tone(f, d, type, v, slide, delay) {
-    if (!this.on || !this.ctx) return;
+    if (!this.on || this.zitto || !this.ctx) return;
     const c = this.ctx, t = c.currentTime + (delay || 0);
     const o = c.createOscillator(), g = c.createGain();
     o.type = type || 'square';
@@ -212,7 +215,7 @@ const Snd = {
     o.start(t); o.stop(t + d + 0.02);
   },
   noise(d, v, freq, q, delay) {
-    if (!this.on || !this.ctx) return;
+    if (!this.on || this.zitto || !this.ctx) return;
     const c = this.ctx, t = c.currentTime + (delay || 0);
     const s = c.createBufferSource(); s.buffer = this.noiseBuf;
     const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq || 1200; f.Q.value = q || 0.7;
@@ -239,7 +242,7 @@ const Snd = {
   // profilo di un colpo, giusto per lo sparo e per l'acqua. Una folla invece cresce e cala, e se
   // parte di colpo dall'altoparlante di un telefono sembra un'esplosione.
   swell(d, v, freq, q, delay, up) {
-    if (!this.on || !this.ctx) return;
+    if (!this.on || this.zitto || !this.ctx) return;
     const c = this.ctx, t = c.currentTime + (delay || 0), a = up || 0.25;
     const s = c.createBufferSource(); s.buffer = this.noiseBuf; s.loop = true;
     const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq || 800; f.Q.value = q || 0.5;
@@ -253,7 +256,7 @@ const Snd = {
   // Applausi dopo una buona prova: tanti battiti di mani brevissimi, fitti all'inizio e poi sempre
   // piu' radi, sopra il brusio della folla. k da 0 a 1: quanto e' stata bella.
   applause(k) {
-    if (!this.on || !this.ctx) return;
+    if (!this.on || this.zitto || !this.ctx) return;
     k = k == null ? 1 : k;
     const dur = 1.2 + 0.7 * k, n = Math.round(24 + 36 * k);
     this.swell(dur + 0.3, 0.13 + 0.12 * k, 650, 0.6, 0, 0.3);
@@ -282,7 +285,7 @@ const Snd = {
   },
   // Un attrezzo che parte dalla mano: un soffio che sale e si allontana, non un salto
   whoosh() {
-    if (!this.on || !this.ctx) return;
+    if (!this.on || this.zitto || !this.ctx) return;
     const c = this.ctx, t = c.currentTime;
     const s = c.createBufferSource(); s.buffer = this.noiseBuf;
     const f = c.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
