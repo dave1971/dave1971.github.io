@@ -1,6 +1,6 @@
 {
-  "rev": 56,
-  "aggiornato": "2026-10-09",
+  "rev": 57,
+  "aggiornato": "2026-10-10",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
     "100m": {
@@ -270,10 +270,10 @@
         "il": "2026-10-04"
       },
       {
-        "v": 18.200599345061306,
+        "v": 16.92600825344294,
         "who": "LAMBOTV",
         "nat": "ITA",
-        "il": "2026-10-09",
+        "il": "2026-10-10",
         "lv": "U"
       }
     ],
@@ -526,6 +526,13 @@
         "who": "DUNDEE",
         "nat": "AUS",
         "il": "2026-10-08",
+        "lv": "U"
+      },
+      {
+        "v": 3.3852028220177064,
+        "who": "LAMBOTV",
+        "nat": "ITA",
+        "il": "2026-10-10",
         "lv": "U"
       }
     ],
@@ -841,5 +848,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 212
+  "postRev": 214
 }
