@@ -491,7 +491,21 @@ G.setScene = function (sc) {
 
 const STEP = 1 / 120;
 G.acc = 0;
+// Un errore dentro un fotogramma non deve fermare il gioco per sempre: prima la richiesta del fotogramma
+// dopo stava in fondo, e un'eccezione qualunque (un suono chiesto male, una gara con un difetto) lasciava
+// lo schermo congelato e i tasti muti senza dire niente. Adesso il giro continua, e l'errore resta in
+// G.errore: il telecomando lo scrive in fondo al pad (Remote.snapshot).
+G.errore = null;
+G.guasto = function (e) {
+  const m = String((e && e.message) || e).slice(0, 120);
+  G.errore = { t: Date.now(), m, n: G.errore && G.errore.m === m ? G.errore.n + 1 : 1 };
+  if (G.errore.n === 1 && typeof console !== 'undefined') console.error(e);
+};
 G.frame = function (ts) {
+  try { G.passo(ts); } catch (e) { G.guasto(e); }
+  requestAnimationFrame(G.frame);
+};
+G.passo = function (ts) {
   const dt = Math.min(0.1, (ts - G.last) / 1000);
   G.last = ts;
   G.acc += dt;
@@ -512,5 +526,4 @@ G.frame = function (ts) {
   ctx.beginPath(); ctx.rect(0, 0, G.W, G.H); ctx.clip();
   if (G.scene && G.scene.draw) G.scene.draw(ctx);
   ctx.restore();
-  requestAnimationFrame(G.frame);
 };

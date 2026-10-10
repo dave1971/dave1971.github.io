@@ -10,6 +10,7 @@
 // dimostrato affidabile su tutti i televisori: il ponte addJavascriptInterface su alcuni non esiste
 // proprio, e il telecomando restava cieco senza un solo errore da nessuna parte.
 
+const SERIE_VICINA = 64;   // quanto puo' essere indietro un messaggio dei tasti per essere solo "sorpassato"
 const Remote = {
   url: '',        // indirizzo da digitare sul tablet, vuoto se il server non è partito
   peers: 0,       // telecomandi che si sono fatti vivi negli ultimi secondi
@@ -25,29 +26,48 @@ const Remote = {
 
   // mask: bit 0 = tasto A, bit 1 = tasto B, bit 2 = tasto C (le gare che ce l'hanno). Arriva lo stato completo, non il cambiamento, così
   // un messaggio perso non lascia il gioco con un tasto incastrato giù.
+  //
+  // Due casi in cui A e B restavano muti mentre i menu (che viaggiano come tocchi, senza numero di serie)
+  // continuavano a rispondere, trovati dopo che a Davide e' successo sul televisore (10/10/2026):
+  //  - la pagina del pad ricaricata (il telefono si era addormentato, o il browser l'ha rifatta): i suoi
+  //    numeri ripartono da 1, e venivano scartati tutti come "vecchi" finche' non superavano l'ultimo
+  //    visto, cioe' per minuti. Uno sorpassato per strada e' indietro di poco; uno indietro di tanto e'
+  //    un pad ripartito, e si accetta.
+  //  - il pad rimasto su G2 dopo una partita in due: da soli la gara ha un giocatore solo e buttava i
+  //    tasti del secondo. Da soli comanda chiunque abbia un pad in mano.
   keys(p, mask, n) {
     p = clamp(p | 0, 0, 1); mask = mask | 0; n = n | 0;
-    if (n && n <= this.seq[p]) return;          // sorpassato da uno più recente: ignoralo
+    if (n && n <= this.seq[p] && this.seq[p] - n < SERIE_VICINA) return;   // sorpassato da uno più recente: ignoralo
     this.seq[p] = n;
-    const h = this.held[p];
+    if (mask) this.sveglia();
+    const h = this.held[p], sc = G.scene, chi = sc && sc.ev && sc.humans === 1 ? 0 : p;
     for (let b = 0; b < 3; b++) {
       const want = !!(mask & (1 << b));
       if (want === h[b]) continue;
       h[b] = want;
-      if (G.scene && G.scene.key) G.scene.key(p, b, want);
+      try { if (sc && sc.key) sc.key(chi, b, want); } catch (e) { G.guasto(e); }
     }
+  },
+  // L'audio del gioco parte al primo tocco o tasto vero (Snd.unlock), e un comando che arriva dal pad non
+  // lo e': su un televisore comandato solo dal pad il gioco restava muto finche' qualcuno non premeva un
+  // tasto del telecomando vero. L'app e l'exe non chiedono il gesto, quindi basta chiamarlo da qui.
+  sveglia() {
+    try { if (typeof Snd !== 'undefined' && (!Snd.ctx || Snd.ctx.state !== 'running')) Snd.unlock(); } catch (e) { /* si resta muti, come prima */ }
   },
   // x e y arrivano da 0 a 1 sul fotogramma che il pad sta mostrando, cioè sul canvas: li riporto
   // alle coordinate del gioco con la stessa trasformazione di un dito sul vetro, bande nere comprese
   point(p, x, y, down) {
     const sc = G.scene, id = 'remote' + p;
     if (!sc) return;
-    if (down && sc.pointerDown) {
-      const c = G.canvas, v = G.view;
-      const lx = ((c ? c.width : G.W) * clamp(x, 0, 1) - v.ox) / v.s;
-      const ly = ((c ? c.height : G.H) * clamp(y, 0, 1) - v.oy) / v.s;
-      sc.pointerDown(lx, ly, id);
-    } else if (!down && sc.pointerUp) sc.pointerUp(id);
+    if (down) this.sveglia();
+    try {
+      if (down && sc.pointerDown) {
+        const c = G.canvas, v = G.view;
+        const lx = ((c ? c.width : G.W) * clamp(x, 0, 1) - v.ox) / v.s;
+        const ly = ((c ? c.height : G.H) * clamp(y, 0, 1) - v.oy) / v.s;
+        sc.pointerDown(lx, ly, id);
+      } else if (!down && sc.pointerUp) sc.pointerUp(id);
+    } catch (e) { G.guasto(e); }
   },
   back() { G.back(); },
 
@@ -96,10 +116,13 @@ const Remote = {
     if (this.want >= 0) o.srv = this.want;      // l'app legge di qui se accendere o spegnere
     o.btns = this.padButtons();
     if (this.imgErr) o.imgerr = this.imgErr;
+    // un errore del gioco negli ultimi venti secondi si legge in fondo al pad, invece di restare muto
+    if (G.errore && Date.now() - G.errore.t < 20000) o.err = G.errore.m + (G.errore.n > 1 ? ' (x' + G.errore.n + ')' : '');
     if (!es) { o.mode = 'menu'; o.ev = ''; return o; }
     o.mode = es.paused ? 'menu' : 'play';
     o.ev = T(es.meta.name);
     o.lab = []; o.hud = []; o.lefty = [];
+    if (es.meta.cConA) o.cca = 1;               // il tasto C fa coppia con A (i pesi): il pad lo colora come lui
     for (let p = 0; p < es.humans; p++) {
       o.lab.push((es.ev.labels(p) || ['', '']).map(T));
       o.hud.push(T(es.ev.hud(p) || ''));
