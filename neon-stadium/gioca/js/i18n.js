@@ -35,6 +35,7 @@ const EN = {
   'oppure scegli una gara singola:': 'or pick a single event:',
   'NOMI E BANDIERE': 'NAMES AND FLAGS',
   'AVVERSARI: NESSUNO': 'RIVALS: NONE',
+  'VISTA: AFFIANCATE': 'VIEW: SIDE BY SIDE', 'VISTA: SOPRA E SOTTO': 'VIEW: TOP AND BOTTOM', 'come si divide lo schermo': 'how the screen is split',
   'gare a 8 atleti con medaglie': '8-athlete fields with medals',
   'solo contro il cronometro': 'against the clock only',
   '‹ INDIETRO': '‹ BACK', 'MENU': 'MENU', 'MENU PRINCIPALE': 'MAIN MENU',

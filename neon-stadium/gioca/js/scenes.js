@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.9.3.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.9.4.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -95,6 +95,7 @@ const Game = {
 try {
   const v = localStorage.getItem('olimpiadi_lvl'); if (v != null) Game.lvlPref = clamp(+v || 3, 1, 3);
   const r = localStorage.getItem('olimpiadi_rivals'); if (r != null) Game.rivalsPref = r === '1';
+  Game.affiancate = localStorage.getItem('olimpiadi_vista') === 'fianco';
 } catch (e) { /* storage unavailable */ }
 Lv.i = Game.lvlPref;
 
@@ -121,6 +122,7 @@ function savePrefs() {
   try {
     localStorage.setItem('olimpiadi_lvl', Game.lvlPref);
     localStorage.setItem('olimpiadi_rivals', Game.rivalsPref ? '1' : '0');
+    localStorage.setItem('olimpiadi_vista', Game.affiancate ? 'fianco' : 'sopra');
   } catch (e) { /* storage unavailable */ }
 }
 
@@ -447,6 +449,13 @@ class MenuScene extends Screen {
     const mw = Math.min(300, (w - 60 - bb - gap2) / 2), mx = w - 20 - (2 * mw + gap2);
     this.btns.push({ x: 20, y: G.H - 68, w: bb, h: 50, label: '‹ INDIETRO', size: 18, color: '#546e7a', fn: () => G.setScene(new TitleScene()) });
     this.btns.push({ x: 20, y: 20, w: 200, h: 44, label: 'NOMI E BANDIERE', sub: 'e i colori dell\'atleta', size: 15, color: '#5e35b1', fn: () => G.setScene(new PlayerSetupScene(this.n)) });
+    // in due: come si divide lo schermo in gara, una corsia sopra l'altra oppure affiancate (EventScene)
+    if (this.n > 1) {
+      const vw = Math.min(200, w * 0.2);
+      this.btns.push({ x: w - 20 - vw, y: 20, w: vw, h: 44, label: Game.affiancate ? 'VISTA: AFFIANCATE' : 'VISTA: SOPRA E SOTTO',
+        sub: 'come si divide lo schermo', size: 15, color: Game.affiancate ? '#00838f' : '#455a64',
+        fn: () => { Game.affiancate = !Game.affiancate; savePrefs(); this.layout(); } });
+    }
     const L = LEVELS[Game.lvlPref], riv = Game.rivalsPref;
     this.btns.push({ x: mx, y: G.H - 72, w: mw, h: 56, label: L.short, sub: L.desc, size: 21, color: L.col,
       fn: () => { Game.lvlPref = Game.lvlPref % 3 + 1; Lv.i = Game.lvlPref; savePrefs(); this.layout(); } });
@@ -568,7 +577,8 @@ class Tabellone {
   box() {
     const W = G.W, w = clamp(W * 0.23, 152, 214);
     const rh = 22;
-    return { x: W - w - 8, y: HUD_H + 8, w, rh, h: 26 + this.ev.n * rh + 6 };
+    // a corsie affiancate sta in mezzo, a cavallo delle due meta': a destra coprirebbe solo il secondo
+    return { x: this.centro ? (W - w) / 2 : W - w - 8, y: HUD_H + 8, w, rh, h: 26 + this.ev.n * rh + 6 };
   }
   draw(ctx, humans) {
     const b = this.box(), ev = this.ev, a = this.vis;
@@ -616,6 +626,7 @@ class Tabellone {
 
 // ---------- gameplay ----------
 const TASTO_COL = ['#e53935', '#546e7a', '#ef6c00'];     // A, B e il C delle gare che ne hanno tre
+const CORSIA_MIN = 760;     // la corsia piu' stretta per cui le gare sono pensate (alta 376): vedi drawAffiancate
 class EventScene {
   constructor(evIdx) {
     this.evIdx = evIdx; this.meta = evMeta(evIdx); this.n = Game.n; this.humans = Game.humans;
@@ -625,6 +636,10 @@ class EventScene {
     // il tabellone serve solo quando c'è qualcuno che non si vede in campo
     this.tab = this.n > this.humans ? new Tabellone(this.ev) : null;
     this.held = [[0, 0, 0], [0, 0, 0]]; this.ptr = {}; this.paused = false; this.btns = []; this.sent = false;
+    // In due, le corsie una sopra l'altra oppure affiancate (lo sceglie il giocatore dove sceglie la gara).
+    // Affiancate la gara puo' farsi larga quanto lo schermo, anche oltre il massimo degli altri menu.
+    this.fianco = this.humans > 1 && !!Game.affiancate;
+    if (this.fianco) { this.wMax = 1920; if (this.tab) this.tab.centro = true; }
     // il breaking porta la sua musica, a tempo con le note: quella della gara la coprirebbe
     this.music = this.meta.music || 'race';
   }
@@ -774,9 +789,51 @@ class EventScene {
     // la riga della gara si traduce da sola: con la posizione davanti le regole della lingua non la riconoscerebbero
     return (r ? placeText(r) + '/' + this.n + (h ? '   ' : '') : '') + T(h);
   }
+  /**
+   * Le corsie affiancate: ogni giocatore ha la sua meta' dello schermo, sopra i suoi pulsanti.
+   *
+   * Una corsia vede tanto campo quanto e' larga rispetto all'altezza, e le gare sono pensate per corsie
+   * larghe almeno il doppio dell'altezza (la piu' stretta che esista da soli e' 760 x 376, lo schermo 4:3).
+   * Mezza schermata e' molto piu' stretta di cosi': riempiendola tutta, chi corre vedrebbe la pedana o
+   * l'ostacolo solo quando ci e' sopra. Percio' la corsia si disegna a quella misura minima e si
+   * rimpicciolisce finche' entra nella meta' in larghezza: resta appoggiata in basso, sopra i pulsanti, e
+   * la fascia che avanza in alto dice di chi e' la meta'. Su uno schermo 16:9 la corsia viene al 63% (gli
+   * atleti un quarto piu' grandi che con le corsie sopra e sotto, ma con meno campo davanti); su un 21:9
+   * all'84%; su un 32:9 ognuno ha la corsia intera di chi gioca da solo, senza fascia.
+   */
+  drawAffiancate(ctx, W, avail) {
+    const pw = W / 2, k = Math.min(1, pw / CORSIA_MIN), wv = pw / k, alta = avail * k, fascia = avail - alta;
+    for (let p = 0; p < this.humans; p++) {
+      const x0 = p * pw;
+      if (fascia > 1) {
+        ctx.fillStyle = '#0b1020'; ctx.fillRect(x0, HUD_H, pw, fascia + 1);
+        if (fascia >= 44) {
+          const cy = HUD_H + fascia / 2, due = fascia >= 80, fs = clamp(fascia * 0.3, 16, 26);
+          const nome = String(PCOL[p].name || PCOL[p].short);
+          ctx.font = 'bold ' + fs + 'px ' + FONT;
+          const tw = Math.min(ctx.measureText(nome).width, pw - 110), fw = fs * 1.5, tot = fw + 10 + tw, ny = due ? cy - fs * 0.45 : cy;
+          drawFlag(ctx, PCOL[p].short, x0 + pw / 2 - tot / 2, ny - fs * 0.5, fw, fs);
+          txtFit(ctx, nome, x0 + pw / 2 - tot / 2 + fw + 10, ny + 1, fs, PCOL[p].ui, 'left', pw - 110, { italic: false, crudo: true });
+          if (due) txtFit(ctx, this.hudText(p), x0 + pw / 2, cy + fs * 0.75, 15, '#cfd8dc', 'center', pw - 24, { italic: false, crudo: true });
+        }
+      }
+      ctx.save();
+      ctx.beginPath(); ctx.rect(x0, HUD_H + fascia, pw, alta); ctx.clip();
+      ctx.translate(x0, HUD_H + fascia); ctx.scale(k, k);
+      this.ev.drawLane(ctx, p, wv, avail);
+      if (fascia < 44) {          // senza fascia il cartellino sta in corsia, come nelle corsie sopra e sotto
+        ctx.fillStyle = PCOL[p].ui; rrect(ctx, 8, avail - 32, 82, 26, 6); ctx.fill();
+        drawFlag(ctx, PCOL[p].short, 12, avail - 29, 30, 20);
+        txt(ctx, PCOL[p].short, 68, avail - 19, 14, '#fff', 'center', { outline: false });
+      }
+      ctx.restore();
+    }
+    ctx.fillStyle = '#fff'; ctx.fillRect(pw - 1, HUD_H, 3, avail);
+  }
   draw(ctx) {
     const W = G.W, nl = this.humans, avail = G.H - HUD_H - CTRL_H, lh = avail / nl;
-    for (let p = 0; p < nl; p++) {
+    if (this.fianco) this.drawAffiancate(ctx, W, avail);
+    else for (let p = 0; p < nl; p++) {
       ctx.save();
       ctx.translate(0, HUD_H + p * lh);
       ctx.beginPath(); ctx.rect(0, 0, W, lh); ctx.clip();
@@ -788,7 +845,7 @@ class EventScene {
       }
       ctx.restore();
     }
-    if (nl > 1) { ctx.fillStyle = '#fff'; ctx.fillRect(0, HUD_H + lh - 1, W, 3); }
+    if (nl > 1 && !this.fianco) { ctx.fillStyle = '#fff'; ctx.fillRect(0, HUD_H + lh - 1, W, 3); }
     if (this.tab && !this.paused && this.tab.vis > 0.01) {
       this.tab.draw(ctx, this.humans);
       // la scritta in mezzo allo schermo non serve più: basta una riga sotto al tabellone

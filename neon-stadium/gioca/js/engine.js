@@ -523,7 +523,11 @@ G.resize = function () {
   G.dpr = dpr;
   if (!(iw > 0) || !(ih > 0)) return;
   G.H = 540;
-  G.W = Math.round(clamp(540 * iw / ih, 760, 1280));
+  // Il gioco e' largo al massimo 1280 (oltre, due bande nere ai lati). Una schermata puo' chiederne di
+  // piu' (wMax): lo fa la gara in due con le corsie affiancate, che su uno schermo larghissimo (32:9)
+  // da' a ognuno una corsia intera invece di stare stretta in mezzo.
+  G.wMax = (G.scene && G.scene.wMax) || 1280;
+  G.W = Math.round(clamp(540 * iw / ih, 760, G.wMax));
   const s = Math.min(iw / G.W, ih / G.H);
   G.canvas.width = Math.round(iw * dpr);
   G.canvas.height = Math.round(ih * dpr);
@@ -535,6 +539,7 @@ G.resize = function () {
 
 G.setScene = function (sc) {
   G.scene = sc;
+  if ((sc.wMax || 1280) !== G.wMax && G.canvas) G.resize();     // la schermata vuole un'altra larghezza
   // la musica segue la schermata: chi non ne chiede una resta sul motivo dei menu
   if (typeof Music !== 'undefined') Music.play(sc.music || 'menu');
   if (sc.enter) sc.enter();
