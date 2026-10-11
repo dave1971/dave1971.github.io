@@ -34,6 +34,27 @@ function mulberry32(seed) {
   };
 }
 
+// ---------- qualita' della grafica ----------
+// Su un televisore il gioco gira dentro un processore da poco che deve riempire uno schermo enorme: ogni
+// fotogramma costa tanto, e finche' il fotogramma non e' finito un tasto premuto sul telecomando aspetta.
+// Davide (11/10/2026): con l'apk sul televisore il gioco va a scatti e fra il tasto e l'azione passa
+// troppo. Quattro gradini, dal titolo; quello che conta di piu' e' la risposta ai tasti.
+//   righe   quante righe di pixel disegna davvero il gioco (0 = tutte quelle dello schermo): il resto lo
+//           fa lo schermo ingrandendo. E' la leva piu' forte: meta' delle righe, un quarto dei pixel.
+//   il resto sono dettagli che si tolgono man mano (vedi chi legge Grafica.liv).
+const Grafica = {
+  liv: 0,
+  NOMI: ['ALTA', 'MEDIA', 'BASSA', 'MINIMA'],
+  RIGHE: [0, 720, 540, 360],
+  carica() { try { this.liv = clamp(+localStorage.getItem('olimpiadi_grafica') || 0, 0, 3) | 0; } catch (e) { /* resta alta */ } },
+  metti(l) {
+    this.liv = clamp(l | 0, 0, 3);
+    try { localStorage.setItem('olimpiadi_grafica', this.liv); } catch (e) { /* vale per questa volta */ }
+    if (G.canvas) G.resize();
+  },
+};
+Grafica.carica();
+
 // ---------- drawing helpers ----------
 const FONT = '"Trebuchet MS", "Arial Black", Arial, sans-serif';
 function txt(ctx, s, x, y, size, color, align, opts) {
@@ -45,10 +66,18 @@ function txt(ctx, s, x, y, size, color, align, opts) {
   ctx.textAlign = align || 'center';
   ctx.textBaseline = opts.base || 'middle';
   if (opts.outline !== false) {
-    ctx.lineWidth = Math.max(2, size * 0.16);
-    ctx.strokeStyle = opts.outlineColor || 'rgba(0,0,0,0.85)';
-    ctx.lineJoin = 'round';
-    ctx.strokeText(s, x, y);
+    if (Grafica.liv >= 2) {
+      // il bordo delle lettere fatto col tratto e' la cosa piu' cara che c'e' in una scritta: a qualita'
+      // bassa lo sostituisce un'ombra scura spostata di poco, che e' una scritta come le altre
+      const d = Math.max(1, size * 0.07);
+      ctx.fillStyle = opts.outlineColor || 'rgba(0,0,0,0.85)';
+      ctx.fillText(s, x + d, y + d);
+    } else {
+      ctx.lineWidth = Math.max(2, size * 0.16);
+      ctx.strokeStyle = opts.outlineColor || 'rgba(0,0,0,0.85)';
+      ctx.lineJoin = 'round';
+      ctx.strokeText(s, x, y);
+    }
   }
   ctx.fillStyle = color || '#fff';
   ctx.fillText(s, x, y);
@@ -464,8 +493,11 @@ G.back = function () {
 };
 
 G.resize = function () {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  let dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   const iw = window.innerWidth, ih = window.innerHeight;
+  // meno righe di quelle dello schermo: il canvas resta grande uguale, ha solo meno pixel dentro
+  const righe = Grafica.RIGHE[Grafica.liv];
+  if (righe && ih * dpr > righe) dpr = righe / ih;
   // una finestra ancora senza misura (una scheda aperta in secondo piano, un pannello nascosto, una
   // rotazione a meta'): 0/0 dava NaN a tutte le misure e il primo disegno si fermava per sempre, con lo
   // schermo nero. Si tengono le misure di prima; al prossimo resize, con la finestra vera, si rifa'.
@@ -505,8 +537,11 @@ G.frame = function (ts) {
   try { G.passo(ts); } catch (e) { G.guasto(e); }
   requestAnimationFrame(G.frame);
 };
+G.fps = 0;
 G.passo = function (ts) {
-  const dt = Math.min(0.1, (ts - G.last) / 1000);
+  const vero = (ts - G.last) / 1000;
+  if (vero > 0 && vero < 1) G.fps = G.fps ? lerp(G.fps, 1 / vero, 0.05) : 1 / vero;   // media che si muove piano
+  const dt = Math.min(0.1, vero);
   G.last = ts;
   G.acc += dt;
   let n = 0;

@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.8.9.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.9.0.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -337,10 +337,17 @@ class TitleScene extends Screen {
       { x: G.W - 186, y: 14, w: 82, h: 44, label: 'TASTI', size: 15, color: '#00695c', fn: () => G.setScene(new KeysScene()) },
     ];
     // the remote only exists when the app is actually serving the controller page
-    if (Remote.url || Remote.srv >= 0) {
+    const telec = !!(Remote.url || Remote.srv >= 0);
+    if (telec) {
       this.btns.push({ x: G.W - 322, y: 14, w: 128, h: 44, label: 'TELECOMANDO', size: 14, color: '#1565c0',
         fn: () => G.setScene(new RemoteScene()) });
     }
+    // La qualita' della grafica, a quattro gradini: per i dispositivi lenti (il televisore), dove ogni
+    // gradino in meno e' un gioco piu' fluido e tasti che rispondono prima. Sotto, i fotogrammi al
+    // secondo, per vedere quanto rende.
+    this.btns.push({ x: (telec ? G.W - 322 : G.W - 186) - 114, y: 14, w: 106, h: 44, size: 13, color: Grafica.liv ? '#6a1b9a' : '#455a64',
+      label: 'GRAFICA ' + Grafica.NOMI[Grafica.liv], grafica: true,
+      fn: () => { Grafica.metti((Grafica.liv + 1) % Grafica.NOMI.length); this.layout(); } });
     if (Updater.info) {
       const y = 336, bw = 190;
       this.btns = [
@@ -408,6 +415,7 @@ class TitleScene extends Screen {
       drawBtn(ctx, b);
       if (b.flag) drawFlag(ctx, b.flag, b.x + b.w / 2 - 21, b.y + 9, 42, 26);
       if (b.star) drawStar(ctx, b.x + b.w - 17, b.y + 15, 12);
+      if (b.grafica && G.fps) txt(ctx, Math.round(G.fps) + ' fps', b.x + b.w / 2, b.y + b.h + 11, 11, 'rgba(255,255,255,0.6)', 'center', { italic: false, outline: false, crudo: true });
     }
     // The address has to be readable without touching anything: on a television the only pointer may be
     // the tablet we are trying to set up, so it cannot live behind a button.

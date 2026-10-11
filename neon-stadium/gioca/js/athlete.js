@@ -86,6 +86,11 @@ function drawAthlete(ctx, x, y, ppm, pose, col, facing) {
   const ow = Math.max(0.7, ppm * 0.013);       // il bordo scuro
   const BORDO = '#17171f';
   const pieno = ctx.globalAlpha > 0.9;        // le figure in trasparenza (gli avversari in corsia) non hanno bordo
+  // Il bordo e' una seconda passata su tutto il corpo. Chi non ce l'ha (gli avversari in trasparenza) la
+  // faceva lo stesso, costruendo ogni contorno per poi non tracciarlo: si salta. Alla qualita' minima la
+  // saltano tutti, e si tolgono i particolari piccoli (vedi `lieve`).
+  const lieve = Grafica.liv >= 3;
+  const PASSATE = pieno && !lieve ? [true, false] : [false];
   ctx.save();
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
@@ -146,12 +151,12 @@ function drawAthlete(ctx, x, y, ppm, pose, col, facing) {
     const pelle = lontana ? legF : legN, braga = lontana ? shade(mutanda, 0.7) : mutanda;
     const scarpa = pose.nudi && !V ? pelle : (col.boot ? (lontana ? shade(col.boot, 0.75) : col.boot) : (lontana ? '#9e9e9e' : '#f5f5f5'));
     const orlo = mid(J.hip, knee, acqua ? (donna ? 0.12 : 0.34) : top ? 0.16 : body ? (donna ? 0.14 : 0.5) : 0.56);
-    for (bordo of [true, false]) {
+    for (bordo of PASSATE) {
       pezzo(J.hip, knee, 0.09 * (donna ? 1.02 : 1), 0.058 * kg, 0.014, 0.008, pelle);
       pezzo(knee, foot, 0.056 * kg, 0.034 * kg, 0.002, 0.024 * kg, pelle);
       if (!bordo) {
         // il calzino, e i calzoncini sopra la coscia (con la riga sul fianco)
-        if (!col.legC && !pose.nudi) pezzo(mid(knee, foot, 0.8), foot, 0.04, 0.036, 0, 0, lontana ? '#bdbdbd' : '#fafafa');
+        if (!col.legC && !pose.nudi && !lieve) pezzo(mid(knee, foot, 0.8), foot, 0.04, 0.036, 0, 0, lontana ? '#bdbdbd' : '#fafafa');
         pezzo(J.hip, orlo, 0.097 * (donna ? 1.02 : 1), 0.082, 0.014, 0.008, braga, false);
         if (!lontana && !col.legC && ppm > 30 && !top && !body && !acqua) {
           ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = Math.max(1, 0.02 * ppm);
@@ -165,7 +170,7 @@ function drawAthlete(ctx, x, y, ppm, pose, col, facing) {
     const pelle = lontano ? armF : armN, mano = lontano ? skinD : col.skin;
     const dx = hand[0] - elbow[0], dy = hand[1] - elbow[1], L = Math.hypot(dx, dy) || 1;
     const dita = [hand[0] + dx / L * 0.035 * ppm, hand[1] + dy / L * 0.035 * ppm];
-    for (bordo of [true, false]) {
+    for (bordo of PASSATE) {
       pezzo(J.sh, elbow, 0.052 * kb, 0.04 * kb, 0.012 * kb, 0.004, pelle);
       pezzo(elbow, hand, 0.04 * kb, 0.027 * kb, 0.007 * kb, 0.002, pelle);
       pezzo(hand, dita, 0.03 * kb, 0.026 * kb, 0, 0, mano);
@@ -205,7 +210,7 @@ function drawAthlete(ctx, x, y, ppm, pose, col, facing) {
         [-0.38, 0.78], [-0.92, 0.3], [-1.03, -0.3], [-0.62, -0.97], [0, -1.1]]));
     pinta(col.skin);
     if (!bordo) {
-      if (R >= 3.2) {
+      if (R >= 3.2 && !(lieve && !pieno)) {
         // l'orecchio, l'occhio col sopracciglio, la bocca
         ctx.fillStyle = shade(col.skin, 0.84); ctx.beginPath(); ctx.ellipse(-0.14 * R, 0.08 * R, 0.16 * R, 0.25 * R, 0, 0, Math.PI * 2); ctx.fill();
         if (R >= 5) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(0.62 * R, -0.16 * R, 0.17 * R, 0.12 * R, 0, 0, Math.PI * 2); ctx.fill(); }
@@ -257,7 +262,7 @@ function drawAthlete(ctx, x, y, ppm, pose, col, facing) {
     }
     ctx.restore();
   };
-  for (bordo of [true, false]) {
+  for (bordo of PASSATE) {
     liscio(busto); pinta(top && !acqua ? col.skin : maglia);
     if (top && !acqua && !bordo) { liscio(sopra); pinta(col.shirt); }
     liscio(bacino); pinta(mutanda);
