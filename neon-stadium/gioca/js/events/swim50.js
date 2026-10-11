@@ -133,7 +133,7 @@ class Swim50 extends EventBase {
     // rivals as ghosts (once in the water), then our swimmer
     Grafica.avversari(ctx, 0.35, () => {
       for (let q = 0, k = 0; q < this.n; q++) {
-        if (q === p || this.st.dq[q] || this.S[q].ph === 'block') continue;
+        if (q === p || this.st.dq[q] || this.S[q].ph === 'block' || !Grafica.mostra(q)) continue;
         k++;
         const gx = sx(this.S[q].x);
         if (gx < -80 || gx > w + 80) continue;

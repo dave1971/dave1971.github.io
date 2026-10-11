@@ -250,7 +250,7 @@ class Equitazione extends EventBase {
     // gli altri binomi in trasparenza
     Grafica.avversari(ctx, 0.28, () => {
       for (let q = 0; q < this.n; q++) {
-        if (q === p) continue;
+        if (q === p || !Grafica.mostra(q)) continue;
         const o = this.S[q], x = sx(o.x);
         if (x < -120 || x > w + 120) continue;
         this.drawHorse(ctx, x, gy - 0.15 * ppm, ppm * 0.85, o, Object.assign({}, PCOL[q], { horse: q % 2 ? '#5d4037' : '#a1887f' }), o.jump);

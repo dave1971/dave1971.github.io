@@ -51,12 +51,20 @@ const Grafica = {
   // cara di una corsa: sul televisore ogni atleta in piu' costa 3 ms, e sono sette. Le gare li disegnano
   // passando di qui: a MINIMA sono fatti di timbri (athlete.js, lo dice `ombre`), a ESSENZIALE non si
   // disegnano affatto, e restano la barra della corsa e il tabellone a dire chi e' davanti.
+  //
+  // In due lo schermo e' diviso a meta' e ogni meta' disegnava tutti e otto: sedici atleti. Li' a MINIMA e
+  // a ESSENZIALE restano solo i due giocatori (ognuno vede se stesso e l'altro): gli atleti della CPU
+  // gareggiano e fanno il loro risultato, ma non compaiono (`mostra`). Da soli, a ESSENZIALE non c'e'
+  // nessun altro.
   ombre: false,
   avversari(ctx, alpha, disegna) {
-    if (this.liv >= 4) return;
+    if (this.liv >= 4 && !this.inDue()) return;
     ctx.save(); ctx.globalAlpha = alpha; this.ombre = true;
     try { disegna(); } finally { this.ombre = false; ctx.restore(); }
   },
+  inDue() { return typeof Game !== 'undefined' && Game.humans > 1; },
+  // l'atleta q, visto dalla corsia di un altro, si disegna?
+  mostra(q) { return !(this.liv >= 3 && this.inDue() && Game.isCpu(q)); },
   carica() { try { this.liv = clamp(+localStorage.getItem('olimpiadi_grafica') || 0, 0, this.NOMI.length - 1) | 0; } catch (e) { /* resta alta */ } },
   metti(l) {
     this.liv = clamp(l | 0, 0, this.NOMI.length - 1);

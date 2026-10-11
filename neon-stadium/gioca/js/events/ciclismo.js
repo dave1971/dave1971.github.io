@@ -178,7 +178,7 @@ class Ciclismo extends EventBase {
     // gli altri, in trasparenza, alla loro altezza sulla curva
     Grafica.avversari(ctx, 0.33, () => {
       for (let q = 0; q < this.n; q++) {
-        if (q === p) continue;
+        if (q === p || !Grafica.mostra(q)) continue;
         const o = this.S[q], x = sx(o.s);
         if (x < -80 || x > w + 80) continue;
         this.drawBike(ctx, x, yl(o.y * 0.85 + 0.04) + 0.05 * ppm, ppm * 0.9, o, PCOL[q]);

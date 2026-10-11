@@ -67,7 +67,7 @@ class Sprint100 extends EventBase {
     Grafica.avversari(ctx, 0.45, () => {
       for (let k = others.length; k >= 1; k--) {
         const q = others[k - 1];
-        if (this.st.dq[q]) continue;
+        if (this.st.dq[q] || !Grafica.mostra(q)) continue;
         const x = ax + (this.r[q].x - camX) * ppm;
         if (x < -60 || x > w + 60) continue;
         const gp = ppm * (0.92 - 0.03 * k), gg = gy - k * 0.13 * ppm;

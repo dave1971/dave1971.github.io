@@ -184,7 +184,7 @@ class Staffetta extends EventBase {
     Grafica.avversari(ctx, 0.4, () => {
       let k2 = 0;
       for (let q = 0; q < this.n; q++) {
-        if (q === p || this.S[q].fin === -1) continue;
+        if (q === p || this.S[q].fin === -1 || !Grafica.mostra(q)) continue;
         k2++;
         const o = this.S[q], gp = ppm * (0.92 - 0.03 * (k2 % 4)), gg = L.gy - (k2 % 4 + 1) * 0.13 * ppm;
         const x = sx(o.got ? o.r.x : o.inX);
