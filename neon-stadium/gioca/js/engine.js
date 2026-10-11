@@ -44,11 +44,22 @@ function mulberry32(seed) {
 //   il resto sono dettagli che si tolgono man mano (vedi chi legge Grafica.liv).
 const Grafica = {
   liv: 0,
-  NOMI: ['ALTA', 'MEDIA', 'BASSA', 'MINIMA'],
-  RIGHE: [0, 720, 540, 360],
-  carica() { try { this.liv = clamp(+localStorage.getItem('olimpiadi_grafica') || 0, 0, 3) | 0; } catch (e) { /* resta alta */ } },
+  timbri: true,            // gli avversari fatti di timbri a grafica ridotta (athlete.js): si spegne solo per fare confronti
+  NOMI: ['ALTA', 'MEDIA', 'BASSA', 'MINIMA', 'ESSENZIALE'],
+  RIGHE: [0, 720, 540, 360, 360],
+  // Gli avversari in trasparenza (le altre corsie dei 100 metri, gli altri nuotatori...) sono la parte
+  // cara di una corsa: sul televisore ogni atleta in piu' costa 3 ms, e sono sette. Le gare li disegnano
+  // passando di qui: a MINIMA sono fatti di timbri (athlete.js, lo dice `ombre`), a ESSENZIALE non si
+  // disegnano affatto, e restano la barra della corsa e il tabellone a dire chi e' davanti.
+  ombre: false,
+  avversari(ctx, alpha, disegna) {
+    if (this.liv >= 4) return;
+    ctx.save(); ctx.globalAlpha = alpha; this.ombre = true;
+    try { disegna(); } finally { this.ombre = false; ctx.restore(); }
+  },
+  carica() { try { this.liv = clamp(+localStorage.getItem('olimpiadi_grafica') || 0, 0, this.NOMI.length - 1) | 0; } catch (e) { /* resta alta */ } },
   metti(l) {
-    this.liv = clamp(l | 0, 0, 3);
+    this.liv = clamp(l | 0, 0, this.NOMI.length - 1);
     try { localStorage.setItem('olimpiadi_grafica', this.liv); } catch (e) { /* vale per questa volta */ }
     if (G.canvas) G.resize();
   },

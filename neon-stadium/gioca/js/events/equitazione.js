@@ -248,14 +248,14 @@ class Equitazione extends EventBase {
       txt(ctx, lab, x, h * 0.44, Math.max(11, h * 0.04), '#ffeb3b');
     }
     // gli altri binomi in trasparenza
-    ctx.save(); ctx.globalAlpha = 0.28;
-    for (let q = 0; q < this.n; q++) {
-      if (q === p) continue;
-      const o = this.S[q], x = sx(o.x);
-      if (x < -120 || x > w + 120) continue;
-      this.drawHorse(ctx, x, gy - 0.15 * ppm, ppm * 0.85, o, Object.assign({}, PCOL[q], { horse: q % 2 ? '#5d4037' : '#a1887f' }), o.jump);
-    }
-    ctx.restore();
+    Grafica.avversari(ctx, 0.28, () => {
+      for (let q = 0; q < this.n; q++) {
+        if (q === p) continue;
+        const o = this.S[q], x = sx(o.x);
+        if (x < -120 || x > w + 120) continue;
+        this.drawHorse(ctx, x, gy - 0.15 * ppm, ppm * 0.85, o, Object.assign({}, PCOL[q], { horse: q % 2 ? '#5d4037' : '#a1887f' }), o.jump);
+      }
+    });
     shadow(ctx, sx(s.x), gy, ppm, 2.2);
     this.drawHorse(ctx, sx(s.x), gy, ppm, s, Object.assign({}, PCOL[p], { horse: '#7b4a26' }), s.jump);
     // HUD

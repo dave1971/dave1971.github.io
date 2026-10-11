@@ -181,18 +181,18 @@ class Staffetta extends EventBase {
       txt(ctx, 'ARRIVO', fx, yl - 1.5 * ppm, Math.max(10, h * 0.05), '#ffeb3b');
     }
     // le altre squadre, dietro: il testimone e chi lo porta
-    ctx.save(); ctx.globalAlpha = 0.4;
-    let k2 = 0;
-    for (let q = 0; q < this.n; q++) {
-      if (q === p || this.S[q].fin === -1) continue;
-      k2++;
-      const o = this.S[q], gp = ppm * (0.92 - 0.03 * (k2 % 4)), gg = L.gy - (k2 % 4 + 1) * 0.13 * ppm;
-      const x = sx(o.got ? o.r.x : o.inX);
-      if (x < -60 || x > w + 60) continue;
-      const [pose, hy] = o.got ? this.anchorPose(o, gg, gp) : this.incomingPose(o, gg, gp);
-      drawAthlete(ctx, x, hy, gp, pose, PCOL[q]);
-    }
-    ctx.restore();
+    Grafica.avversari(ctx, 0.4, () => {
+      let k2 = 0;
+      for (let q = 0; q < this.n; q++) {
+        if (q === p || this.S[q].fin === -1) continue;
+        k2++;
+        const o = this.S[q], gp = ppm * (0.92 - 0.03 * (k2 % 4)), gg = L.gy - (k2 % 4 + 1) * 0.13 * ppm;
+        const x = sx(o.got ? o.r.x : o.inX);
+        if (x < -60 || x > w + 60) continue;
+        const [pose, hy] = o.got ? this.anchorPose(o, gg, gp) : this.incomingPose(o, gg, gp);
+        drawAthlete(ctx, x, hy, gp, pose, PCOL[q]);
+      }
+    });
     // il compagno e il nostro frazionista
     const team = PCOL[p];
     const [ip, ih] = this.incomingPose(s, L.gy, ppm);

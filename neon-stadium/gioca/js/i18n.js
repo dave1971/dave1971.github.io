@@ -22,7 +22,7 @@ const EN = {
   // --- title, menus ---
   '1 GIOCATORE': '1 PLAYER', '2 GIOCATORI': '2 PLAYERS',
   'CARRIERA': 'CAREER', 'RECORD': 'RECORDS', 'AUDIO ON': 'AUDIO ON', 'AUDIO OFF': 'AUDIO OFF', 'MUSICA OFF': 'MUSIC OFF',
-  'GRAFICA ALTA': 'GRAPHICS HIGH', 'GRAFICA MEDIA': 'GRAPHICS MED', 'GRAFICA BASSA': 'GRAPHICS LOW', 'GRAFICA MINIMA': 'GRAPHICS MIN',
+  'GRAFICA ALTA': 'GRAPHICS HIGH', 'GRAFICA MEDIA': 'GRAPHICS MED', 'GRAFICA BASSA': 'GRAPHICS LOW', 'GRAFICA MINIMA': 'GRAPHICS MIN', 'GRAFICA ESSENZIALE': 'GRAPHICS BARE',
   'TASTI': 'KEYS', 'PREDEFINITI': 'DEFAULTS', 'PREMI UN TASTO': 'PRESS A KEY',
   'tocca un\'azione e premi il tasto che vuoi usare': 'tap an action and press the key you want to use',
   'Esc e Backspace restano riservati a indietro e pausa.': 'Esc and Backspace stay reserved for back and pause.',

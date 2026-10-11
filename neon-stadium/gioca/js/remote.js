@@ -78,7 +78,7 @@ const Remote = {
     if (!src || !src.width) { this.imgErr = 'canvas vuoto'; return ''; }
     // a qualita' ridotta anche la foto per il pad e' piu' piccola: leggerla dal canvas e comprimerla e' un
     // fermo del gioco a ogni cambio di schermata, e su un televisore si sente
-    const w = [720, 600, 480, 400][Grafica.liv] || 720, h = Math.max(1, Math.round(w * src.height / src.width));
+    const w = [720, 600, 480, 400, 400][Grafica.liv] || 720, h = Math.max(1, Math.round(w * src.height / src.width));
     const b = this.buf || (this.buf = document.createElement('canvas'));
     if (b.width !== w || b.height !== h) { b.width = w; b.height = h; }
     b.getContext('2d').drawImage(src, 0, 0, w, h);

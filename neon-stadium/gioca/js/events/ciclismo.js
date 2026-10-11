@@ -176,14 +176,14 @@ class Ciclismo extends EventBase {
       txt(ctx, (this.LEN - d) + ' m', sx(d), base + (h - base) / 2, Math.max(10, h * 0.04), '#01579b', 'center', { italic: false, outline: false });
     }
     // gli altri, in trasparenza, alla loro altezza sulla curva
-    ctx.save(); ctx.globalAlpha = 0.33;
-    for (let q = 0; q < this.n; q++) {
-      if (q === p) continue;
-      const o = this.S[q], x = sx(o.s);
-      if (x < -80 || x > w + 80) continue;
-      this.drawBike(ctx, x, yl(o.y * 0.85 + 0.04) + 0.05 * ppm, ppm * 0.9, o, PCOL[q]);
-    }
-    ctx.restore();
+    Grafica.avversari(ctx, 0.33, () => {
+      for (let q = 0; q < this.n; q++) {
+        if (q === p) continue;
+        const o = this.S[q], x = sx(o.s);
+        if (x < -80 || x > w + 80) continue;
+        this.drawBike(ctx, x, yl(o.y * 0.85 + 0.04) + 0.05 * ppm, ppm * 0.9, o, PCOL[q]);
+      }
+    });
     this.drawBike(ctx, sx(s.s), yl(s.y * 0.85 + 0.04) + 0.05 * ppm, ppm, s, PCOL[p]);
     // HUD
     const t = s.fin != null && s.fin >= 0 ? s.fin : s.clock;

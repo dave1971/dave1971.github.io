@@ -64,18 +64,17 @@ class Sprint100 extends EventBase {
   drawGhosts(ctx, p, camX, ppm, ax, gy, w) {
     const others = [];
     for (let q = 0; q < this.n; q++) if (q !== p) others.push(q);
-    ctx.save();
-    ctx.globalAlpha = 0.45;
-    for (let k = others.length; k >= 1; k--) {
-      const q = others[k - 1];
-      if (this.st.dq[q]) continue;
-      const x = ax + (this.r[q].x - camX) * ppm;
-      if (x < -60 || x > w + 60) continue;
-      const gp = ppm * (0.92 - 0.03 * k), gg = gy - k * 0.13 * ppm;
-      const [pose, hipY, dx] = this.poseFor(q, gg, gp);
-      drawAthlete(ctx, x + (dx || 0) * gp, hipY, gp, pose, PCOL[q]);
-    }
-    ctx.restore();
+    Grafica.avversari(ctx, 0.45, () => {
+      for (let k = others.length; k >= 1; k--) {
+        const q = others[k - 1];
+        if (this.st.dq[q]) continue;
+        const x = ax + (this.r[q].x - camX) * ppm;
+        if (x < -60 || x > w + 60) continue;
+        const gp = ppm * (0.92 - 0.03 * k), gg = gy - k * 0.13 * ppm;
+        const [pose, hipY, dx] = this.poseFor(q, gg, gp);
+        drawAthlete(ctx, x + (dx || 0) * gp, hipY, gp, pose, PCOL[q]);
+      }
+    });
   }
   drawLines(ctx, w, h, camX, ppm, ax) {
     const sx = x => ax + (x - camX) * ppm;

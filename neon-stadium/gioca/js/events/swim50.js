@@ -131,17 +131,16 @@ class Swim50 extends EventBase {
     ctx.fillStyle = PCOL[p].ui; ctx.fillRect(sx(-0.2), wy - 0.75 * ppm, 0.55 * ppm, 0.12 * ppm);
     ctx.fillStyle = '#90a4ae'; ctx.fillRect(sx(-0.2), wy - 0.63 * ppm, 0.12 * ppm, 0.63 * ppm);
     // rivals as ghosts (once in the water), then our swimmer
-    ctx.save();
-    ctx.globalAlpha = 0.35;
-    for (let q = 0, k = 0; q < this.n; q++) {
-      if (q === p || this.st.dq[q] || this.S[q].ph === 'block') continue;
-      k++;
-      const gx = sx(this.S[q].x);
-      if (gx < -80 || gx > w + 80) continue;
-      const [gp, gh] = this.swimmerPose(q, wy, ppm * 0.9);
-      drawAthlete(ctx, gx, gh - (k % 3) * 0.06 * ppm, ppm * 0.9, Object.assign(gp, NUOTO), PCOL[q]);
-    }
-    ctx.restore();
+    Grafica.avversari(ctx, 0.35, () => {
+      for (let q = 0, k = 0; q < this.n; q++) {
+        if (q === p || this.st.dq[q] || this.S[q].ph === 'block') continue;
+        k++;
+        const gx = sx(this.S[q].x);
+        if (gx < -80 || gx > w + 80) continue;
+        const [gp, gh] = this.swimmerPose(q, wy, ppm * 0.9);
+        drawAthlete(ctx, gx, gh - (k % 3) * 0.06 * ppm, ppm * 0.9, Object.assign(gp, NUOTO), PCOL[q]);
+      }
+    });
     const [pose, hy] = this.swimmerPose(p, wy, ppm);
     drawAthlete(ctx, sx(s.x), hy, ppm, Object.assign(pose, NUOTO), PCOL[p]);
     // water overlay so the body looks submerged

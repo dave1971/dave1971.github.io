@@ -35,6 +35,119 @@ function sessoDalNome(nome) {
   return (h >>> 4) % 2 ? 'f' : 'm';
 }
 
+// ---------- gli avversari a grafica ridotta: figure fatte di timbri ----------
+// Sul televisore di Davide (11/10/2026) i 100 metri facevano 15 fotogrammi al secondo a grafica ALTA e 26
+// alla MINIMA, col gioco che ci metteva 10 ms a dare gli ordini di disegno: il resto del tempo se ne andava
+// fuori dal gioco, e non per i pixel (un atleta solo: 60 fotogrammi; ogni atleta in piu': 3 ms, a
+// qualunque misura). Ogni atleta sono una cinquantina di sagome curve, e li' ogni sagoma si paga cara.
+// Un'immagine copiata invece non costa quasi niente, e tante copie dalla stessa immagine partono insieme.
+// Percio' alla grafica MINIMA gli avversari (le figure in trasparenza) sono fatti solo di copie: tondi e
+// rettangoli di colore presi da un unico foglio (`Timbri`), una ventina per atleta. L'atleta del
+// giocatore resta disegnato per intero.
+const Timbri = {
+  LATO: 512, c: null, x: null, mappa: new Map(), cx: 0, cy: 0, riga: 0,
+  azzera() {
+    // Il foglio deve stare in memoria e non sulla scheda grafica (willReadFrequently): cosi' va bene sia
+    // dove il gioco e' disegnato dalla scheda (il foglio ci sale una volta e resta li') sia dove e'
+    // disegnato dal processore. Al contrario, un foglio sulla scheda copiato su un gioco disegnato dal
+    // processore viene riletto dalla scheda a ogni copia: nelle prove, tre secondi a fotogramma.
+    if (!this.c) { this.c = document.createElement('canvas'); this.c.width = this.c.height = this.LATO; this.x = this.c.getContext('2d', { willReadFrequently: true }); }
+    this.x.clearRect(0, 0, this.LATO, this.LATO);
+    this.mappa.clear(); this.cx = this.cy = this.riga = 0;
+  },
+  // un posto libero di w per h, con un pixel vuoto intorno; a foglio pieno si ricomincia da capo
+  posto(w, h) {
+    if (!this.c) this.azzera();
+    if (this.cx + w + 2 > this.LATO) { this.cx = 0; this.cy += this.riga + 2; this.riga = 0; }
+    if (this.cy + h + 2 > this.LATO) this.azzera();
+    const r = { x: this.cx + 1, y: this.cy + 1, w, h };
+    this.cx += w + 2; this.riga = Math.max(this.riga, h);
+    return r;
+  },
+  // un quadratino di colore pieno (si copia la parte di mezzo, stirata quanto serve)
+  tinta(col) {
+    let r = this.mappa.get(col);
+    if (!r) { r = this.posto(4, 4); this.x.fillStyle = col; this.x.fillRect(r.x, r.y, 4, 4); this.mappa.set(col, r); }
+    return r;
+  },
+  // un tondo di colore, largo d pixel dello schermo
+  tondo(col, d) {
+    const k = col + '|' + d;
+    let r = this.mappa.get(k);
+    if (!r) {
+      r = this.posto(d, d);
+      this.x.fillStyle = col; this.x.beginPath(); this.x.arc(r.x + d / 2, r.y + d / 2, d / 2, 0, Math.PI * 2); this.x.fill();
+      this.mappa.set(k, r);
+    }
+    return r;
+  },
+  // la testa di profilo, che guarda a destra: la pelle, i capelli (o la cuffia) sopra e dietro, l'occhio
+  testa(pelle, capelli, d) {
+    const k = 'T|' + pelle + '|' + capelli + '|' + d;
+    let r = this.mappa.get(k);
+    if (!r) {
+      r = this.posto(d, d);
+      const x = this.x, cx = r.x + d / 2, cy = r.y + d / 2, R = d / 2;
+      x.fillStyle = pelle; x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.fill();
+      x.fillStyle = capelli; x.beginPath(); x.arc(cx, cy, R, -1.15, 2.7, true); x.closePath(); x.fill();
+      if (d >= 8) { x.fillStyle = '#1b1b1b'; x.fillRect(cx + R * 0.5, cy - R * 0.3, Math.max(1, R * 0.2), Math.max(1, R * 0.2)); }
+      this.mappa.set(k, r);
+    }
+    return r;
+  },
+};
+/**
+ * Un atleta fatto di timbri: gli stessi punti dello scheletro (J), ma ogni pezzo e' un rettangolo di
+ * colore con un tondo alle giunture. `q` porta colori e larghezze, gia' decisi da drawAthlete.
+ */
+function figuraLieve(ctx, J, ppm, facing, hang, q) {
+  // quanti pixel dello schermo vale un'unita' del disegno: i timbri si fanno a quella misura
+  let scala = 1;
+  try { const m = ctx.getTransform(); scala = Math.hypot(m.a, m.b) || 1; } catch (e) { scala = (G.view && G.view.s) || 1; }
+  const px = v => Math.max(2, Math.ceil(v * scala));
+  const fa = Math.atan2(J.head[1] - J.sh[1], J.head[0] - J.sh[0]);
+  const fw = [Math.cos(fa + facing * Math.PI / 2), Math.sin(fa + facing * Math.PI / 2)];   // il davanti
+  const punta = p => [p[0] + fw[0] * 0.13 * ppm * q.g, p[1] + fw[1] * 0.13 * ppm * q.g * 0.4 + 0.012 * ppm];
+  const orlo = k => [J.hip[0] + (k[0] - J.hip[0]) * q.orlo, J.hip[1] + (k[1] - J.hip[1]) * q.orlo];
+  const wa = 0.085 * q.kb * q.g * ppm, wt = 0.15 * q.kg * q.g * ppm, ws = 0.095 * q.kg * q.g * ppm;
+  const wb = 0.2 * q.g * ppm, wp = 0.085 * q.g * ppm, R2 = 2.1 * BODY.headR * ppm;
+  // prima tutti i timbri che servono (un timbro nuovo cambia il foglio: meglio prima di cominciare a copiare)
+  const pezzi = [];   // [0 = rettangolo, a, b, largo, colore] oppure [1 = tondo, p, largo, colore]
+  const R = (a, b, w, col) => pezzi.push([0, a, b, w, Timbri.tinta(col)]);
+  const O = (p, w, col) => pezzi.push([1, p, w, Timbri.tondo(col, px(w))]);
+  const braccio = (e, h, col) => { R(J.sh, e, wa, col); R(e, h, wa * 0.85, col); O(e, wa, col); O(h, wa * 0.9, col); };
+  const gamba = (k, f, pelle, braga, scarpa) => {
+    R(J.hip, k, wt, pelle); R(k, f, ws, pelle); O(k, wt * 0.82, pelle);
+    R(J.hip, orlo(k), wt * 1.12, braga);
+    const t = punta(f); R(f, t, wp, scarpa); O(f, wp * 1.15, scarpa); O(t, wp, scarpa);
+  };
+  braccio(J.elbowF, J.handF, q.armF);
+  gamba(J.kneeF, J.footF, q.legF, q.bragaF, q.scarpaF);
+  const vita = [J.hip[0] + (J.sh[0] - J.hip[0]) * 0.28, J.hip[1] + (J.sh[1] - J.hip[1]) * 0.28];
+  R(vita, J.sh, wb, q.maglia); O(J.sh, wb, q.maglia);
+  R(J.hip, vita, wb, q.braga); O(J.hip, wb, q.braga);
+  const iTesta = pezzi.length;
+  const testa = Timbri.testa(q.pelle, q.capelli, px(R2));
+  gamba(J.kneeN, J.footN, q.legN, q.braga, q.scarpaN);
+  braccio(J.elbowN, J.handN, q.armN);
+  // e poi si copia, nell'ordine: dal braccio lontano a quello vicino
+  const foglio = Timbri.c;
+  for (let i = 0; i < pezzi.length; i++) {
+    if (i === iTesta) {
+      ctx.save(); ctx.translate(J.head[0], J.head[1]); ctx.rotate(hang + Math.PI / 2); ctx.scale(facing, 1);
+      ctx.drawImage(foglio, testa.x, testa.y, testa.w, testa.h, -R2 / 2, -R2 / 2, R2, R2);
+      ctx.restore();
+    }
+    const z = pezzi[i];
+    if (z[0]) { const p = z[1], w = z[2], t = z[3]; ctx.drawImage(foglio, t.x, t.y, t.w, t.h, p[0] - w / 2, p[1] - w / 2, w, w); continue; }
+    const a = z[1], b = z[2], w = z[3], t = z[4], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy);
+    if (L < 0.01) continue;
+    ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(Math.atan2(dy, dx));
+    ctx.drawImage(foglio, t.x + 1, t.y + 1, 2, 2, 0, -w / 2, L, w);
+    ctx.restore();
+  }
+}
+
 /**
  * L'atleta. Lo scheletro e' quello di sempre (anca nell'origine, angoli della posa, le giunture
  * restituite in J): cambia solo come lo si veste di carne. Ogni arto e' un pezzo affusolato col suo
@@ -102,6 +215,19 @@ function drawAthlete(ctx, x, y, ppm, pose, col, facing) {
   const armN = col.armC || col.skin, legN = col.legC || col.skin;
   const armF = col.armC ? shade(col.armC, 0.72) : skinD, legF = col.legC ? shade(col.legC, 0.72) : skinD;
   const mid = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
+  // alla grafica minima gli avversari in trasparenza sono fatti di timbri: vedi figuraLieve
+  if (Grafica.ombre && Grafica.liv >= 3 && Grafica.timbri) {
+    const scalzo = pose.nudi && !V;
+    figuraLieve(ctx, J, ppm, facing, hang, {
+      g, kb, kg, pelle: col.skin, capelli: pose.cuffia && !V ? col.shirt : col.hair,
+      armN, armF, legN, legF, maglia: top && !acqua ? col.shirt : maglia, braga: mutanda, bragaF: shade(mutanda, 0.7),
+      scarpaN: scalzo ? legN : (col.boot || '#f5f5f5'), scarpaF: scalzo ? legF : (col.boot ? shade(col.boot, 0.75) : '#9e9e9e'),
+      orlo: acqua ? (donna ? 0.12 : 0.34) : top ? 0.16 : body ? (donna ? 0.14 : 0.5) : 0.56,
+    });
+    ctx.restore();
+    return J;
+  }
 
   // Ogni pezzo si disegna due volte: prima il bordo (un tratto scuro tutto intorno), poi il colore.
   // Facendo tutti i bordi di un arto prima dei colori, fra coscia e polpaccio non restano righe.
