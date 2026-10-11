@@ -537,10 +537,26 @@ G.frame = function (ts) {
   try { G.passo(ts); } catch (e) { G.guasto(e); }
   requestAnimationFrame(G.frame);
 };
-G.fps = 0;
+// Il contatore: i fotogrammi al secondo, e dove va il tempo di ognuno. `calcolo` e' la gara che avanza
+// (atleti della CPU compresi), `disegno` e' il tempo passato a dare gli ordini di disegno; quello che
+// manca per arrivare alla durata del fotogramma e' il riempimento dei pixel, che il gioco non vede.
+// Sono medie che si muovono piano. Si legge sotto il pulsante GRAFICA e, in gara, in fondo allo schermo:
+// in gara compare a grafica ridotta, oppure da solo se il dispositivo non regge (G.lento), cosi' chi
+// gioca su un telefono che va bene non lo vede mai.
+G.fps = 0; G.durata = 0; G.msCalcolo = 0; G.msDisegno = 0; G.lento = false;
+G.contatore = function () {
+  if (!G.fps) return '';
+  const en = typeof LANG !== 'undefined' && LANG === 'en';
+  return Math.round(G.fps) + ' fps  \u2022  ' + (en ? 'logic ' : 'calcolo ') + G.msCalcolo.toFixed(0) + (en ? '  draw ' : '  disegno ') + G.msDisegno.toFixed(0) + ' ms';
+};
 G.passo = function (ts) {
   const vero = (ts - G.last) / 1000;
-  if (vero > 0 && vero < 1) G.fps = G.fps ? lerp(G.fps, 1 / vero, 0.05) : 1 / vero;   // media che si muove piano
+  if (vero > 0 && vero < 1) {
+    G.durata = G.durata ? lerp(G.durata, vero, 0.05) : vero;      // la media delle durate, non delle velocita'
+    G.fps = 1 / G.durata;
+    if (G.t > 5 && G.fps < 50) G.lento = true;                    // per questa sessione il contatore resta in vista
+  }
+  const t0 = performance.now();
   const dt = Math.min(0.1, vero);
   G.last = ts;
   G.acc += dt;
@@ -551,6 +567,7 @@ G.passo = function (ts) {
     G.acc -= STEP; n++;
   }
   if (n >= 12) G.acc = 0;
+  const t1 = performance.now();
   const ctx = G.ctx;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#000';
@@ -561,4 +578,6 @@ G.passo = function (ts) {
   ctx.beginPath(); ctx.rect(0, 0, G.W, G.H); ctx.clip();
   if (G.scene && G.scene.draw) G.scene.draw(ctx);
   ctx.restore();
+  const t2 = performance.now();
+  G.msCalcolo = lerp(G.msCalcolo, t1 - t0, 0.05); G.msDisegno = lerp(G.msDisegno, t2 - t1, 0.05);
 };

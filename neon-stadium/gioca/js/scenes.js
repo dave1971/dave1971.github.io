@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.9.0.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.9.1.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -415,7 +415,7 @@ class TitleScene extends Screen {
       drawBtn(ctx, b);
       if (b.flag) drawFlag(ctx, b.flag, b.x + b.w / 2 - 21, b.y + 9, 42, 26);
       if (b.star) drawStar(ctx, b.x + b.w - 17, b.y + 15, 12);
-      if (b.grafica && G.fps) txt(ctx, Math.round(G.fps) + ' fps', b.x + b.w / 2, b.y + b.h + 11, 11, 'rgba(255,255,255,0.6)', 'center', { italic: false, outline: false, crudo: true });
+      if (b.grafica && G.fps) txt(ctx, G.contatore(), b.x + b.w, b.y + b.h + 11, 11, 'rgba(255,255,255,0.6)', 'right', { italic: false, outline: false, crudo: true });
     }
     // The address has to be readable without touching anything: on a television the only pointer may be
     // the tablet we are trying to set up, so it cannot live behind a button.
@@ -838,6 +838,9 @@ class EventScene {
       txt(ctx, PCOL[0].short, W * 0.185, cy, 16, PCOL[0].ui);
       txt(ctx, PCOL[1].short, W * 0.815, cy, 16, PCOL[1].ui);
     }
+    // il contatore dei fotogrammi, in fondo: e' in gara, con otto atleti in vista, che si vede se il
+    // dispositivo regge (Davide lo legge sul televisore per dire quale gradino di grafica basta)
+    if (Grafica.liv > 0 || G.lento) txt(ctx, G.contatore(), W / 2, G.H - 10, 14, 'rgba(255,255,255,0.8)', 'center', { italic: false, outline: false, crudo: true });
   }
 }
 
