@@ -23,12 +23,13 @@ class TripleJump extends LongJump {
   }
   bAir(p, s) {
     if (s.ph === 'air' && s.seg < 2) s.buf = s.at;
-    else if (s.ph === 'contact') this.nextSeg(p, s, 1 - s.ct / 0.2);
+    // il piede e' a terra da piu' di due decimi: e' tardi (la caduta puo' essere ancora in sospeso: rinvia)
+    else if (s.ph === 'contact') { if (s.ct > 0.2) this.fall(p, s); else this.nextSeg(p, s, 1 - s.ct / 0.2); }
   }
   airStep(p, s, dt) {
     if (s.ph === 'contact') {
       s.ct += dt; s.x += s.vx * dt;
-      if (s.ct > 0.2) this.fall(p, s);
+      if (s.ct > 0.2 && !this.rinvia(p)) this.fall(p, s);
       return;
     }
     s.at += dt; s.x += s.vx * dt; s.vy -= 10 * dt; s.y += s.vy * dt;

@@ -79,11 +79,15 @@ class BarEvent extends EventBase {
       if (s.knock >= 0) s.knock += dt;
       if (s.ph === 'run') {
         s.r.update(dt); s.x = s.r.x;
-        if (s.x > this.lateX) this.refuse(p, s);
+        if (s.x > this.lateX && !this.rinvia(p)) this.refuse(p, s);
       } else if (s.ph === 'flight') {
         s.ft += dt;
-        if (s.ok == null && s.ft >= this.center + 0.3) this.decide(p, s);
-        if (s.ft >= (this.landTime ? this.landTime(s) : this.T)) this.land(p, s);
+        // senza il secondo B il salto si giudica com'e': ma quel B puo' essere ancora in viaggio (rinvia)
+        const sospeso = s.ok == null && s.press == null && s.ft >= this.center + 0.3 && this.rinvia(p);
+        if (!sospeso) {
+          if (s.ok == null && s.ft >= this.center + 0.3) this.decide(p, s);
+          if (s.ft >= (this.landTime ? this.landTime(s) : this.T)) this.land(p, s);
+        }
       } else if (s.ph === 'done') {
         if (s.refused) { s.r.e = 0; s.r.v *= Math.max(0, 1 - 2.5 * dt); s.r.update(dt, false); s.x = s.r.x; }
         if (s.t > 2) this.next(p, s);

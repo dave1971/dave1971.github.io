@@ -108,7 +108,7 @@ class Vault extends EventBase {
       switch (s.ph) {
         case 'run':
           s.r.update(dt); s.x = s.r.x;
-          if (s.r.x > 0.85) {
+          if (s.r.x > 0.85 && !this.rinvia(p)) {
             s.ph = 'done'; s.t = 0; s.foul = true; s.why = 'non hai staccato sulla pedana';
             this.say(p, 'NULLO!', '#ff5555', 1.9, s.why); Snd.fail();
           }

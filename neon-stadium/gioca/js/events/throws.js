@@ -99,7 +99,7 @@ class SpinThrow extends EventBase {
         s.w += (Math.min(wmax, s.e * passoUnDito(wmax, this.decay)) - s.w) * Math.min(1, this.resp * dt);
         s.ang += s.w * dt;
         s.bal -= dt * this.drain * (0.12 + Math.pow(clamp(s.w / wmax, 0, 1), 2.2));
-        if (s.bal <= 0) { s.bal = 0; s.why = 'uscito dal cerchio'; this.foul(p, s); }
+        if (s.bal <= 0 && !this.rinvia(p)) { s.bal = 0; s.why = 'uscito dal cerchio'; this.foul(p, s); }
       } else if (s.ph === 'lift') {
         // L'equilibrio **si ferma qui**: la barra misura quanto puoi restare a girare dentro al
         // cerchio, e premendo B hai smesso di girare. Il lancio ormai e' tuo: quello che rischi

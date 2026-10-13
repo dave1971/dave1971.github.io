@@ -59,7 +59,7 @@ class LongJump extends EventBase {
       switch (s.ph) {
         case 'run':
           s.r.update(dt); s.x = s.r.x;
-          if (s.r.x > 0.15) this.foulRun(p, s);
+          if (s.r.x > 0.15 && !this.rinvia(p)) this.foulRun(p, s);
           break;
         case 'push':
           // take-off: the angle climbs while B is held, the athlete keeps rolling over the board

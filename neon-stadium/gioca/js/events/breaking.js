@@ -100,6 +100,7 @@ class Breaking extends EventBase {
       for (let i = 0; i < this.notes.length; i++) {
         const q = this.notes[i];
         if (q.t > this.clock - 0.16) break;
+        if (s.j[i] == null && this.rinvia(p)) continue;      // la nota puo' essere ancora in viaggio
         if (s.j[i] == null) { s.j[i] = 0; s.combo = 0; s.wobble = 0.35; this.pop(s, 'MANCATO', '#ff5252'); }
       }
       // le note lunghe tenute fino in fondo si chiudono da sole

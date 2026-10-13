@@ -33,6 +33,8 @@ class Hurdles110 extends Sprint100 {
     r.update(dt, !j.air);
     // hurdle collision (lead foot ~0.25 m ahead of the hip)
     if (j.next < 10 && r.x + 0.25 >= this.hx[j.next]) {
+      // sotto i trenta centimetri l'ostacolo viene giu': ma il salto puo' essere ancora in viaggio (rinvia)
+      if (j.y < 0.3 && this.rinvia(p)) return;
       if (j.y < 0.3) {
         j.down[j.next] = 1; j.hits++;
         r.v *= 0.55; r.e *= 0.5;

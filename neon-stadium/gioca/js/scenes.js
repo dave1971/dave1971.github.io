@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.9.8.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.9.9.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -655,6 +655,8 @@ class EventScene {
     // sono le foto della gara all'inizio di ognuno degli ultimi, `diario` i tasti con il passo a cui valgono.
     this.memoria = Ritardo.attivo();
     this.passi = 0; this.storia = []; this.diario = [];
+    this.capo = 0; this.attese = [null, null]; this.sorg = [Ritardo.sorgente, Ritardo.sorgente]; this.suoni = [];
+    this.ev.scena = this; CONDIVISI.add(this);      // la gara chiede a lei se un errore puo' gia' essere detto (rinvia)
     for (let p = 0; p < this.n; p++) if (PCOL[p]) CONDIVISI.add(PCOL[p]);
     this.fianco = this.humans > 1 && !!Game.affiancate;
     if (this.fianco) { this.wMax = 1920; if (this.tab) this.tab.centro = true; }
@@ -708,22 +710,56 @@ class EventScene {
    */
   ingresso(p, b, giu) {
     const fa = (q, c, d) => { if (d) this.ev.press(q, c); else this.ev.release(q, c); };
-    const n = this.memoria ? Math.min(Math.round(Ritardo.ora() / STEP), this.storia.length) : 0;
+    this.sorg[p] = Ritardo.sorgente;
+    const n = Math.min(this.passiDi(p), this.storia.length);
     if (this.diario.length > 64) this.diario = this.diario.filter(x => x.k >= this.passi - STORIA_MAX);
     if (n <= 0) { this.diario.push({ k: this.passi, p, b, giu }); fa(p, b, giu); return; }
-    const adesso = this.passi, k0 = adesso - n;
-    this.torna(this.storia[this.storia.length - n]);
-    this.storia.length -= n;                       // quelle da qui in poi si rifanno, col tasto dentro
+    const k0 = this.passi - n;
     let i = this.diario.length;                    // nel diario va dopo i tasti dello stesso passo
     while (i > 0 && this.diario[i - 1].k > k0) i--;
     this.diario.splice(i, 0, { k: k0, p, b, giu });
-    this.passi = k0;
-    Ritardo.inCorso = n * STEP;
-    try { fa(p, b, giu); } finally { Ritardo.inCorso = 0; }
+    this.rifai(k0, () => { Ritardo.inCorso = n * STEP; try { fa(p, b, giu); } finally { Ritardo.inCorso = 0; } });
+  }
+  /**
+   * Torna alla foto del passo k0 e rifa' i passi fino ad adesso. `primo` e' quello che va messo in quel
+   * punto (il tasto arrivato in ritardo); gli altri tasti del diario tornano ognuno al suo passo. I passi
+   * rifatti sono muti.
+   */
+  rifai(k0, primo) {
+    const adesso = this.passi, n = adesso - k0, fa = (q, c, d) => { if (d) this.ev.press(q, c); else this.ev.release(q, c); };
+    this.torna(this.storia[this.storia.length - n]);
+    this.storia.length -= n;                       // quelle da qui in poi si rifanno
+    for (let q = 0; q < this.attese.length; q++) if (this.attese[q] != null && this.attese[q] >= k0) this.attese[q] = null;
+    this.suoni = this.suoni.filter(x => x.k < k0);         // i suoni di quei passi non erano ancora partiti: si rifanno
+    this.passi = k0; this.capo = adesso - 1;
+    if (primo) primo();
     while (this.passi < adesso) {
       if (this.passi > k0) { Snd.zitto = true; for (const x of this.diario) if (x.k === this.passi) fa(x.p, x.b, x.giu); Snd.zitto = false; }
       this.step(STEP, false, true);
     }
+  }
+  // quanti passi di ritardo ha il giocatore p, secondo lo strumento con cui sta premendo
+  passiDi(p) { return this.memoria && p < this.humans ? Math.min(STORIA_MAX - 2, Math.round((Ritardo.ms[this.sorg[p]] || 0) / 1000 / STEP)) : 0; }
+  grazia(p) { return this.passiDi(p) * STEP; }
+  /**
+   * "Non ha premuto in tempo": si puo' gia' dire? (EventBase.rinvia)
+   *
+   * Quando una gara sta per punire un tasto che non e' arrivato (la caduta nel triplo, l'asticella che
+   * viene giu', la linea passata di corsa), col ritardo dei tasti quel tasto puo' essere ancora in
+   * viaggio: il giocatore l'ha premuto in tempo, ma la gara lo sapra' fra un attimo. Punire subito e poi
+   * ripensarci si vede e si sente (Davide, 13/10/2026: "vedo l'atleta cadere quando premo B", "sento
+   * l'asticella cadere prima di premere, e il salto e' valido"). Percio' finche' il tasto puo' ancora
+   * arrivare la gara resta in sospeso, com'era un attimo prima; se il tempo passa e il tasto non c'e', si
+   * torna a quel passo e la punizione parte da li', esatta, come se non si fosse mai aspettato.
+   * `capo` e' l'ultimo passo fatto davvero; `attese` il primo passo in sospeso di ogni giocatore.
+   */
+  rinvia(p) {
+    const n = this.passiDi(p);
+    if (n <= 0) return false;
+    const k = this.passi - 1;                      // il passo che si sta facendo
+    if (this.capo - k >= n) return false;          // da allora e' passato tutto il ritardo: il tasto non c'e'
+    if (this.attese[p] == null || k < this.attese[p]) this.attese[p] = k;
+    return true;
   }
   // la gara (e gli atleti della CPU, che puntano ai suoi pezzi) com'era in quella foto, e il caso con lei
   foto() { return { k: this.passi, caso: Caso.s, g: copiaFonda({ ev: this.ev, cpus: this.cpus }, new Map()) }; }
@@ -759,7 +795,8 @@ class EventScene {
     for (let p = 0; p < this.humans; p++) for (let b = 0; b < 3; b++) if (this.held[p][b] > 0) { this.held[p][b] = 0; this.ev.release(p, b); }
     this.ptr = {};
     this.paused = true;
-    this.storia = []; this.diario = [];      // dopo una pausa non c'e' un "poco fa" a cui tornare
+    this.storia = []; this.diario = []; this.attese = [null, null];      // dopo una pausa non c'e' un "poco fa" a cui tornare
+    for (const x of this.suoni) { try { x.f(); } catch (e) { /* niente */ } } this.suoni = [];
     const cx = G.W / 2;
     // Chi e' ancora in gara puo' abbandonarla tenendosi quello che ha fatto (EventBase.ritira): sotto
     // al pulsante c'e' scritto cosa gli resta. In due ognuno ha il suo, col nome.
@@ -795,14 +832,35 @@ class EventScene {
   // `rifatto`: e' un passo gia' fatto una volta, che si rifa' dopo aver rimesso un tasto al suo posto (ingresso)
   step(dt, attesa, rifatto) {
     if (this.memoria && !attesa) { this.storia.push(this.foto()); if (this.storia.length > STORIA_MAX) this.storia.shift(); }
-    this.passi++;
+    if (!rifatto) this.capo = this.passi;
+    const k = this.passi++;
     const ev = this.ev, m = [];
     for (let p = 0; p <= ev.n; p++) m.push(attesa || rifatto || (p >= this.humans && p < ev.n));
+    // Col ritardo dei tasti i suoni dell'atleta di un giocatore non partono subito: quello che sta facendo
+    // puo' ancora essere smentito dal tasto in viaggio. Finiscono in `suoni` col loro passo, e partono
+    // quando quel passo e' certo. Un passo rifatto li rimette in coda (quelli di prima sono stati tolti in
+    // rifai): cosi' ogni suono si sente una volta sola, ed e' quello giusto. Lo sparo e i segnali di tutti
+    // non dipendono dai tasti e partono subito.
+    const inCoda = this.memoria && !attesa ? [] : null;
+    if (inCoda) for (let p = 0; p < this.humans; p++) if (this.passiDi(p) > 0) m[p] = inCoda;
     Snd.zitto = true;
     for (const c of this.cpus) c.tick(ev, dt);
-    ev.muti = m; Snd.zitto = m[ev.n];
+    ev.muti = m; Snd.zitto = m[ev.n] === true; Snd.coda = null;
     ev.update(dt);
-    ev.muti = null; Snd.zitto = false;
+    ev.muti = null; Snd.zitto = false; Snd.coda = null;
+    if (inCoda) for (const f of inCoda) this.suoni.push({ k, f });
+    // quello che era rimasto in sospeso ad aspettare un tasto, e il tasto non e' arrivato: adesso e' certo
+    if (!rifatto && this.memoria && !attesa) for (let p = 0; p < this.humans; p++) {
+      const a = this.attese[p];
+      if (a != null && this.capo - a >= this.passiDi(p)) { this.attese[p] = null; if (this.passi - a <= this.storia.length) this.rifai(a, null); }
+    }
+    // i suoni diventati certi partono adesso
+    if (!rifatto && this.suoni.length) {
+      const n = Math.max(this.passiDi(0), this.passiDi(1));
+      let i = 0;
+      while (i < this.suoni.length && this.capo - this.suoni[i].k >= n) { try { this.suoni[i].f(); } catch (e) { /* un suono non ferma la gara */ } i++; }
+      if (i) this.suoni.splice(0, i);
+    }
   }
   update(dt) {
     if (this.paused) return;

@@ -200,6 +200,11 @@ class EventBase {
     this.res[p] = { value, disp: disp || (value == null ? 'NULLO' : this.meta.fmt(value)), pts: value == null ? 0 : this.meta.pts(value) };
   }
   isDone(p) { return !!this.res[p]; }
+  // Col ritardo dei tasti tarato: l'errore "non ha premuto in tempo" del giocatore p si puo' gia' dire, o il
+  // suo tasto puo' essere ancora in viaggio? Lo sa la schermata di gara (EventScene.rinvia). Finche' torna
+  // vero la gara lascia l'atleta com'e' e richiede al passo dopo. `grazia` sono i secondi di quel ritardo.
+  rinvia(p) { return !!(this.scena && this.scena.rinvia(p)); }
+  grazia(p) { return this.scena ? this.scena.grazia(p) : 0; }
   /**
    * Di chi si occupa adesso la gara: e' la condizione dei cicli sugli atleti dentro update
    * (`for (let p = 0; this.tocca(p); p++)`). Serve all'audio: in gara si sentono solo i giocatori, e gli
@@ -207,8 +212,10 @@ class EventBase {
    * che lascia in `muti` un vero o falso per ogni atleta, piu' uno in fondo per quello che la gara fa
    * fuori dal ciclo (lo sparo, i segnali di tutti); senza `muti` non cambia niente.
    */
+  // Una voce di `muti` puo' anche essere una lista: allora i suoni di quell'atleta non partono, ci finiscono
+  // dentro, e li fara' partire la schermata di gara quando saranno certi (il ritardo dei tasti).
   tocca(p) {
-    if (this.muti) Snd.zitto = !!this.muti[Math.min(p, this.n)];
+    if (this.muti) { const v = this.muti[Math.min(p, this.n)]; Snd.zitto = v === true; Snd.coda = Array.isArray(v) ? v : null; }
     return p < this.n;
   }
   /**
@@ -251,7 +258,10 @@ class EventBase {
   drawMsg(ctx, p, w, h) {
     const m = this.msg[p];
     if (!m) return;
-    const age = m.d - m.t;
+    // col ritardo dei tasti una scritta appena nata puo' ancora essere smentita dal tasto in arrivo: si
+    // mostra quando e' certa, cioe' dopo quel ritardo
+    const age = m.d - m.t - this.grazia(p);
+    if (age < 0) return;
     const sc = age < 0.15 ? 0.5 + age / 0.3 : 1;
     const size = clamp(h * 0.16, 26, 58) * sc;
     ctx.save();

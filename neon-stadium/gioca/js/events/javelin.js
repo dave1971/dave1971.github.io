@@ -97,7 +97,7 @@ class Javelin extends EventBase {
       switch (s.ph) {
         case 'run':
           s.r.update(dt); s.x = s.r.x;
-          if (s.r.x > 0.15) {
+          if (s.r.x > 0.15 && !this.rinvia(p)) {
             s.ph = 'done'; s.t = 0; s.foul = true; s.slide = true; s.dist = null;
             s.why = 'non hai lanciato in tempo';
             this.say(p, 'NULLO!', '#ff5555', 1.9, s.why); Snd.fail();
