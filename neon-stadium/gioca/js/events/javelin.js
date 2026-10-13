@@ -50,6 +50,12 @@ class Javelin extends EventBase {
   // B pressed while running: the arm goes back and the angle starts to climb
   wind(p, s) {
     s.foul = s.r.x > 0.02;
+    // Il punto in cui si e' premuto B resta segnato (segnoStacco, in base.js): qui il punto giusto e' il
+    // punto limite, quello da cui un atleta lanciato al massimo fa appena in tempo a fermarsi. Negativo =
+    // prima (c'era ancora margine), positivo = oltre.
+    const d = -s.r.x - this.limite(p), Z = this.zona, cm = Math.round(-d * 100);
+    s.stacco = { x: s.r.x, cm, col: d < 0 ? '#ff5252' : d <= Z[1] ? '#00e63c' : d <= Z[0] ? '#ffd600' : '#ff9800',
+      nota: cm > 0 ? 'caricato ' + cm + ' cm oltre il punto limite' : cm < 0 ? 'caricato ' + (-cm) + ' cm prima del punto limite' : 'caricato sul punto limite' };
     s.x = s.r.x; s.v0 = s.r.v; s.ang = 0; s.pt = 0; s.ph = 'wind';
     Snd.step();
   }
@@ -128,6 +134,7 @@ class Javelin extends EventBase {
     if (s.foul) {
       s.dist = null;
       this.say(p, 'NULLO!', '#ff5555', 1.9, s.why);
+      if (s.stacco) this.msg[p].nota = s.stacco.nota;
       Snd.fail();
       return;
     }
@@ -135,6 +142,8 @@ class Javelin extends EventBase {
     const nb = s.best == null || s.dist > s.best;
     if (nb) s.best = s.dist;
     this.say(p, Fmt.m(s.dist), '#fff', 1.9, nb && s.att > 0 ? 'Miglior lancio!' : '');
+    // col lancio valido, anche dove ci si ferma (o ci si fermera'): e' quello il margine vero dalla linea
+    if (s.stacco) this.msg[p].nota = s.stacco.nota + '  \u2022  fermo a ' + Math.max(0, Math.round(-(s.x + s.bv * s.bv / (2 * this.frena)) * 100)) + ' cm dalla linea';
     Snd.thud(); Snd.applause();
   }
   nextAttempt(p, s) {
@@ -144,7 +153,8 @@ class Javelin extends EventBase {
   }
   hud(p) {
     const s = this.S[p];
-    return 'Lancio ' + Math.min(s.att + 1, this.attempts) + '/' + this.attempts + (s.best != null ? '  •  ' + Fmt.m(s.best) : '');
+    return 'Lancio ' + Math.min(s.att + 1, this.attempts) + '/' + this.attempts + (s.best != null ? '  •  ' + Fmt.m(s.best) : '')
+      + (s.stacco ? '  •  carica ' + cmSegnati(s.stacco.cm) : '');
   }
   liveScore(q) { return this.S[q].best; }
   // Seen from far away the javelin is only a few pixels thick, so it gets a dark outline to read
@@ -185,6 +195,7 @@ class Javelin extends EventBase {
   // di prima erano troppo). Sta dietro di lui, alta abbastanza da spuntare sopra la testa, oltre che
   // fra le gambe e sotto i piedi.
   drawSegno(ctx, sx, h, s, p) {
+    if (s.stacco) segnoStacco(ctx, sx(s.stacco.x), h, h / 4.8, s.stacco);
     if (s.ph !== 'run' && s.ph !== 'ready') return;
     const Z = this.zona, d = -s.x - this.limite(p);       // quanto manca al punto limite
     const col = d < 0 ? '#ff5252' : d <= Z[1] ? '#00e63c' : d <= Z[0] ? '#ffd600' : '#ff9800';

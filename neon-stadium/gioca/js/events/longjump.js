@@ -30,8 +30,16 @@ class LongJump extends EventBase {
   // B pressed while running = take-off right here (foul if past the red line); holding B raises the angle
   bDown(p, s) {
     s.foul = s.r.x > 0.02;
+    s.stacco = this.stacco(s.r.x);
     s.x0 = s.x = s.r.x; s.v0 = s.r.v; s.ang = 0; s.pt = 0; s.ph = 'push';
     Snd.step();
+  }
+  // Lo stacco che resta segnato (segnoStacco, in base.js): qui il punto giusto e' la linea, e ogni
+  // centimetro prima e' un centimetro perso sulla misura. Negativo = prima della linea, positivo = oltre.
+  stacco(x) {
+    const nullo = x > 0.02, cm = nullo ? Math.max(1, Math.round(x * 100)) : Math.min(0, Math.round(x * 100));
+    return { x, cm, col: nullo ? '#ff5252' : -x <= 0.45 ? '#00e63c' : -x <= 1.5 ? '#ffd600' : '#ff9800',
+      nota: cm > 0 ? 'stacco ' + cm + ' cm oltre la linea' : cm < 0 ? 'stacco ' + (-cm) + ' cm prima della linea' : 'stacco sulla linea' };
   }
   bAir() { }
   launch(p, s) {
@@ -81,12 +89,14 @@ class LongJump extends EventBase {
     if (s.foul) {
       s.dist = null;
       this.say(p, 'NULLO!', '#ff5555', 1.9, 'piede oltre la linea di battuta');
+      if (s.stacco) this.msg[p].nota = s.stacco.nota;
       Snd.fail();
     } else {
       s.dist = Math.max(0, lx);
       const nb = s.best == null || s.dist > s.best;
       if (nb) s.best = s.dist;
       this.say(p, Fmt.m(s.dist), '#fff', 1.9, nb && s.att > 0 ? 'Miglior salto!' : '');
+      if (s.stacco) this.msg[p].nota = s.stacco.nota;
       Snd.applause();
     }
     s.marks.push(s.dist);
@@ -104,7 +114,8 @@ class LongJump extends EventBase {
   }
   hud(p) {
     const s = this.S[p];
-    return 'Salto ' + Math.min(s.att + 1, this.attempts) + '/' + this.attempts + (s.best != null ? '  •  ' + Fmt.m(s.best) : '');
+    return 'Salto ' + Math.min(s.att + 1, this.attempts) + '/' + this.attempts + (s.best != null ? '  •  ' + Fmt.m(s.best) : '')
+      + (s.stacco ? '  •  stacco ' + cmSegnati(s.stacco.cm) : '');
   }
   liveScore(q) { return this.S[q].best; }
   poseAir(s) {
@@ -145,6 +156,7 @@ class LongJump extends EventBase {
     band(-0.45, 0, 'rgba(0,230,60,0.30)');
     const lx = sx(0);
     if (lx > 30 && lx < G.W - 30) txt(ctx, 'STACCO', lx - 26, y1 - 12, Math.max(11, h * 0.042), '#fff', 'right');
+    if (s.stacco) segnoStacco(ctx, sx(s.stacco.x), h, ppm, s.stacco);
     if (s.ph !== 'run' && s.ph !== 'ready') return;
     const d = -s.x;
     const col = s.x > 0.02 ? '#ff5252' : d <= 0.45 ? '#00e63c' : d <= 1.5 ? '#ffd600' : '#ff9800';

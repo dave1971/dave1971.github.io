@@ -258,6 +258,8 @@ class EventBase {
     ctx.globalAlpha = clamp(m.t / 0.3, 0, 1);
     txt(ctx, m.text, w / 2, h * 0.3, size, m.color);
     if (m.sub) txt(ctx, m.sub, w / 2, h * 0.3 + size * 0.85, size * 0.5, '#fff');
+    // una terza riga, piu' piccola: lo stacco in centimetri (vedi segnoStacco)
+    if (m.nota) txtFit(ctx, m.nota, w / 2, h * 0.3 + size * (m.sub ? 1.42 : 0.85), size * 0.42, '#ffeb3b', 'center', w - 24, { italic: false });
     ctx.restore();
   }
   hud() { return ''; }
@@ -337,6 +339,9 @@ class Starter {
   constructor(n) { this.n = n; this.fs = Array(n).fill(0); this.dq = Array(n).fill(false); this.reset(); }
   reset() {
     this.state = 'marks'; this.t = 0; this.wait = rnd(1.1, 2.4); this.text = 'AI VOSTRI POSTI'; this.raceT = 0; this.flash = 0;
+    // Il tempo di reazione di ognuno: dallo sparo al primo tasto, in secondi (null finche' non parte).
+    // A parita' di gambe e' quello che decide una gara di velocita', e un atleta lo vuole sapere.
+    this.reaz = Array(this.n).fill(null); this.tVia = 0;
     Snd.tone(330, 0.2, 'square', 0.1, 0, 0.85); // "pronti", right after the start jingle
   }
   update(dt) {
@@ -345,7 +350,7 @@ class Starter {
       this.state = 'set'; this.t = 0; this.text = 'PRONTI...';
       Snd.tone(523, 0.24, 'square', 0.12); Snd.tone(523, 0.24, 'triangle', 0.06); // "attenti", then the gun
     }
-    else if (this.state === 'set' && this.t > this.wait) { this.state = 'go'; this.t = 0; this.text = 'VIA!'; Snd.gun(); }
+    else if (this.state === 'set' && this.t > this.wait) { this.state = 'go'; this.t = 0; this.text = 'VIA!'; Snd.gun(); this.tVia = performance.now(); }
     else if (this.state === 'go') { this.raceT += dt; if (this.t > 1) this.text = ''; }
     else if (this.state === 'false' && this.t > 2) { this.reset(); return 'restart'; }
     return null;
@@ -353,7 +358,18 @@ class Starter {
   // returns 'ok' when the race is on, otherwise handles false starts
   press(p) {
     if (this.dq[p]) return 'dq';
-    if (this.state === 'go') return 'ok';
+    if (this.state === 'go') {
+      if (this.reaz[p] == null) {
+        // Il tempo della gara avanza a scatti di fotogramma, e un fotogramma sono 16 millesimi: per un
+        // giocatore si misura con l'orologio vero, dal momento dello sparo a quello del tasto. Se i due
+        // tempi non vanno d'accordo (una pausa in mezzo, la gara mandata avanti a mano) vale quello di
+        // gara, come per gli atleti della CPU, che i tasti li premono dentro il fotogramma.
+        const vero = (performance.now() - this.tVia) / 1000;
+        const cpu = typeof Game !== 'undefined' && Game.isCpu(p);
+        this.reaz[p] = !cpu && Math.abs(vero - this.raceT) < 0.12 ? vero : this.raceT;
+      }
+      return 'ok';
+    }
     if (this.state === 'false') return 'wait';
     this.fs[p]++;
     if (this.fs[p] >= 2) this.dq[p] = true;
@@ -364,6 +380,16 @@ class Starter {
     return 'false';
   }
   running() { return this.state === 'go'; }
+  // "142 ms", o niente finche' non e' partito
+  reazione(p) { return this.reaz[p] == null ? '' : Math.round(this.reaz[p] * 1000) + ' ms'; }
+  // la riga sotto il cronometro della corsia, e quella dello stato in alto
+  drawReazione(ctx, p, w, h) {
+    if (this.reaz[p] == null) return;
+    txt(ctx, 'reazione ' + this.reazione(p), w - 16, h * 0.12 + clamp(h * 0.11, 18, 36) * 0.78, clamp(h * 0.055, 11, 17), '#ffeb3b', 'right', { italic: false });
+  }
+  hud(p) { return this.dq[p] ? 'SQUALIFICATO' : [this.fs[p] ? 'Falsa partenza: 1' : '', this.reaz[p] == null ? '' : 'Reazione ' + this.reazione(p)].filter(x => x).join('  \u2022  '); }
+  // per il messaggio d'arrivo: il posto e la reazione
+  arrivo(p, posto) { return [posto ? posto + '\u00b0 posto' : '', this.reaz[p] == null ? '' : 'reazione ' + this.reazione(p)].filter(x => x).join('  \u2022  '); }
 }
 
 // ---------- backgrounds ----------
@@ -469,6 +495,17 @@ function segnoAtleta(ctx, x, h, ppm, col) {
   ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(x - 1.75, y0, 3.5, y1 - y0);
   ctx.fillStyle = col; ctx.fillRect(x - 1, y0, 2, y1 - y0);
 }
+
+// Il segno dello stacco: la stessa barra, lasciata sulla pedana dov'era il baricentro quando si e' premuto
+// B, con sopra di quanti centimetri si e' rimasti prima (-) o si e' andati oltre (+) il punto giusto.
+// Serve a capire quanto ci si puo' ancora avvicinare al nullo (Davide, 13/10/2026). Ogni gara tiene il
+// suo in `s.stacco` = { x, cm, col, nota }: sparisce da solo col tentativo dopo, che riparte da capo.
+function segnoStacco(ctx, x, h, ppm, st) {
+  segnoAtleta(ctx, x, h, ppm, st.col);
+  // la scritta sta sopra la testa di chi stacca: all'altezza della barra gliela coprirebbe il corpo
+  txt(ctx, cmSegnati(st.cm), x, h * 0.9 - 2.02 * ppm, Math.max(12, h * 0.055), st.col, 'center', { italic: false, crudo: true });
+}
+function cmSegnati(cm) { return (cm > 0 ? '+' : cm < 0 ? '\u2212' : '') + Math.abs(cm) + ' cm'; }
 
 // Horizontal meter
 function drawMeter(ctx, x, y, w, h, frac, color, label, zone) {

@@ -51,6 +51,11 @@ class BarEvent extends EventBase {
   }
   takeoff(p, s) {
     s.q = clamp(1 - Math.abs(s.x - this.ideal) / this.tol, 0, 1);
+    // lo stacco resta segnato (segnoStacco): qui il punto giusto e' il segno bianco, e si perde sia
+    // staccando prima (-) sia dopo (+)
+    const cm = Math.round((s.x - this.ideal) * 100);
+    s.stacco = { x: s.x, cm, col: s.x > this.lateX ? '#ff5252' : s.q > 0.7 ? '#00e63c' : s.q > 0.3 ? '#ffd600' : '#ff9800',
+      nota: cm > 0 ? 'stacco ' + cm + ' cm dopo il punto ideale' : cm < 0 ? 'stacco ' + (-cm) + ' cm prima del punto ideale' : 'stacco nel punto ideale' };
     s.v = s.r.v;
     s.base = this.baseHeight(s.v, s.q, p);
     s.x0 = s.x; s.ph = 'flight'; s.ft = 0; s.press = null; s.ok = null;
@@ -104,6 +109,7 @@ class BarEvent extends EventBase {
       this.say(p, 'NULLO', '#ff5555', 1.9, 'errore ' + s.fails + ' di 3');
       Snd.fail();
     }
+    if (s.stacco) this.msg[p].nota = s.stacco.nota;
   }
   next(p, s) {
     if (s.fails >= 3) { this.finish(p, s.best, s.best == null ? 'NESSUNA MISURA' : undefined); return; }
@@ -111,7 +117,7 @@ class BarEvent extends EventBase {
   }
   hud(p) {
     const s = this.S[p];
-    return 'Asticella ' + Fmt.m(s.bar) + '  •  Errori ' + s.fails + '/3';
+    return 'Asticella ' + Fmt.m(s.bar) + '  •  Errori ' + s.fails + '/3' + (s.stacco ? '  •  stacco ' + cmSegnati(s.stacco.cm) : '');
   }
   liveScore(q) { return this.S[q].best; }
   // uprights + bar with a little depth perspective; part = 'back' | 'bar' | 'front'.
@@ -172,6 +178,7 @@ class BarEvent extends EventBase {
     ctx.fillStyle = '#e53935'; ctx.fillRect(sx(this.lateX) - 2, y0, 4, hh);
     const lx = sx(this.ideal);
     if (lx > 30 && lx < G.W - 30) txt(ctx, 'STACCO', lx, y0 + hh - 12, Math.max(11, h * 0.042), '#fff');
+    if (s.stacco) segnoStacco(ctx, sx(s.stacco.x), h, ppm, s.stacco);
     if (s.ph !== 'run' && s.ph !== 'ready') return;
     // how good a take-off right here would be: green in the sweet spot, red once it is too late
     const q = clamp(1 - Math.abs(bodyX - this.ideal) / this.tol, 0, 1);

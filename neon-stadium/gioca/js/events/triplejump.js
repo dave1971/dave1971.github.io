@@ -16,6 +16,7 @@ class TripleJump extends LongJump {
   }
   bDown(p, s) {
     s.foul = s.r.x > 0.02;
+    s.stacco = this.stacco(s.r.x);
     s.x = s.r.x; s.vx = s.r.v; s.vy = 2.4; s.y = 0;
     s.ph = 'air'; s.seg = 0; s.at = 0; s.buf = null;
     Snd.jump();

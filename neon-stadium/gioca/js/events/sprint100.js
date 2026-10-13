@@ -39,7 +39,7 @@ class Sprint100 extends EventBase {
             this.fin[p] = t;
             this.place++;
             this.finish(p, t);
-            this.say(p, Fmt.time(t), PCOL[p].ui, 4, this.n > 1 ? this.place + '° posto' : '');
+            this.say(p, Fmt.time(t), PCOL[p].ui, 4, this.st.arrivo(p, this.n > 1 ? this.place : 0));
             Snd.applause();
           } else if (this.st.raceT > 60) {
             this.fin[p] = -1;
@@ -50,10 +50,7 @@ class Sprint100 extends EventBase {
     }
     this.baseUpdate(dt);
   }
-  hud(p) {
-    if (this.st.dq[p]) return 'SQUALIFICATO';
-    return this.st.fs[p] ? 'Falsa partenza: 1' : '';
-  }
+  hud(p) { return this.st.hud(p); }
   liveScore(q) {
     if (this.st.dq[q] || this.fin[q] === -1) return -1;
     return this.fin[q] != null ? 1e6 - this.fin[q] : this.r[q].x;
@@ -136,6 +133,7 @@ class Sprint100 extends EventBase {
     // HUD
     const t = this.fin[p] != null && this.fin[p] >= 0 ? this.fin[p] : this.st.raceT;
     txt(ctx, t.toFixed(2), w - 16, h * 0.12, clamp(h * 0.11, 18, 36), '#fff', 'right');
+    this.st.drawReazione(ctx, p, w, h);
     drawMeter(ctx, 16, h * 0.09, w * 0.2, Math.max(10, h * 0.045), r.v / this.capP(p), PCOL[p].ui, (r.v * 3.6).toFixed(0) + ' km/h');
     if (this.n > 1) drawRaceBar(ctx, w, h, this.r.map(q => q.x), this.len, p);
     if (this.st.text && !this.msg[p]) {

@@ -320,6 +320,17 @@ const EN_RULES = [
   [/^GIOCATORE (\d+)/, 'PLAYER $1'],
   [/^HAI CHIUSO AL (\d+)° POSTO$/, (m, n) => 'YOU FINISHED ' + n + ord(+n)],
   [/^(\d+)° posto$/, (m, n) => n + ord(+n) + ' place'],
+  // il tempo di reazione allo sparo, da solo o in coda al posto d'arrivo e alla falsa partenza
+  [/^(\d+)° posto(?=  •  )/, (m, n) => n + ord(+n) + ' place'],
+  [/Reazione (\d+ ms)/, 'Reaction $1'], [/reazione (\d+ ms)/, 'reaction $1'],
+  // lo stacco in centimetri (segnoStacco): la riga sotto la misura e quella dello stato in alto
+  [/stacco (\d+) cm oltre la linea/, 'take-off $1 cm past the line'], [/stacco (\d+) cm prima della linea/, 'take-off $1 cm before the line'],
+  [/^stacco sulla linea$/, 'take-off on the line'],
+  [/stacco (\d+) cm dopo il punto ideale/, 'take-off $1 cm after the ideal spot'], [/stacco (\d+) cm prima del punto ideale/, 'take-off $1 cm before the ideal spot'],
+  [/^stacco nel punto ideale$/, 'take-off on the ideal spot'],
+  [/caricato (\d+) cm oltre il punto limite/, 'wound up $1 cm past the limit'], [/caricato (\d+) cm prima del punto limite/, 'wound up $1 cm before the limit'],
+  [/caricato sul punto limite/, 'wound up on the limit'], [/fermo a (\d+) cm dalla linea/, 'stopped $1 cm from the line'],
+  [/  •  stacco /, '  •  take-off '], [/  •  carica /, '  •  wind-up '],
   [/^(\d+)° su (\d+)$/, (m, a, b) => a + ord(+a) + ' of ' + b],
   [/^telecomandi collegati: /, 'controllers connected: '],
   [/^TELECOMANDO  /, 'REMOTE  '],

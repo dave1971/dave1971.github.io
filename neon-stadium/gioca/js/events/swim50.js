@@ -61,7 +61,7 @@ class Swim50 extends EventBase {
             const t = this.st.raceT;
             s.fin = t; this.place++;
             this.finish(p, t);
-            this.say(p, Fmt.time(t), PCOL[p].ui, 4, this.n > 1 ? this.place + '° posto' : '');
+            this.say(p, Fmt.time(t), PCOL[p].ui, 4, this.st.arrivo(p, this.n > 1 ? this.place : 0));
             Snd.applause();
           } else if (this.st.raceT > 90) { s.fin = -1; this.finish(p, null, 'RITIRATO'); }
         }
@@ -79,7 +79,7 @@ class Swim50 extends EventBase {
   addSplash(s, k) {
     for (let i = 0; i < 6 * k; i++) s.splash.push({ x: s.x + rnd(0.2, 1.1), y: 0, vx: rnd(-0.6, 0.8), vy: rnd(1, 2.4) * Math.sqrt(k), t: rnd(0.3, 0.6) });
   }
-  hud(p) { return this.st.dq[p] ? 'SQUALIFICATO' : (this.st.fs[p] ? 'Falsa partenza: 1' : ''); }
+  hud(p) { return this.st.hud(p); }
   liveScore(q) {
     const s = this.S[q];
     if (this.st.dq[q] || s.fin === -1) return -1;
@@ -155,6 +155,7 @@ class Swim50 extends EventBase {
     // HUD
     const t = s.fin != null && s.fin >= 0 ? s.fin : this.st.raceT;
     txt(ctx, t.toFixed(2), w - 16, h * 0.12, clamp(h * 0.11, 18, 36), '#fff', 'right');
+    this.st.drawReazione(ctx, p, w, h);
     const low = s.o2 < 0.3;
     const mh = Math.max(10, h * 0.045);
     drawMeter(ctx, 16, h * 0.09, w * 0.2, mh, s.o2, low ? '#ff1744' : '#00e5ff', 'OSSIGENO');
