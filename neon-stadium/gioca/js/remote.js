@@ -40,6 +40,7 @@ const Remote = {
     if (n && n <= this.seq[p] && this.seq[p] - n < SERIE_VICINA) return;   // sorpassato da uno più recente: ignoralo
     this.seq[p] = n;
     if (mask) this.sveglia();
+    Ritardo.sorgente = 'pad';
     const h = this.held[p], sc = G.scene, chi = sc && sc.ev && sc.humans === 1 ? 0 : p;
     for (let b = 0; b < 3; b++) {
       const want = !!(mask & (1 << b));
@@ -60,6 +61,7 @@ const Remote = {
     const sc = G.scene, id = 'remote' + p;
     if (!sc) return;
     if (down) this.sveglia();
+    Ritardo.sorgente = 'pad';
     try {
       if (down && sc.pointerDown) {
         const c = G.canvas, v = G.view;
@@ -120,6 +122,12 @@ const Remote = {
     if (this.imgErr) o.imgerr = this.imgErr;
     // un errore del gioco negli ultimi venti secondi si legge in fondo al pad, invece di restare muto
     if (G.errore && Date.now() - G.errore.t < 20000) o.err = G.errore.m + (G.errore.n > 1 ? ' (x' + G.errore.n + ')' : '');
+    // la taratura del ritardo si fa coi tasti grandi del pad, come una gara: sono quelli che si misurano
+    if (sc && sc.padTasti) {
+      o.mode = 'play'; o.ev = T('RITARDO DEI TASTI');
+      o.lab = [[T('PREMI'), T('PREMI')], [T('PREMI'), T('PREMI')]]; o.hud = ['', '']; o.lefty = [false, false];
+      return o;
+    }
     if (!es) { o.mode = 'menu'; o.ev = ''; return o; }
     o.mode = es.paused ? 'menu' : 'play';
     o.ev = T(es.meta.name);

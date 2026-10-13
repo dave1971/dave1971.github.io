@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.9.6.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.9.7.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -637,6 +637,7 @@ class Tabellone {
 
 // ---------- gameplay ----------
 const TASTO_COL = ['#e53935', '#546e7a', '#ef6c00'];     // A, B e il C delle gare che ne hanno tre
+const STORIA_MAX = 34;      // quanti passi di gara si tengono a memoria: poco piu' del ritardo massimo (Ritardo.MAX)
 const CORSIA_MIN = 760;     // la corsia piu' stretta per cui le gare sono pensate (alta 376): vedi drawAffiancate
 class EventScene {
   constructor(evIdx) {
@@ -649,6 +650,12 @@ class EventScene {
     this.held = [[0, 0, 0], [0, 0, 0]]; this.ptr = {}; this.paused = false; this.btns = []; this.sent = false;
     // In due, le corsie una sopra l'altra oppure affiancate (lo sceglie il giocatore dove sceglie la gara).
     // Affiancate la gara puo' farsi larga quanto lo schermo, anche oltre il massimo degli altri menu.
+    // Il ritardo dei tasti (Ritardo, in engine.js): se c'e' una taratura la gara tiene a memoria i suoi
+    // ultimi istanti, per poterci rimettere un tasto arrivato tardi. `passi` conta i passi fatti, `storia`
+    // sono le foto della gara all'inizio di ognuno degli ultimi, `diario` i tasti con il passo a cui valgono.
+    this.memoria = Ritardo.attivo();
+    this.passi = 0; this.storia = []; this.diario = [];
+    for (let p = 0; p < this.n; p++) if (PCOL[p]) CONDIVISI.add(PCOL[p]);
     this.fianco = this.humans > 1 && !!Game.affiancate;
     if (this.fianco) { this.wMax = 1920; if (this.tab) this.tab.centro = true; }
     // il breaking porta la sua musica, a tempo con le note: quella della gara la coprirebbe
@@ -691,8 +698,42 @@ class EventScene {
   // pulsante: prima il secondo si perdeva, e battere A alternando due tasti (M e Spazio) o due dita
   // faceva arrivare alla gara meno colpi che con uno solo. Il rilascio resta uno, quando sono risaliti
   // tutti: chi tiene premuto per caricare (l'alzo, la rincorsa del lungo) non lancia per un tocco in piu'.
-  down(p, b) { this.held[p][b]++; if (!this.paused) this.ev.press(p, b); }
-  up(p, b) { if (this.held[p][b] > 0 && --this.held[p][b] === 0 && !this.paused) this.ev.release(p, b); }
+  down(p, b) { this.held[p][b]++; if (!this.paused) this.ingresso(p, b, true); }
+  up(p, b) { if (this.held[p][b] > 0 && --this.held[p][b] === 0 && !this.paused) this.ingresso(p, b, false); }
+  /**
+   * Un tasto di un giocatore entra in gara. Senza taratura del ritardo, subito. Con la taratura, la gara
+   * torna a com'era quel tanto di tempo fa (la foto di quel passo), ci mette il tasto, e rifa' di corsa i
+   * passi fino ad adesso, rimettendo al loro posto anche gli altri tasti arrivati nel frattempo. I passi
+   * rifatti sono muti: i suoni di quel pezzo si sono gia' sentiti; si sente solo quello che fa il tasto.
+   */
+  ingresso(p, b, giu) {
+    const fa = (q, c, d) => { if (d) this.ev.press(q, c); else this.ev.release(q, c); };
+    const n = this.memoria ? Math.min(Math.round(Ritardo.ora() / STEP), this.storia.length) : 0;
+    if (this.diario.length > 64) this.diario = this.diario.filter(x => x.k >= this.passi - STORIA_MAX);
+    if (n <= 0) { this.diario.push({ k: this.passi, p, b, giu }); fa(p, b, giu); return; }
+    const adesso = this.passi, k0 = adesso - n;
+    this.torna(this.storia[this.storia.length - n]);
+    this.storia.length -= n;                       // quelle da qui in poi si rifanno, col tasto dentro
+    let i = this.diario.length;                    // nel diario va dopo i tasti dello stesso passo
+    while (i > 0 && this.diario[i - 1].k > k0) i--;
+    this.diario.splice(i, 0, { k: k0, p, b, giu });
+    this.passi = k0;
+    Ritardo.inCorso = n * STEP;
+    try { fa(p, b, giu); } finally { Ritardo.inCorso = 0; }
+    while (this.passi < adesso) {
+      if (this.passi > k0) { Snd.zitto = true; for (const x of this.diario) if (x.k === this.passi) fa(x.p, x.b, x.giu); Snd.zitto = false; }
+      this.step(STEP, false, true);
+    }
+  }
+  // la gara (e gli atleti della CPU, che puntano ai suoi pezzi) com'era in quella foto, e il caso con lei
+  foto() { return { k: this.passi, caso: Caso.s, g: copiaFonda({ ev: this.ev, cpus: this.cpus }, new Map()) }; }
+  torna(f) {
+    const m = new Map(); m.set(f.g.ev, this.ev);
+    for (const k of Object.keys(this.ev)) delete this.ev[k];
+    for (const k of Object.keys(f.g.ev)) this.ev[k] = copiaFonda(f.g.ev[k], m);
+    this.cpus = copiaFonda(f.g.cpus, m);
+    Caso.s = f.caso;
+  }
   pointerDown(x, y, id) {
     if (this.paused) { const b = hitBtn(this.btns, x, y); if (b) { Snd.click(); b.fn(); } return; }
     if (x > G.W - 70 && y < HUD_H + 10) { this.pause(); return; }
@@ -718,6 +759,7 @@ class EventScene {
     for (let p = 0; p < this.humans; p++) for (let b = 0; b < 3; b++) if (this.held[p][b] > 0) { this.held[p][b] = 0; this.ev.release(p, b); }
     this.ptr = {};
     this.paused = true;
+    this.storia = []; this.diario = [];      // dopo una pausa non c'e' un "poco fa" a cui tornare
     const cx = G.W / 2;
     // Chi e' ancora in gara puo' abbandonarla tenendosi quello che ha fatto (EventBase.ritira): sotto
     // al pulsante c'e' scritto cosa gli resta. In due ognuno ha il suo, col nome.
@@ -750,9 +792,12 @@ class EventScene {
   // Un passo di gara. L'audio e' dei giocatori: tacciono i tasti premuti dalla CPU e, dentro la gara,
   // tutto quello che riguarda i suoi atleti (EventBase.tocca); restano lo sparo e i segnali di tutti.
   // `attesa`: i giocatori hanno finito e gli altri vanno avanti veloce, allora tace tutto.
-  step(dt, attesa) {
+  // `rifatto`: e' un passo gia' fatto una volta, che si rifa' dopo aver rimesso un tasto al suo posto (ingresso)
+  step(dt, attesa, rifatto) {
+    if (this.memoria && !attesa) { this.storia.push(this.foto()); if (this.storia.length > STORIA_MAX) this.storia.shift(); }
+    this.passi++;
     const ev = this.ev, m = [];
-    for (let p = 0; p <= ev.n; p++) m.push(attesa || (p >= this.humans && p < ev.n));
+    for (let p = 0; p <= ev.n; p++) m.push(attesa || rifatto || (p >= this.humans && p < ev.n));
     Snd.zitto = true;
     for (const c of this.cpus) c.tick(ev, dt);
     ev.muti = m; Snd.zitto = m[ev.n];
@@ -1427,6 +1472,10 @@ class KeysScene extends Screen {
     this.btns.push({ x: cx - 100, y: G.H - 76, w: 200, h: 50, label: 'PREDEFINITI', size: 18, color: '#546e7a',
       fn: () => { Keys.reset(); this.wait = null; this.layout(); } });
     this.btns.push({ x: 20, y: G.H - 72, w: 150, h: 46, label: '‹ INDIETRO', size: 16, color: '#37474f', fn: () => this.back() });
+    // il ritardo fra il tasto e la gara: si misura e si toglie (TaraturaScene)
+    const rw = Math.min(230, G.W * 0.24);
+    this.btns.push({ x: G.W - 20 - rw, y: G.H - 76, w: rw, h: 50, label: 'RITARDO DEI TASTI', sub: Ritardo.attivo() ? 'tarato' : 'misuralo e toglilo',
+      size: 16, color: Ritardo.attivo() ? '#00695c' : '#ef6c00', fn: () => G.setScene(new TaraturaScene()) });
   }
   draw(ctx) {
     menuBg(ctx, this.t);
@@ -1449,6 +1498,119 @@ class KeysScene extends Screen {
   }
 }
 
+// ---------- la taratura del ritardo dei tasti ----------
+// Una pallina arriva su una riga a intervalli regolari e si preme quando ci arriva, come si fa in gara con
+// la linea dello stacco. Di quanto si preme "dopo" e' il ritardo di tutta la catena: il televisore, il
+// viaggio del tasto, il fotogramma. Le prime due passate sono di prova; delle altre si prende quella di
+// mezzo, cosi' una pressione sbagliata non conta. Il valore vale per lo strumento con cui si e' premuto
+// (tastiera, dito, pad): da li' in poi ogni tasto di quello strumento viene rimesso al suo momento (Ritardo).
+const TARATURA_PASSO = 1.15, TARATURA_PROVE = 2, TARATURA_BUONE = 8;
+const SORGENTI = { tasti: 'TASTIERA', tocco: 'DITO SULLO SCHERMO', pad: 'TELEFONO COME PAD' };
+class TaraturaScene extends Screen {
+  constructor(indietro) { super(); this.indietro = indietro || (() => new KeysScene()); this.fase = 'pronto'; this.t0 = 0; this.campioni = []; this.ultimo = null; this.esito = null; this.sorg = Ritardo.sorgente; }
+  back() { G.setScene(this.indietro()); return true; }
+  // finche' si misura, il telefono usato come pad mostra i suoi tasti grandi invece della miniatura
+  get padTasti() { return this.fase === 'misura'; }
+  layout() {
+    const cx = G.W / 2, y = G.H - 70;
+    this.btns = [{ x: 20, y, w: 150, h: 48, label: '‹ INDIETRO', size: 16, color: '#546e7a', fn: () => this.back() }];
+    if (this.fase === 'misura') return;
+    this.btns.push({ x: cx - 130, y: y - 6, w: 260, h: 56, label: this.fase === 'fatto' ? 'RIFAI LA MISURA' : 'COMINCIA', size: 22, color: '#43a047', fn: () => this.comincia() });
+    // a mano: per chi vuole ritoccare, o togliere tutto
+    const s = this.sorg, v = Ritardo.ms[s], x = G.W - 20 - 3 * 78;
+    this.btns.push({ x, y, w: 70, h: 48, label: '− 10', size: 18, color: '#455a64', fn: () => { Ritardo.metti(s, v - 10); this.layout(); } });
+    this.btns.push({ x: x + 78, y, w: 70, h: 48, label: '+ 10', size: 18, color: '#455a64', fn: () => { Ritardo.metti(s, v + 10); this.layout(); } });
+    this.btns.push({ x: x + 156, y, w: 70, h: 48, label: 'ZERO', size: 16, color: '#6d4c41', fn: () => { Ritardo.metti(s, 0); this.esito = null; this.layout(); } });
+  }
+  comincia() {
+    this.fase = 'misura'; this.t0 = performance.now() + 600; this.campioni = []; this.ultimo = null; this.esito = null;
+    this.layout();
+  }
+  // un tasto, o un tocco: a quale passata appartiene, e di quanto e' arrivato dopo
+  colpo() {
+    if (this.fase !== 'misura') return;
+    const ora = performance.now(), P = TARATURA_PASSO * 1000, j = Math.round((ora - this.t0) / P);
+    if (j < 1) return;
+    const d = ora - (this.t0 + j * P);
+    this.sorg = Ritardo.sorgente;
+    this.ultimo = { j, d, quando: ora };
+    if (j > TARATURA_PROVE && !this.campioni.some(c => c.j === j)) this.campioni.push({ j, d });
+  }
+  key(p, b, down) { if (down && this.fase === 'misura') this.colpo(); }
+  pointerDown(x, y) {
+    const b = hitBtn(this.btns, x, y);
+    if (b) { if (this.t > 0.3) { Snd.click(); b.fn(); } return; }
+    this.colpo();
+  }
+  update(dt) {
+    super.update(dt);
+    if (this.fase !== 'misura') return;
+    const j = (performance.now() - this.t0) / (TARATURA_PASSO * 1000);
+    if (j < TARATURA_PROVE + TARATURA_BUONE + 0.55) return;
+    // finito: il valore di mezzo delle pressioni buone. Meno di cinque non bastano a fidarsi.
+    const d = this.campioni.map(c => c.d).sort((a, b) => a - b);
+    this.fase = 'fatto';
+    if (d.length < 5) this.esito = { poche: d.length };
+    else {
+      const mezzo = d.length % 2 ? d[(d.length - 1) / 2] : (d[d.length / 2 - 1] + d[d.length / 2]) / 2;
+      this.esito = { ms: Math.round(mezzo), quante: d.length, largo: Math.round(d[d.length - 2] - d[1]) };
+      Ritardo.metti(this.sorg, Math.max(0, mezzo));
+    }
+    this.layout();
+  }
+  draw(ctx) {
+    menuBg(ctx, this.t);
+    const W = G.W, cx = W / 2;
+    panel(ctx, 24, 8, W - 48, G.H - 16);
+    txt(ctx, 'RITARDO DEI TASTI', cx, 44, 32, '#ffd600');
+    const riga = (s, y, col, sz) => txtFit(ctx, s, cx, y, sz || 16, col || '#fff', 'center', W - 110, { italic: false });
+    riga('Tra quando premi e quando il gioco se ne accorge passa del tempo: il televisore, il viaggio del tasto.', 78);
+    riga('Qui lo si misura, e da allora ogni tasto vale per il momento in cui l\'hai premuto davvero.', 100);
+    // la pista: la pallina corre da sinistra e passa sulla riga a ogni passata
+    const x0 = 70, x1 = W - 70, xr = x0 + (x1 - x0) * 0.72, y = 205;
+    ctx.fillStyle = 'rgba(255,255,255,0.10)'; ctx.fillRect(x0, y - 3, x1 - x0, 6);
+    const ora = performance.now(), P = TARATURA_PASSO * 1000;
+    let lampo = 0;
+    if (this.fase === 'misura') {
+      const f = (ora - this.t0) / P, k = f - Math.floor(f + 0.72);      // da -0.72 a 0.28: zero sulla riga
+      const fatte = Math.floor(f), prova = fatte < TARATURA_PROVE;
+      lampo = clamp(1 - Math.abs(f - Math.round(f)) * 9, 0, 1) * (Math.round(f) >= 1 ? 1 : 0);
+      ctx.fillStyle = lampo > 0 ? shade('#ffd600', 1 + lampo * 0.6) : '#fff'; ctx.fillRect(xr - 2 - lampo * 2, y - 42, 4 + lampo * 4, 84);
+      if (f > -0.4) {
+        const bx = xr + k * (x1 - x0);
+        if (bx >= x0 && bx <= x1) { ctx.fillStyle = prova ? '#90caf9' : '#ff5252'; ctx.beginPath(); ctx.arc(bx, y, 15, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#111'; ctx.lineWidth = 3; ctx.stroke(); }
+      }
+      const resto = TARATURA_PROVE + TARATURA_BUONE - Math.min(TARATURA_PROVE + TARATURA_BUONE, Math.max(0, Math.round(f)));
+      riga(prova ? 'PROVA: premi quando la pallina arriva sulla riga' : 'ORA CONTA: premi quando la pallina arriva sulla riga', 140, prova ? '#90caf9' : '#ffeb3b', 20);
+      riga(prova ? 'le prime due non contano' : 'ne mancano ' + resto, 272, 'rgba(255,255,255,0.75)', 15);
+      if (this.ultimo && ora - this.ultimo.quando < 900) riga((this.ultimo.d >= 0 ? '+' : '−') + Math.abs(Math.round(this.ultimo.d)) + ' ms', 300, '#b9f6ca', 22);
+    } else {
+      ctx.fillStyle = '#fff'; ctx.fillRect(xr - 2, y - 42, 4, 84);
+      ctx.fillStyle = '#ff5252'; ctx.beginPath(); ctx.arc(x0 + 40, y, 15, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#111'; ctx.lineWidth = 3; ctx.stroke();
+      if (this.fase === 'pronto') {
+        riga('Una pallina arriva sulla riga dieci volte: premi A (un tasto qualunque, o tocca lo schermo) ogni volta che ci arriva.', 140, '#ffeb3b', 17);
+        riga('Usa lo strumento con cui giochi: tastiera, dito o telefono come pad hanno ognuno il suo ritardo.', 272, 'rgba(255,255,255,0.8)', 15);
+      } else if (this.esito && this.esito.poche != null) {
+        riga('Troppe poche pressioni buone (' + this.esito.poche + '): rifai la misura.', 140, '#ff8a80', 19);
+      } else if (this.esito) {
+        const e = this.esito;
+        riga(e.ms > 0 ? 'MISURATO: ' + Math.min(e.ms, Ritardo.MAX) + ' ms' : 'NESSUN RITARDO DA CORREGGERE', 140, '#b9f6ca', 24);
+        riga(e.ms > Ritardo.MAX ? 'Il ritardo vero e\' piu\' grande (' + e.ms + ' ms): oltre ' + Ritardo.MAX + ' non si corregge.'
+          : e.ms < 0 ? 'Hai premuto in media ' + (-e.ms) + ' ms prima della riga: qui non c\'e\' niente da togliere.'
+          : 'su ' + e.quante + ' pressioni' + (e.largo > 90 ? ', molto sparse (' + e.largo + ' ms): conviene rifarla' : ''), 272, 'rgba(255,255,255,0.8)', 15);
+      }
+    }
+    // cosa c'e' in memoria, strumento per strumento
+    const voci = Object.keys(SORGENTI).map(k => T(SORGENTI[k]) + ': ' + Ritardo.ms[k] + ' ms');
+    txtFit(ctx, voci.join('     '), cx, 340, 17, '#fff', 'center', W - 110, { italic: false, crudo: true });
+    if (this.fase !== 'misura') {
+      riga('si sta regolando: ' + T(SORGENTI[this.sorg]), 366, '#90caf9', 14);
+      riga('Se il televisore ha una MODALITA\' GIOCO, accendila: toglie da sola gran parte del ritardo.', 398, '#ffcc80', 15);
+    }
+    this.drawButtons(ctx);
+  }
+}
+
 // ---------- the address to open on the tablet that plays as the pad ----------
 class RemoteScene extends Screen {
   back() { G.setScene(new TitleScene()); return true; }
@@ -1465,6 +1627,9 @@ class RemoteScene extends Screen {
       size: 19, color: on ? '#c62828' : '#43a047',
       fn: () => { Remote.toggle(); Snd.click(); this.layout(); },
     });
+    // e' col telefono come pad, davanti a un televisore, che il ritardo dei tasti pesa di piu'
+    this.btns.push({ x: G.W / 2 - 115, y: G.H - 66, w: 230, h: 52, label: 'RITARDO DEI TASTI', sub: Ritardo.ms.pad ? 'pad: ' + Ritardo.ms.pad + ' ms' : 'misuralo e toglilo',
+      size: 16, color: Ritardo.ms.pad ? '#00695c' : '#ef6c00', fn: () => G.setScene(new TaraturaScene(() => new RemoteScene())) });
   }
   // l'app risponde al giro dopo: quando cambia davvero, i pulsanti si rifanno.
   // super.update() fa avanzare this.t, ed e' quello che sblocca i tasti: senza, la schermata

@@ -9,14 +9,14 @@ const EVENTS = [];
 // Per riaccenderle basta togliere l'id da qui.
 const NASCOSTE = ['staffetta', 'arrampicata', 'ciclismo', 'equitazione', 'breaking'];
 const EVENTI_NASCOSTI = [];
-function registerEvent(meta) { (NASCOSTE.indexOf(meta.id) >= 0 ? EVENTI_NASCOSTI : EVENTS).push(meta); }
+function registerEvent(meta) { CONDIVISI.add(meta); (NASCOSTE.indexOf(meta.id) >= 0 ? EVENTI_NASCOSTI : EVENTS).push(meta); }
 
 // Le Specials: i giochi del torneo medievale, dietro la parola d'ordine (js/specials/). Hanno un
 // registro tutto loro, cosi' non entrano mai nel menu, nel decathlon, nella carriera ne' nei record
 // del mondo. Le schermate le trovano con un indice che parte da SPECIAL_BASE: evMeta() sa dove guardare.
 const SPECIALS = [];
 const SPECIAL_BASE = 100;
-function registerSpecial(meta) { meta.medievo = true; SPECIALS.push(meta); }
+function registerSpecial(meta) { meta.medievo = true; CONDIVISI.add(meta); SPECIALS.push(meta); }
 function evMeta(i) { return i >= SPECIAL_BASE ? SPECIALS[i - SPECIAL_BASE] : EVENTS[i]; }
 
 // Decathlon-style scoring (IAAF formula shape)
@@ -364,9 +364,10 @@ class Starter {
         // giocatore si misura con l'orologio vero, dal momento dello sparo a quello del tasto. Se i due
         // tempi non vanno d'accordo (una pausa in mezzo, la gara mandata avanti a mano) vale quello di
         // gara, come per gli atleti della CPU, che i tasti li premono dentro il fotogramma.
+        // Col ritardo dei tasti tarato (Ritardo) la gara e' gia' tornata al momento vero del tasto: vale il suo tempo.
         const vero = (performance.now() - this.tVia) / 1000;
         const cpu = typeof Game !== 'undefined' && Game.isCpu(p);
-        this.reaz[p] = !cpu && Math.abs(vero - this.raceT) < 0.12 ? vero : this.raceT;
+        this.reaz[p] = !cpu && !Ritardo.inCorso && Math.abs(vero - this.raceT) < 0.12 ? vero : this.raceT;
       }
       return 'ok';
     }

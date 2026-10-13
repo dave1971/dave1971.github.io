@@ -22,6 +22,23 @@ const EN = {
   // --- title, menus ---
   '1 GIOCATORE': '1 PLAYER', '2 GIOCATORI': '2 PLAYERS',
   'CARRIERA': 'CAREER', 'RECORD': 'RECORDS', 'AUDIO ON': 'AUDIO ON', 'AUDIO OFF': 'AUDIO OFF', 'MUSICA OFF': 'MUSIC OFF',
+  'RITARDO DEI TASTI': 'BUTTON LAG', 'tarato': 'calibrated', 'misuralo e toglilo': 'measure it and remove it',
+  'COMINCIA': 'START', 'RIFAI LA MISURA': 'MEASURE AGAIN', 'ZERO': 'ZERO', 'PREMI': 'PRESS',
+  'TASTIERA': 'KEYBOARD', 'DITO SULLO SCHERMO': 'FINGER ON SCREEN', 'TELEFONO COME PAD': 'PHONE AS PAD',
+  'Tra quando premi e quando il gioco se ne accorge passa del tempo: il televisore, il viaggio del tasto.':
+    'Between your press and the game noticing it, time passes: the television, the trip of the button.',
+  'Qui lo si misura, e da allora ogni tasto vale per il momento in cui l\'hai premuto davvero.':
+    'Here it is measured, and from then on every press counts for the moment you really pressed.',
+  'PROVA: premi quando la pallina arriva sulla riga': 'PRACTICE: press when the ball reaches the line',
+  'ORA CONTA: premi quando la pallina arriva sulla riga': 'NOW IT COUNTS: press when the ball reaches the line',
+  'le prime due non contano': 'the first two do not count',
+  'Una pallina arriva sulla riga dieci volte: premi A (un tasto qualunque, o tocca lo schermo) ogni volta che ci arriva.':
+    'A ball reaches the line ten times: press A (any button, or touch the screen) each time it gets there.',
+  'Usa lo strumento con cui giochi: tastiera, dito o telefono come pad hanno ognuno il suo ritardo.':
+    'Use what you play with: keyboard, finger or phone as pad each have their own lag.',
+  'NESSUN RITARDO DA CORREGGERE': 'NO LAG TO CORRECT',
+  'Se il televisore ha una MODALITA\' GIOCO, accendila: toglie da sola gran parte del ritardo.':
+    'If the television has a GAME MODE, turn it on: it removes most of the lag by itself.',
   'VIDEO NORMALE': 'VIDEO NORMAL', 'VIDEO COMPATIBILE': 'VIDEO COMPATIBLE', 'VIDEO SOFTWARE': 'VIDEO SOFTWARE',
   'GRAFICA ALTA': 'GRAPHICS HIGH', 'GRAFICA MEDIA': 'GRAPHICS MED', 'GRAFICA BASSA': 'GRAPHICS LOW', 'GRAFICA MINIMA': 'GRAPHICS MIN', 'GRAFICA ESSENZIALE': 'GRAPHICS BARE',
   'TASTI': 'KEYS', 'PREDEFINITI': 'DEFAULTS', 'PREMI UN TASTO': 'PRESS A KEY',
@@ -321,6 +338,14 @@ const EN_RULES = [
   [/^GIOCATORE (\d+)/, 'PLAYER $1'],
   [/^HAI CHIUSO AL (\d+)° POSTO$/, (m, n) => 'YOU FINISHED ' + n + ord(+n)],
   [/^(\d+)° posto$/, (m, n) => n + ord(+n) + ' place'],
+  // la taratura del ritardo dei tasti
+  [/^ne mancano (\d+)$/, '$1 to go'], [/^MISURATO: (\d+) ms$/, 'MEASURED: $1 ms'], [/^pad: (\d+) ms$/, 'pad: $1 ms'],
+  [/^si sta regolando: /, 'adjusting: '],
+  [/^Troppe poche pressioni buone \((\d+)\): rifai la misura\.$/, 'Too few good presses ($1): measure again.'],
+  [/^su (\d+) pressioni, molto sparse \((\d+) ms\): conviene rifarla$/, 'over $1 presses, very scattered ($2 ms): better measure again'],
+  [/^su (\d+) pressioni$/, 'over $1 presses'],
+  [/^Hai premuto in media (\d+) ms prima della riga: qui non c'e' niente da togliere\.$/, 'On average you pressed $1 ms before the line: nothing to remove here.'],
+  [/^Il ritardo vero e' piu' grande \((\d+) ms\): oltre (\d+) non si corregge\.$/, 'The real lag is bigger ($1 ms): beyond $2 it is not corrected.'],
   // il tempo di reazione allo sparo, da solo o in coda al posto d'arrivo e alla falsa partenza
   [/^(\d+)° posto(?=  •  )/, (m, n) => n + ord(+n) + ' place'],
   [/Reazione (\d+ ms)/, 'Reaction $1'], [/reazione (\d+ ms)/, 'reaction $1'],

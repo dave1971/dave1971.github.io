@@ -74,6 +74,79 @@ const Grafica = {
 };
 Grafica.carica();
 
+// ---------- il ritardo dei tasti ----------
+// Fra il momento in cui il giocatore preme e quello in cui la gara se ne accorge passa del tempo: il
+// televisore che mostra l'immagine in ritardo (da 20 a piu' di 100 millesimi, se non e' in modalita'
+// gioco), il viaggio del tasto dal telefono, il fotogramma in corso. Chi gioca preme guardando lo
+// schermo, cioe' guardando la gara com'era un attimo prima: a dieci metri al secondo un decimo di ritardo
+// e' un metro oltre la linea, e lo stacco diventa un nullo ogni volta (Davide, 13/10/2026: "molti sport
+// sono impossibili se la mia pressione del tasto B viene rilevata in ritardo").
+//
+// Si cura cosi': il ritardo si misura una volta (la schermata TARATURA), e da allora ogni tasto viene
+// applicato alla gara com'era quel tanto di tempo fa. La gara si tiene una memoria corta dei suoi ultimi
+// istanti, torna indietro, mette il tasto al suo posto e rifa' in un colpo i passi fino ad adesso
+// (EventScene.ingresso). Vale per tutte le gare senza toccarne nessuna.
+//
+// Il ritardo dipende da con che cosa si preme: la tastiera, il dito sullo schermo, il telefono usato
+// come pad hanno ognuno il suo, e ognuno la sua taratura.
+const Ritardo = {
+  MAX: 250,                               // millesimi: oltre, e' la rete che non va, non un ritardo da correggere
+  ms: { tasti: 0, tocco: 0, pad: 0 },
+  sorgente: 'tasti',                      // da dove e' arrivato l'ultimo tasto: lo dice chi lo riceve
+  inCorso: 0,                             // secondi tolti al tasto che si sta applicando adesso (0 = nessuno)
+  carica() {
+    try { const d = JSON.parse(localStorage.getItem('olimpiadi_ritardo')); for (const k in this.ms) if (d && d[k] > 0) this.ms[k] = clamp(+d[k] | 0, 0, this.MAX); }
+    catch (e) { /* niente taratura: zero */ }
+  },
+  metti(sorgente, ms) {
+    this.ms[sorgente] = clamp(Math.round(ms) | 0, 0, this.MAX);
+    try { localStorage.setItem('olimpiadi_ritardo', JSON.stringify(this.ms)); } catch (e) { /* vale per questa volta */ }
+  },
+  attivo() { return this.ms.tasti > 0 || this.ms.tocco > 0 || this.ms.pad > 0; },
+  ora() { return (this.ms[this.sorgente] || 0) / 1000; },     // secondi da togliere al tasto che arriva adesso
+};
+Ritardo.carica();
+
+// Il caso, con la memoria. Per rifare un pezzo di gara identico a com'era andato, anche i numeri a caso
+// devono tornare gli stessi: Math.random diventa un generatore di cui si puo' leggere e rimettere lo stato.
+const Caso = {
+  s: (Date.now() ^ (Math.random() * 0x7fffffff)) | 0,
+  prossimo() {
+    this.s = this.s + 0x6D2B79F5 | 0;
+    let t = Math.imul(this.s ^ this.s >>> 15, 1 | this.s);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  },
+};
+Math.random = () => Caso.prossimo();
+
+// Una copia fonda di un pezzo di gioco: oggetti, liste e istanze delle classi del gioco (col loro tipo),
+// tenendo insieme chi puntava alla stessa cosa. Le funzioni, le cose del browser (canvas, sfumature) e gli
+// oggetti di tutti (CONDIVISI: le schede delle gare, i colori degli atleti) restano quelli, non si copiano.
+const CONDIVISI = new WeakSet();
+function copiaFonda(v, mappa) {
+  if (v === null || typeof v !== 'object' || CONDIVISI.has(v)) return v;
+  const gia = mappa.get(v);
+  if (gia !== undefined) return gia;
+  let c;
+  if (Array.isArray(v)) {
+    c = new Array(v.length); mappa.set(v, c);
+    for (let i = 0; i < v.length; i++) c[i] = copiaFonda(v[i], mappa);
+    return c;
+  }
+  const tipo = Object.prototype.toString.call(v);
+  if (tipo !== '[object Object]') {
+    if (tipo === '[object Map]') { c = new Map(); mappa.set(v, c); v.forEach((x, k) => c.set(copiaFonda(k, mappa), copiaFonda(x, mappa))); return c; }
+    if (tipo === '[object Set]') { c = new Set(); mappa.set(v, c); v.forEach(x => c.add(copiaFonda(x, mappa))); return c; }
+    if (ArrayBuffer.isView(v)) return v.slice();
+    if (tipo === '[object Date]') return new Date(+v);
+    return v;
+  }
+  c = Object.create(Object.getPrototypeOf(v)); mappa.set(v, c);
+  for (const k of Object.keys(v)) c[k] = copiaFonda(v[k], mappa);
+  return c;
+}
+
 // ---------- drawing helpers ----------
 const FONT = '"Trebuchet MS", "Arial Black", Arial, sans-serif';
 function txt(ctx, s, x, y, size, color, align, opts) {
@@ -451,6 +524,7 @@ G.init = function () {
   const down = e => {
     e.preventDefault();
     Snd.unlock();
+    Ritardo.sorgente = e.pointerType === 'mouse' ? 'tasti' : 'tocco';
     const p = G.toLogical(e);
     if (G.scene && G.scene.pointerDown) G.scene.pointerDown(p.x, p.y, e.pointerId);
   };
@@ -490,13 +564,13 @@ G.init = function () {
     }
     if (e.code === 'Escape' || e.code === 'Backspace') { G.back(); return; }
     const m = Keys.map[e.code];
-    if (m && G.scene && G.scene.key) { e.preventDefault(); G.scene.key(m[0], m[1], true); return; }
+    if (m && G.scene && G.scene.key) { e.preventDefault(); Ritardo.sorgente = 'tasti'; G.scene.key(m[0], m[1], true); return; }
     // le frecce scorrono gli elenchi lunghi, ma solo se non se le è già prese una gara
     if (G.scene && G.scene.wheel && ARROWS[e.code]) { e.preventDefault(); G.scene.wheel(ARROWS[e.code]); }
   });
   window.addEventListener('keyup', e => {
     const m = Keys.map[e.code];
-    if (m && G.scene && G.scene.key) G.scene.key(m[0], m[1], false);
+    if (m && G.scene && G.scene.key) { Ritardo.sorgente = 'tasti'; G.scene.key(m[0], m[1], false); }
   });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && G.scene && G.scene.pause) G.scene.pause();

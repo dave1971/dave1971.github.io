@@ -11,7 +11,7 @@ class Skeet extends EventBase {
   constructor(n, meta) {
     super(n, meta);
     // random launch sequence (shared by both players): 1-3 doubles, always 15 clays in total
-    const rng = mulberry32((Date.now() & 0xffff) + 7);
+    const rng = mulberry32(((Math.random() * 0xffff) | 0) + 7);   // dal caso del gioco, non dall'orologio: la gara deve potersi rifare uguale (Ritardo)
     const nD = 1 + ((rng() * 3) | 0), nV = 15 - nD;
     const types = [];
     for (let i = 0; i < nV; i++) types.push(i < nD ? 'D' : (rng() < 0.5 ? 'L' : 'R'));
