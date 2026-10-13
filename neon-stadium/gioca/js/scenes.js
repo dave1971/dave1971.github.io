@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '1.9.5.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '1.9.6.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -309,6 +309,7 @@ function standRow(ctx, x, y, w, h, place, p, value, right, note, medals) {
 
 // ---------- title ----------
 class TitleScene extends Screen {
+  get titolo() { return true; }     // l'involucro di Windows lo chiede prima di riavviare il gioco con F10
   // tornando al titolo il campionato in corso e' di nuovo quello scelto per le gare singole (la
   // schermata dei record puo' averne mostrato un altro)
   enter() { Lv.i = Game.lvlPref; super.enter(); }
@@ -347,9 +348,19 @@ class TitleScene extends Screen {
     // La qualita' della grafica, a quattro gradini: per i dispositivi lenti (il televisore), dove ogni
     // gradino in meno e' un gioco piu' fluido e tasti che rispondono prima. Sotto, i fotogrammi al
     // secondo, per vedere quanto rende.
-    this.btns.push({ x: (telec ? G.W - 322 : G.W - 186) - 114, y: 14, w: 106, h: 44, size: 13, color: Grafica.liv ? '#6a1b9a' : '#455a64',
+    const gx = (telec ? G.W - 322 : G.W - 186) - 114;
+    this.btns.push({ x: gx, y: 14, w: 106, h: 44, size: 13, color: Grafica.liv ? '#6a1b9a' : '#455a64',
       label: 'GRAFICA ' + Grafica.NOMI[Grafica.liv], grafica: true,
       fn: () => { Grafica.metti((Grafica.liv + 1) % Grafica.NOMI.length); this.layout(); } });
+    // Solo nell'exe di Windows: il modo in cui la scheda grafica disegna, per i computer dove lo schermo
+    // sparisce e ricompare col gioco aperto (win/GameForm.cs). Toccarlo riavvia il gioco: lo decide
+    // l'involucro, a cui si manda solo la richiesta.
+    const video = window.OLIMPIADI_PLATFORM === 'win' ? window.OLIMPIADI_VIDEO : null;
+    if (typeof video === 'number') {
+      this.btns.push({ x: gx - 114, y: 14, w: 106, h: 44, size: 13, color: video ? '#00695c' : '#455a64',
+        label: 'VIDEO ' + (['NORMALE', 'COMPATIBILE', 'SOFTWARE'][video] || video),
+        fn: () => { try { window.chrome.webview.postMessage('video'); } catch (e) { /* non siamo nell'exe */ } } });
+    }
     if (Updater.info) {
       const y = 336, bw = 190;
       this.btns = [
