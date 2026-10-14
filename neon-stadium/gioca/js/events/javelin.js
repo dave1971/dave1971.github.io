@@ -38,8 +38,11 @@ class Javelin extends EventBase {
     const u = v * this.passo;
     return u * (ang / 120) + u * u / (2 * this.frena);
   }
-  // il punto limite per questo atleta lanciato al massimo: da li' in poi premere B e' nullo sicuro
-  limite(p) { return this.spazio(this.capP(p), this.bestAng); }
+  // Il punto limite per questo atleta lanciato al massimo: da li' in poi premere B e' nullo sicuro.
+  // Si conta col braccio alzato fino in cima alla fascia verde della lancetta, non all'angolo ideale:
+  // tenere B piu' a lungo vuol dire qualche passo in piu', e prima chi caricava negli ultimi centimetri
+  // del verde e rilasciava a 38-42 gradi (ancora verde) finiva oltre la linea (Davide, 14/10/2026).
+  limite(p) { return this.spazio(this.capP(p), this.angBand[1]); }
   press(p, b) {
     const s = this.S[p];
     if (this.res[p]) return;
