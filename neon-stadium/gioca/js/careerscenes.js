@@ -157,10 +157,10 @@ class CareerScene extends Screen {
 class PromoScene extends Screen {
   layout() {
     this.btns = [{ x: G.W / 2 - 120, y: G.H - 90, w: 240, h: 58, label: 'AVANTI ›', size: 20, color: '#43a047',
-      fn: () => G.setScene(new CareerScene()) }];
+      fn: () => G.setScene(Sostieni.tocca() ? new SostieniScene() : new CareerScene()) }];
   }
   onKey() { this.btns[0].fn(); }
-  back() { G.setScene(new CareerScene()); return true; }
+  back() { this.btns[0].fn(); return true; }
   draw(ctx) {
     menuBg(ctx, this.t);
     const W = G.W, cx = W / 2, d = Career.data, L = Career.C.livello(d.lvl);
@@ -184,6 +184,93 @@ class PromoScene extends Screen {
       cx, ty - tr - 25, 14, '#90caf9', 'center', { italic: false });
     medalTally(ctx, cx, ty, tr, Career.bestMedals(d.champion ? 0 : d.lvl - 1), ty - tr - 10);
     txt(ctx, d.races + ' gare   •   ' + Money(d.money), cx, ty + tr + 22, 15, '#ffcc80', 'center', { italic: false });
+    this.drawButtons(ctx);
+  }
+}
+
+// ---------- il caffe' per chi fa il gioco ----------
+// Il gioco e' gratis e senza pubblicita'. Al passaggio dal campionato Universitario ai Trials, e dai Trials
+// al Mondiale, una schermata propone un contributo volontario su Ko-fi (Davide, 14/10/2026): una volta sola
+// per passaggio e per dispositivo, solo nella carriera classica (non nel torneo), e non sblocca niente.
+// "No grazie" e' grande quanto l'altro pulsante, e ogni tasto vale "no grazie".
+// Il QR porta alla stessa pagina: sul televisore si paga dal telefono invece che dal browser della TV.
+const KOFI = 'https://ko-fi.com/neonstadium';
+const KOFI_QR = [   // https://ko-fi.com/neonstadium, versione 3, correzione M, senza bordo (fatto con qrcode)
+  '11111110100110011001101111111',
+  '10000010100010110000101000001',
+  '10111010011111110010101011101',
+  '10111010110000001101001011101',
+  '10111010010001000111001011101',
+  '10000010011010100011101000001',
+  '11111110101010101010101111111',
+  '00000000110001100101000000000',
+  '10110111010111101110001001011',
+  '01101101111110011011111110001',
+  '10001111111000110100001110110',
+  '01110001001111110011111100001',
+  '10011011011100001100010001100',
+  '00101100000111000101001000111',
+  '00010010110000100011010100111',
+  '01011000000011010011111100010',
+  '01110111101010000011110111010',
+  '01011000111101000100100001110',
+  '10100111010010000010110100100',
+  '00110001101110011111011010100',
+  '01101110110101010110111111100',
+  '00000000111101110000100011111',
+  '11111110111001001111101011010',
+  '10000010101100001011100011011',
+  '10111010000100110100111110101',
+  '10111010111001101001110111010',
+  '10111010111101111010100100101',
+  '10000010010000101000101101010',
+  '11111110110111010101111110010',
+];
+const Sostieni = {
+  KEY: 'olimpiadi_sostieni',
+  visti() { try { return JSON.parse(localStorage.getItem(this.KEY)) || {}; } catch (e) { return {}; } },
+  // tocca adesso? Dopo una promozione (non il titolo finale) della carriera classica, se per quel passaggio
+  // la schermata non e' gia' comparsa. Si segna subito: anche chi chiude il gioco li' non la rivede.
+  tocca() {
+    const d = Career.data;
+    if (!d || d.champion || Career.C !== CIRCUITO_BASE || d.lvl < 2) return false;
+    const v = this.visti();
+    if (v[d.lvl]) return false;
+    v[d.lvl] = Date.now();
+    try { localStorage.setItem(this.KEY, JSON.stringify(v)); } catch (e) { /* la si rivedra' */ }
+    return true;
+  },
+  // come l'aggiornamento: nell'app e nell'exe il link va al browser del sistema, nel browser in una scheda nuova
+  apri() { try { if (!window.open(KOFI, '_blank')) location.href = KOFI; } catch (e) { location.href = KOFI; } },
+};
+class SostieniScene extends Screen {
+  constructor() { super(); this.grazie = false; }
+  layout() {
+    const cx = G.W / 2, y = G.H - 116;
+    this.btns = [
+      { x: cx - 256, y, w: 244, h: 60, label: 'OFFRIMI UN CAFFÈ', sub: 'si apre ko-fi.com/neonstadium', size: 19, color: '#ff5e5b',
+        fn: () => { Sostieni.apri(); this.grazie = true; this.layout(); } },
+      { x: cx + 12, y, w: 244, h: 60, label: this.grazie ? 'AVANTI ›' : 'NO GRAZIE ›', sub: 'torna alla carriera', size: 19, color: this.grazie ? '#43a047' : '#546e7a',
+        fn: () => G.setScene(new CareerScene()) },
+    ];
+  }
+  onKey() { if (this.t > 0.6) this.btns[1].fn(); }
+  back() { this.btns[1].fn(); return true; }
+  draw(ctx) {
+    menuBg(ctx, this.t);
+    const W = G.W, cx = W / 2;
+    panel(ctx, cx - 330, 30, 660, G.H - 60);
+    if (this.grazie) txt(ctx, 'GRAZIE DI CUORE!', cx, 76, 34, '#7CFC00');
+    else txt(ctx, 'TI STA PIACENDO?', cx, 76, 34, '#ffd600');
+    txtFit(ctx, 'Neon Stadium è gratis e senza pubblicità: lo scrivo da solo, nel tempo libero.', cx, 114, 16, '#fff', 'center', 620, { italic: false });
+    txtFit(ctx, 'Se ti va, offrimi un caffè: aiuta il gioco a crescere. Non sblocca niente, il gioco resta tutto tuo.', cx, 136, 16, '#fff', 'center', 620, { italic: false });
+    // il QR, nero su bianco con un margine bianco intorno, come vuole chi lo legge
+    const n = KOFI_QR.length, m = 4, q = n * m, bx = cx - q / 2 - 2 * m, by = 160;
+    ctx.fillStyle = '#fff'; ctx.fillRect(bx, by, q + 4 * m, q + 4 * m);
+    ctx.fillStyle = '#000';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (KOFI_QR[r][c] === '1') ctx.fillRect(bx + 2 * m + c * m, by + 2 * m + r * m, m, m);
+    txt(ctx, 'ko-fi.com/neonstadium', cx, by + q + 4 * m + 20, 20, '#7CFC00', 'center', { italic: false, crudo: true });
+    txt(ctx, 'oppure inquadra il codice col telefono', cx, by + q + 4 * m + 44, 14, '#90caf9', 'center', { italic: false });
     this.drawButtons(ctx);
   }
 }
@@ -506,7 +593,7 @@ class CareerPickScene extends Screen {
 }
 
 // Le schermate della carriera del torneo hanno lo sfondo del torneo (Bg.medievo guarda la scena).
-for (const K of [CareerScene, PromoScene, ShopScene, TrainScene, CareerPickScene]) {
+for (const K of [CareerScene, PromoScene, SostieniScene, ShopScene, TrainScene, CareerPickScene]) {
   Object.defineProperty(K.prototype, 'medievo', { get() { return !!Career.C.medievo; } });
 }
 

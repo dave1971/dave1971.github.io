@@ -28,6 +28,8 @@
   p, li { font-size: 15px; line-height: 1.5; color: #e0e0e0; margin: 6px 0; }
   ul { margin: 6px 0; padding-left: 20px; }
   footer { color: #78909c; font-size: 13px; text-align: center; margin-top: 30px; }
+  footer a { color: #90caf9; text-decoration: none; display: inline-block; margin-top: 8px; }
+  footer a:hover { text-decoration: underline; }
   video { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 10px;
     border: 2px solid var(--line); background: #000; }
   .lingua { text-align: center; margin-top: 6px; font-size: 14px; color: #78909c; }
@@ -99,7 +101,8 @@
     <video id="tv" controls playsinline preload="none" poster="tv-it.jpg" src="tv-it.mp4"></video>
   </section>
 
-  <footer>Neon Stadium · <span id="v2"></span></footer>
+  <footer>Neon Stadium · <span id="v2"></span><br>
+    <a href="https://ko-fi.com/neonstadium" target="_blank" rel="noopener">☕ Ti piace il gioco? Offrimi un caffè su Ko-fi</a></footer>
 </main>
 <script>
   fetch('version.json', { cache: 'no-store' })

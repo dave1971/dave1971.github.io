@@ -148,6 +148,13 @@ const EN = {
   'ALLENAMENTI': 'TRAINING', 'NEGOZIO': 'SHOP', 'QUALIFICAZIONE': 'QUALIFYING',
   'QUALIFICATI ›': 'QUALIFY ›', 'TITOLO MONDIALE': 'WORLD TITLE', 'QUALIFICATO!': 'QUALIFIED!',
   'CAMPIONE DEL MONDO': 'WORLD CHAMPION', 'AVANTI ›': 'CONTINUE ›', '‹ CARRIERA': '‹ CAREER',
+  // il caffe' su Ko-fi (SostieniScene)
+  'TI STA PIACENDO?': 'ENJOYING THE GAME?', 'GRAZIE DI CUORE!': 'THANK YOU SO MUCH!',
+  'Neon Stadium è gratis e senza pubblicità: lo scrivo da solo, nel tempo libero.': 'Neon Stadium is free and ad-free: I make it on my own, in my spare time.',
+  'Se ti va, offrimi un caffè: aiuta il gioco a crescere. Non sblocca niente, il gioco resta tutto tuo.': 'If you like, buy me a coffee: it helps the game grow. It unlocks nothing, the whole game stays yours.',
+  'OFFRIMI UN CAFFÈ': 'BUY ME A COFFEE', 'si apre ko-fi.com/neonstadium': 'opens ko-fi.com/neonstadium',
+  'NO GRAZIE ›': 'NO THANKS ›', 'torna alla carriera': 'back to your career',
+  'oppure inquadra il codice col telefono': 'or scan the code with your phone',
   'porta un risultato valido in tutte e 10 le specialità per salire di livello':
     'post a qualifying mark in all ten events to move up a level',
   'il meglio in ogni specialità di questo campionato': 'your best in each event of this championship',
