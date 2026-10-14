@@ -105,20 +105,34 @@ class Swim50 extends EventBase {
     }
     return [pose, hy];
   }
+  // L'inquadratura in alto e in basso: l'atleta del giocatore sta sempre in mezzo alla corsia. In piedi sul
+  // blocco e' un metro e mezzo sopra l'acqua, e prima finiva mezzo fuori dallo schermo con sotto mezzo
+  // schermo d'acqua (Davide, 14/10/2026); nuotando e' sul pelo dell'acqua. Col tuffo la camera scende
+  // insieme a lui, piano, invece di seguirne ogni su e giu'. Restituisce di quanto spostare la scena in giu'.
+  alzo(p, wy, ppm, h) {
+    const s = this.S[p], blocco = h / 2 - (wy - 1.68 * ppm), acqua = h / 2 - (wy + 0.12 * ppm);
+    if (s.ph === 'block') return blocco;
+    if (s.ph !== 'dive') return acqua;
+    const k = clamp(s.dt / 0.75, 0, 1);
+    return lerp(blocco, acqua, k * k * (3 - 2 * k));
+  }
   drawLane(ctx, p, w, h) {
     const s = this.S[p], ppm = h / 4.2, ax = w * 0.35, camX = s.x, wy = h * 0.52;
     const sx = X => ax + (X - camX) * ppm;
+    const giu = this.alzo(p, wy, ppm, h), fondo = h - Math.min(0, giu);   // nuotando la scena sale: l'acqua va fino in fondo
     Bg.sky(ctx, w, h, h * 0.06);
-    Bg.crowdBand(ctx, w, h * 0.04, h * 0.38, camX * ppm * 0.35);
+    ctx.save(); ctx.translate(0, giu);
+    // le tribune salgono fin dove la camera abbassata lascia vedere: una gradinata sopra l'altra
+    for (let y1 = h * 0.38; y1 > -giu; y1 -= h * 0.34) Bg.crowdBand(ctx, w, y1 - h * 0.34, y1, camX * ppm * 0.35 + (y1 < h * 0.3 ? 97 : 0));
     ctx.fillStyle = '#eceff1'; ctx.fillRect(0, h * 0.38, w, wy - h * 0.38);
     for (let d = Math.ceil((camX - ax / ppm) / 5) * 5; sx(d) < w + 30; d += 5) {
       if (d <= 0 || d >= this.len) continue;
       txt(ctx, d + ' m', sx(d), h * 0.45, Math.max(10, h * 0.05), '#37474f', 'center', { outline: false, italic: false });
     }
     // water
-    const g = ctx.createLinearGradient(0, wy, 0, h);
+    const g = ctx.createLinearGradient(0, wy, 0, fondo);
     g.addColorStop(0, '#29b6f6'); g.addColorStop(1, '#01579b');
-    ctx.fillStyle = g; ctx.fillRect(0, wy, w, h - wy);
+    ctx.fillStyle = g; ctx.fillRect(0, wy, w, fondo - wy);
     ctx.fillStyle = 'rgba(0,40,90,0.5)'; ctx.fillRect(0, h * 0.93, w, 3);
     for (let d = Math.ceil((camX - ax / ppm) / 1) * 1; sx(d) < w + 10; d += 1) {
       ctx.fillStyle = 'rgba(255,255,255,0.25)';
@@ -126,8 +140,8 @@ class Swim50 extends EventBase {
     }
     // walls and block
     ctx.fillStyle = '#cfd8dc';
-    ctx.fillRect(sx(0) - 0.4 * ppm, h * 0.38, 0.4 * ppm, h - h * 0.38);
-    ctx.fillRect(sx(this.len), h * 0.38, 0.4 * ppm, h - h * 0.38);
+    ctx.fillRect(sx(0) - 0.4 * ppm, h * 0.38, 0.4 * ppm, fondo - h * 0.38);
+    ctx.fillRect(sx(this.len), h * 0.38, 0.4 * ppm, fondo - h * 0.38);
     ctx.fillStyle = PCOL[p].ui; ctx.fillRect(sx(-0.2), wy - 0.75 * ppm, 0.55 * ppm, 0.12 * ppm);
     ctx.fillStyle = '#90a4ae'; ctx.fillRect(sx(-0.2), wy - 0.63 * ppm, 0.12 * ppm, 0.63 * ppm);
     // rivals as ghosts (once in the water), then our swimmer
@@ -144,7 +158,7 @@ class Swim50 extends EventBase {
     const [pose, hy] = this.swimmerPose(p, wy, ppm);
     drawAthlete(ctx, sx(s.x), hy, ppm, Object.assign(pose, NUOTO), PCOL[p]);
     // water overlay so the body looks submerged
-    ctx.fillStyle = 'rgba(3,120,200,0.35)'; ctx.fillRect(0, wy + 0.08 * ppm, w, h - wy);
+    ctx.fillStyle = 'rgba(3,120,200,0.35)'; ctx.fillRect(0, wy + 0.08 * ppm, w, fondo - wy);
     // lane rope
     for (let d = Math.floor(camX - ax / ppm); sx(d) < w + 10; d += 0.5) {
       ctx.fillStyle = (Math.round(d * 2) % 4 < 2) ? '#e53935' : '#fff';
@@ -152,6 +166,7 @@ class Swim50 extends EventBase {
     }
     ctx.fillStyle = '#fff';
     for (const q of s.splash) ctx.fillRect(sx(q.x), wy - q.y * ppm, 3, 3);
+    ctx.restore();
     // HUD
     const t = s.fin != null && s.fin >= 0 ? s.fin : this.st.raceT;
     txt(ctx, t.toFixed(2), w - 16, h * 0.12, clamp(h * 0.11, 18, 36), '#fff', 'right');
@@ -167,7 +182,7 @@ class Swim50 extends EventBase {
     if (this.n > 1) drawRaceBar(ctx, w, h, this.S.map(q => q.x), this.len, p);
     if (this.st.text && !this.msg[p]) {
       const c = this.st.state === 'go' ? '#7CFC00' : this.st.state === 'false' ? '#ff5555' : '#ffeb3b';
-      txt(ctx, this.st.text, w / 2, h * 0.28, clamp(h * 0.14, 22, 50), c);
+      txt(ctx, this.st.text, w / 2, h * 0.19, clamp(h * 0.14, 22, 50), c);      // sopra la testa dell'atleta sul blocco
     }
     this.drawMsg(ctx, p, w, h);
   }
