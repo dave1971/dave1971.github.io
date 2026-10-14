@@ -92,6 +92,13 @@
       che diventa il telecomando.</p>
   </section>
 
+  <section>
+    <h2>Sul televisore, col telefono</h2>
+    <p>Quando il gioco gira su un televisore Android, o su un PC collegato alla TV, i telefoni diventano i
+      telecomandi. In mezzo minuto: come si collegano, come si gioca in due e come si misura il ritardo dei tasti.</p>
+    <video id="tv" controls playsinline preload="none" poster="tv-it.jpg" src="tv-it.mp4"></video>
+  </section>
+
   <footer>Neon Stadium · <span id="v2"></span></footer>
 </main>
 <script>
@@ -105,10 +112,10 @@
     .catch(function () { });
 
   // i video nella lingua di chi guarda: italiano se il telefono parla italiano, se no inglese; la
-  // scelta sotto il trailer vale anche per quello del torneo.
+  // scelta sotto il trailer vale anche per quello del torneo e per la guida al televisore.
   // preload="none": un video si scarica solo se qualcuno preme play.
   (function () {
-    var video = [document.getElementById('trailer'), document.getElementById('torneo')];
+    var video = [document.getElementById('trailer'), document.getElementById('torneo'), document.getElementById('tv')];
     var tasti = document.querySelectorAll('.lingua button');
     function lingua(l) {
       for (var j = 0; j < video.length; j++) {
