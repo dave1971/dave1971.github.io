@@ -154,6 +154,7 @@ const EN = {
   'Se ti va, offrimi un caffè: aiuta il gioco a crescere. Non sblocca niente, il gioco resta tutto tuo.': 'If you like, buy me a coffee: it helps the game grow. It unlocks nothing, the whole game stays yours.',
   'OFFRIMI UN CAFFÈ': 'BUY ME A COFFEE', 'si apre ko-fi.com/neonstadium': 'opens ko-fi.com/neonstadium',
   'NO GRAZIE ›': 'NO THANKS ›', 'torna alla carriera': 'back to your career',
+  'torna indietro': 'go back', 'sostieni Neon Stadium': 'support Neon Stadium',
   'oppure inquadra il codice col telefono': 'or scan the code with your phone',
   'porta un risultato valido in tutte e 10 le specialità per salire di livello':
     'post a qualifying mark in all ten events to move up a level',
@@ -337,6 +338,8 @@ const EN_RULES = [
   [/^in cassa: /, 'cash: '], [/^premio /, 'prize '], [/   \+   obiettivo /, '   +   objective '],
   [/^obiettivo /, 'target '], [/^tuo /, 'your best '], [/^✔  /, '✔  '],
   [/^(\d+) obiettiv[oi] su (\d+)$/, '$1 of $2 targets'],
+  [/^NON ANCORA QUALIFICATO: obiettivi centrati (\d+) su (\d+)$/, 'NOT QUALIFIED YET: $1 of $2 targets hit'],
+  [/^NON ANCORA QUALIFICATO: per la trasferta mancano (.+)$/, 'NOT QUALIFIED YET: you are $1 short for the trip'],
   [/^centra l'obiettivo in (\d+) specialità su (\d+) per salire di livello$/, 'hit the target in $1 of $2 events to move up a level'],
   [/^rientrano /, 'refund: '],
   [/^trasferta: mancano (.+)$/, 'travel: $1 short'],

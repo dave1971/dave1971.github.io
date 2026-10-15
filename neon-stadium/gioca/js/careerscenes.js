@@ -83,7 +83,14 @@ class CareerScene extends Screen {
         : !soldi ? Career.C.testi.manca + Money(Career.promoFee() - d.money) : '',
       size: 18, color: via ? '#43a047' : '#37474f',
       fn: () => {
-        if (!Career.canPromote()) { Snd.click(); return; }
+        if (!Career.canPromote()) {
+          // nella carriera classica, il caffe' con in cima cosa manca; nel torneo il clic a vuoto di sempre
+          if (Career.C === CIRCUITO_BASE) G.setScene(new SostieniScene(() => new CareerScene(), 'NON ANCORA QUALIFICATO: ' + (!ready
+            ? 'obiettivi centrati ' + Career.doneCount() + ' su ' + Career.need()
+            : 'per la trasferta mancano ' + Money(Career.promoFee() - d.money))));
+          else Snd.click();
+          return;
+        }
         if (last) { Career.promote(); Snd.fanfare(); G.setScene(new PromoScene()); return; }
         this.ask = true; this.layout();   // warn about the fare before it is taken
       },
@@ -193,6 +200,9 @@ class PromoScene extends Screen {
 // al Mondiale, una schermata propone un contributo volontario su Ko-fi (Davide, 14/10/2026): una volta sola
 // per passaggio e per dispositivo, solo nella carriera classica (non nel torneo), e non sblocca niente.
 // "No grazie" e' grande quanto l'altro pulsante, e ogni tasto vale "no grazie".
+// Da sola compare solo li'; in ogni momento la si apre dal pulsante OFFRIMI UN CAFFE' accanto al DECATHLON, e dal
+// pulsante QUALIFICAZIONE della carriera quando i requisiti non ci sono ancora (Davide, 15/10/2026): li' in cima
+// dice anche cosa manca, che prima quel tasto faceva solo un clic a vuoto.
 // Il QR porta alla stessa pagina: sul televisore si paga dal telefono invece che dal browser della TV.
 const KOFI = 'https://ko-fi.com/neonstadium';
 const KOFI_QR = [   // https://ko-fi.com/neonstadium, versione 3, correzione M, senza bordo (fatto con qrcode)
@@ -244,14 +254,15 @@ const Sostieni = {
   apri() { try { if (!window.open(KOFI, '_blank')) location.href = KOFI; } catch (e) { location.href = KOFI; } },
 };
 class SostieniScene extends Screen {
-  constructor() { super(); this.grazie = false; }
+  // indietro: la schermata a cui si torna (di solito la carriera); nota: una riga in cima, per dire cosa manca
+  constructor(indietro, nota) { super(); this.grazie = false; this.indietro = indietro; this.nota = nota || ''; }
   layout() {
     const cx = G.W / 2, y = G.H - 116;
     this.btns = [
       { x: cx - 256, y, w: 244, h: 60, label: 'OFFRIMI UN CAFFÈ', sub: 'si apre ko-fi.com/neonstadium', size: 19, color: '#ff5e5b',
         fn: () => { Sostieni.apri(); this.grazie = true; this.layout(); } },
-      { x: cx + 12, y, w: 244, h: 60, label: this.grazie ? 'AVANTI ›' : 'NO GRAZIE ›', sub: 'torna alla carriera', size: 19, color: this.grazie ? '#43a047' : '#546e7a',
-        fn: () => G.setScene(new CareerScene()) },
+      { x: cx + 12, y, w: 244, h: 60, label: this.grazie ? 'AVANTI ›' : 'NO GRAZIE ›', sub: this.indietro ? 'torna indietro' : 'torna alla carriera',
+        size: 19, color: this.grazie ? '#43a047' : '#546e7a', fn: () => G.setScene(this.indietro ? this.indietro() : new CareerScene()) },
     ];
   }
   onKey() { if (this.t > 0.6) this.btns[1].fn(); }
@@ -260,8 +271,10 @@ class SostieniScene extends Screen {
     menuBg(ctx, this.t);
     const W = G.W, cx = W / 2;
     panel(ctx, cx - 330, 30, 660, G.H - 60);
-    if (this.grazie) txt(ctx, 'GRAZIE DI CUORE!', cx, 76, 34, '#7CFC00');
-    else txt(ctx, 'TI STA PIACENDO?', cx, 76, 34, '#ffd600');
+    if (this.nota) txtFit(ctx, this.nota, cx, 54, 15, '#ffab40', 'center', 620, { italic: false });
+    const ty = this.nota ? 84 : 76, ts = this.nota ? 30 : 34;
+    if (this.grazie) txt(ctx, 'GRAZIE DI CUORE!', cx, ty, ts, '#7CFC00');
+    else txt(ctx, 'TI STA PIACENDO?', cx, ty, ts, '#ffd600');
     txtFit(ctx, 'Neon Stadium è gratis e senza pubblicità: lo scrivo da solo, nel tempo libero.', cx, 114, 16, '#fff', 'center', 620, { italic: false });
     txtFit(ctx, 'Se ti va, offrimi un caffè: aiuta il gioco a crescere. Non sblocca niente, il gioco resta tutto tuo.', cx, 136, 16, '#fff', 'center', 620, { italic: false });
     // il QR, nero su bianco con un margine bianco intorno, come vuole chi lo legge
@@ -593,7 +606,7 @@ class CareerPickScene extends Screen {
 }
 
 // Le schermate della carriera del torneo hanno lo sfondo del torneo (Bg.medievo guarda la scena).
-for (const K of [CareerScene, PromoScene, SostieniScene, ShopScene, TrainScene, CareerPickScene]) {
+for (const K of [CareerScene, PromoScene, ShopScene, TrainScene, CareerPickScene]) {
   Object.defineProperty(K.prototype, 'medievo', { get() { return !!Career.C.medievo; } });
 }
 

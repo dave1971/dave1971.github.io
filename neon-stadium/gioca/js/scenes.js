@@ -1,7 +1,7 @@
 'use strict';
 // ===== Screens: title, menus, intro, gameplay, results, final standings, records =====
 
-const GAME_VERSION = '2.0.2.0'; // keep in sync with versionName in app/build.gradle
+const GAME_VERSION = '2.0.3.0'; // keep in sync with versionName in app/build.gradle
 
 const SHORT = { '100m': '100 METRI', '110h': '110 OSTACOLI', lungo: 'SALTO IN LUNGO', alto: 'SALTO IN ALTO', triplo: 'SALTO TRIPLO',
   piattello: 'PIATTELLO', pesi: 'PESI', '50sl': '50 M S.L.', asta: 'ASTA', tuffi: 'TUFFI',
@@ -446,6 +446,10 @@ class MenuScene extends Screen {
     const w = G.W, cx = w / 2;
     this.btns = [{ x: cx - 210, y: 78, w: 420, h: 66, label: 'DECATHLON', sub: '10 gare a tua scelta, una dopo l\'altra', color: '#ff8f00', size: 30,
       fn: () => G.setScene(new DecaPickScene(this.n)) }];
+    // il caffe' su Ko-fi in ogni momento, a destra del decathlon (SostieniScene, in careerscenes.js)
+    const kw = Math.min(200, w - 20 - (cx + 222));
+    this.btns.push({ x: w - 20 - kw, y: 84, w: kw, h: 54, label: 'OFFRIMI UN CAFFÈ', sub: 'sostieni Neon Stadium', size: 15, color: '#ff5e5b',
+      fn: () => G.setScene(new SostieniScene(() => new MenuScene(this.n))) });
     // file da sei: con tre file i pulsanti sono alti, con quattro (piu' di 18 gare) si abbassano
     // quanto basta a lasciare sotto i due pulsanti delle impostazioni
     const cols = 6, gx = 9, bw = Math.min(150, (w - 56) / cols - gx), fitta = EVENTS.length > 18, bh = fitta ? 50 : 58;
