@@ -1,6 +1,6 @@
 {
-  "rev": 58,
-  "aggiornato": "2026-10-11",
+  "rev": 59,
+  "aggiornato": "2026-10-16",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
     "100m": {
@@ -250,6 +250,13 @@
     ],
     "110h": [
       {
+        "v": 12.860247572674268,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-16",
+        "lv": "W"
+      },
+      {
         "v": 15.399242341114988,
         "who": "FRANCISCUS",
         "nat": "VAT",
@@ -306,6 +313,14 @@
       }
     ],
     "triplo": [
+      {
+        "v": 20.60959267566711,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-16",
+        "lv": "W",
+        "leg": true
+      },
       {
         "v": 18.213056353863617,
         "who": "MELLO",
@@ -659,6 +674,13 @@
     ],
     "pesi": [
       {
+        "v": 255,
+        "who": "LAMBO",
+        "nat": "ITA",
+        "il": "2026-10-16",
+        "lv": "W"
+      },
+      {
         "v": 150,
         "who": "WLAMB",
         "nat": "FIN",
@@ -974,5 +996,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 232
+  "postRev": 235
 }
