@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code Collector</title>
+<meta name="description" content="La gemella di Card Collector: un secondo elenco di tessere, separato, sullo stesso telefono.">
+<style>
+  :root { --bg: #10141f; --panel: rgba(255,255,255,0.06); --line: rgba(255,255,255,0.16); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: #fff; min-height: 100vh;
+    font-family: "Trebuchet MS", Arial, sans-serif; display: flex; justify-content: center; }
+  main { width: 100%; max-width: 680px; padding: 28px 16px 60px; }
+  .su { font-size: 14px; }
+  h1 { font-size: 40px; margin: 18px 0 2px; color: #ff4fd8; font-style: italic; letter-spacing: 1px; }
+  .sub { color: #b0bec5; margin: 10px 0 22px; font-size: 15px; }
+  /* l'anteprima ha margini larghi perche' la scheda della pagina d'ingresso ne ritaglia i lati:
+     qui la ritagliamo a nostra volta, piu' stretta, cosi' il soggetto riempie il banner invece di
+     galleggiare nel vuoto */
+  img.banner { width: 100%; aspect-ratio: 5 / 4; object-fit: cover; height: auto;
+    border-radius: 12px; border: 2px solid var(--line); display: block; }
+  a.dl { display: block; text-align: center; margin: 26px 0 10px; padding: 18px;
+    background: #43a047; color: #fff; text-decoration: none; font-size: 22px; font-weight: bold;
+    border-radius: 14px; border: 3px solid rgba(0,0,0,0.45); box-shadow: 0 5px 0 rgba(0,0,0,0.4); }
+  a.dl:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+  a.dl small { display: block; font-size: 13px; font-weight: normal; opacity: 0.85; margin-top: 4px; }
+  .ver { text-align: center; color: #7CFC00; font-size: 14px; min-height: 20px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 18px; margin: 18px 0; }
+  h2 { font-size: 17px; margin: 0 0 8px; color: #ffd600; }
+  p, li { font-size: 15px; line-height: 1.5; color: #e0e0e0; margin: 6px 0; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  footer { color: #78909c; font-size: 13px; text-align: center; margin-top: 30px; }
+  a { color: #90caf9; }
+</style>
+</head>
+<body>
+<main>
+  <a class="su" href="../">‹ dave1971 · giochi e strumenti</a>
+  <h1>CODE COLLECTOR</h1>
+  <div class="sub">La gemella di Card Collector: la stessa app, con l'icona verde, per avere un secondo elenco di tessere separato sullo stesso telefono.</div>
+  <img class="banner" src="anteprima.jpg" alt="Code Collector" width="1280" height="720">
+
+  <a class="dl" href="CodeCollector.apk">SCARICA PER ANDROID<small>telefono e tablet · Android 8.0 o più recente · .apk</small></a>
+  <div class="ver" id="ver"></div>
+
+  <section>
+    <h2>A cosa serve</h2>
+    <p>Code Collector fa esattamente quello che fa <a href="../card-collector/">Card Collector</a>: raccoglie le tessere con codice a barre o QR e, quando ne tocchi una, mostra il codice a tutto schermo con la luminosità al massimo, pronto per la cassa.</p>
+    <p>La differenza è che per il telefono è un'altra app: si installa accanto a Card Collector senza sostituirla e tiene le sue tessere in un elenco tutto suo. Serve quando vuoi tenere separate due raccolte, per esempio le tessere di un familiare che usa il tuo telefono, o quelle del lavoro.</p>
+    <p>Le tessere restano solo sul telefono: l'app non usa Internet e chiede un solo permesso, la fotocamera, per leggere i codici.</p>
+  </section>
+
+  <section>
+    <h2>Come si installa</h2>
+    <ul>
+      <li>Scarica il file <i>CodeCollector.apk</i> direttamente sul telefono (oppure copialo dal computer) e aprilo.</li>
+      <li>La prima volta Android chiede di consentire l'installazione di app da quella fonte (il browser o il gestore dei file): <i>Impostazioni</i> → <i>Consenti da questa fonte</i>, poi torna indietro e tocca <i>Installa</i>.</li>
+      <li>Play Protect può avvisare che non conosce l'app: <i>Installa comunque</i>. Succede a tutte le app che non arrivano dal Play Store.</li>
+      <li>Serve Android 8.0 o più recente.</li>
+      <li>Se hai già Card Collector non la tocca: dopo l'installazione trovi due icone, quella blu-viola di Card Collector e quella verde di Code Collector.</li>
+      <li>Per aggiornare basta installare la versione nuova sopra quella vecchia: le tessere restano.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Come si usa</h2>
+    <ul>
+      <li><b>Nuova tessera</b>: dai un nome e, se vuoi, una descrizione e un colore.</li>
+      <li>Il codice lo puoi <b>leggere</b> con la fotocamera inquadrando la tessera vera, o <b>da un'immagine</b> (uno screenshot o una foto della galleria): numero e tipo di codice si compilano da soli. Oppure lo <b>digiti</b> a mano e scegli il tipo.</li>
+      <li>Mentre scrivi vedi l'anteprima del codice; se il numero non torna (per esempio la cifra di controllo di un EAN) l'app te lo dice prima di salvare.</li>
+      <li>Tocca una tessera per mostrarla a tutto schermo. Con il menu ⋮ o tenendola premuta la modifichi o la elimini.</li>
+      <li>Codici supportati: EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, Code 93, ITF, Codabar, QR Code, Data Matrix, Aztec e PDF417.</li>
+    </ul>
+  </section>
+
+  <footer>Code Collector · <span id="v2"></span></footer>
+</main>
+<script>
+  fetch('version.json', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      document.getElementById('ver').textContent = 'versione ' + d.versionName + (d.note ? ' — ' + d.note : '');
+      document.getElementById('v2').textContent = 'versione ' + d.versionName;
+    })
+    .catch(function () { });
+</script>
+<script src="/conta.js" defer></script>
+</body>
+</html>
