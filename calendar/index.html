@@ -178,6 +178,8 @@
   .indirizzo input { min-height: 38px; padding: 6px 8px; font-size: 12px; color: var(--tenue); }
   .indirizzo button { min-height: 38px; padding: 4px 12px; font-size: 14px; }
   #indirizzi { display: grid; gap: 8px; }
+  a.scarica { display: block; text-align: center; padding: 12px; border-radius: 10px; font-weight: bold;
+    background: var(--accento); color: var(--su-accento); text-decoration: none; }
 </style>
 </head>
 <body>
@@ -280,7 +282,14 @@
       calendario a schermo intero, senza la barra del browser.</p>
     <button type="button" id="installa" class="primario" hidden>Installa adesso</button>
 
-    <h3>Gli appuntamenti nei widget</h3>
+    <h3>L'app Agenda, con il widget</h3>
+    <p>Solo per Android. Mostra i prossimi appuntamenti in un widget sulla schermata Home, si
+      aggiorna da sola con la frequenza che scegli e ha un tasto per aggiornare subito. Scaricala,
+      aprila (Android chiede di consentire l'installazione da questa fonte: è normale per le app che
+      non vengono dal Play Store) e inserisci la parola d'ordine.</p>
+    <a class="scarica" href="agenda.apk">Scarica Agenda per Android</a>
+
+    <h3>In alternativa: gli appuntamenti nel calendario del telefono</h3>
     <ol>
       <li>Installa l'app gratuita <b>ICSx⁵</b> (Play Store o F-Droid).</li>
       <li>Per ognuno dei tre indirizzi qui sotto: tocca <b>Copia</b>, in ICSx⁵ tocca <b>+</b>,
