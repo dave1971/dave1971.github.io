@@ -6,6 +6,10 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="referrer" content="no-referrer">
 <title>Calendario</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icona-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icona-180.png">
+<meta name="theme-color" content="#24324a">
 <style>
   :root {
     --bg: #f4f1ea; --carta: #ffffff; --testo: #1d2230; --tenue: #5f6b7d; --linea: #dcd6c8;
@@ -159,6 +163,21 @@
   .storia { margin: 0; font-size: 12.5px; color: var(--tenue); }
   .piede { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   #fErrore { margin: 0; color: var(--pericolo); font-size: 14px; }
+
+  /* ---------- sul telefono ---------- */
+  #telefono { margin-left: auto; min-height: 32px; padding: 4px 12px; font-size: 13px; }
+  #dTelefono .dentro { padding: 18px; display: grid; gap: 12px; }
+  #dTelefono h2 { margin: 0; font-size: 20px; }
+  #dTelefono h3 { margin: 4px 0 0; font-size: 16px; }
+  #dTelefono p, #dTelefono li { margin: 0; font-size: 14px; line-height: 1.45; }
+  #dTelefono ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+  #dTelefono .tenue { color: var(--tenue); font-size: 13px; }
+  .indirizzo { display: grid; grid-template-columns: 12px 4.2em minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .indirizzo b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .indirizzo i { width: 12px; height: 12px; border-radius: 50%; background: var(--c); }
+  .indirizzo input { min-height: 38px; padding: 6px 8px; font-size: 12px; color: var(--tenue); }
+  .indirizzo button { min-height: 38px; padding: 4px 12px; font-size: 14px; }
+  #indirizzi { display: grid; gap: 8px; }
 </style>
 </head>
 <body>
@@ -205,6 +224,7 @@
       <span class="p1"><i></i><b class="nome-p1"></b></span>
       <span class="p2"><i></i><b class="nome-p2"></b></span>
       <span class="insieme"><i></i>Insieme</span>
+      <button type="button" id="telefono" class="piano">Sul telefono…</button>
     </div>
   </header>
 
@@ -248,6 +268,35 @@
       <button type="submit" id="fSalva" class="primario">Salva</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="dTelefono">
+  <div class="dentro">
+    <h2>Sul telefono</h2>
+
+    <h3>Il calendario come app</h3>
+    <p>Apri questa pagina con Chrome o Firefox sul telefono e dal menu <b>⋮</b> scegli
+      <b>Installa app</b> o <b>Aggiungi alla schermata Home</b>: compare un'icona che apre il
+      calendario a schermo intero, senza la barra del browser.</p>
+    <button type="button" id="installa" class="primario" hidden>Installa adesso</button>
+
+    <h3>Gli appuntamenti nei widget</h3>
+    <ol>
+      <li>Installa l'app gratuita <b>ICSx⁵</b> (Play Store o F-Droid).</li>
+      <li>Per ognuno dei tre indirizzi qui sotto: tocca <b>Copia</b>, in ICSx⁵ tocca <b>+</b>,
+        incolla l'indirizzo, poi scegli il nome e il colore.</li>
+      <li>Nelle impostazioni di ICSx⁵ metti la sincronizzazione ogni 15 minuti.</li>
+      <li>Gli appuntamenti compaiono nel calendario del telefono: aggiungi il suo widget alla
+        schermata Home (tieni premuto su uno spazio vuoto → <b>Widget</b>).</li>
+    </ol>
+    <div id="indirizzi"><p class="tenue">Un momento…</p></div>
+    <p class="tenue">Il calendario del telefono li mostra soltanto: per scrivere o cambiare un
+      appuntamento si usa questa pagina. Questi indirizzi aprono gli appuntamenti senza parola
+      d'ordine: non mandarli ad altri. Se cambi la parola d'ordine cambiano anche loro, e vanno
+      reinseriti in ICSx⁵.</p>
+
+    <div class="piede"><span class="spazio"></span><button type="button" id="dTelefonoChiudi">Chiudi</button></div>
+  </div>
 </dialog>
 
 <script>
@@ -579,6 +628,69 @@
     mostra();
   });
 
+  // ---------- sul telefono ----------
+  // Chrome avvisa quando la pagina si può installare come app: il pulsante compare solo allora.
+  var richiesta = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    richiesta = e;
+    $('installa').hidden = false;
+  });
+  $('installa').addEventListener('click', function () {
+    if (!richiesta) return;
+    richiesta.prompt();
+    richiesta = null;
+    $('installa').hidden = true;
+  });
+
+  function copia(campo, bottone) {
+    var fatto = function () {
+      bottone.textContent = 'Copiato';
+      setTimeout(function () { bottone.textContent = 'Copia'; }, 2000);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(campo.value).then(fatto, function () { campo.select(); });
+    } else {
+      // senza appunti si seleziona il testo, e lo si copia a mano
+      campo.select();
+    }
+  }
+
+  $('telefono').addEventListener('click', function () {
+    var box = $('indirizzi');
+    box.textContent = '';
+    box.appendChild(el('p', 'tenue', 'Un momento…'));
+    $('dTelefono').showModal();
+    chiama('GET', '/calendari').then(function (r) {
+      box.textContent = '';
+      if (!r.ok) {
+        box.appendChild(el('p', 'tenue', r.stato === 0 ? 'Non riesco a collegarmi: riprova fra poco.' : 'Non riesco a leggere gli indirizzi: riprova fra poco.'));
+        return;
+      }
+      r.calendari.forEach(function (c) {
+        var riga = el('div', 'indirizzo ' + c.chi);
+        riga.appendChild(el('i'));
+        riga.appendChild(el('b', '', c.nome));
+        var campo = el('input');
+        campo.readOnly = true;
+        campo.value = c.url;
+        campo.setAttribute('aria-label', 'Indirizzo del calendario ' + c.nome);
+        campo.addEventListener('focus', function () { campo.select(); });
+        riga.appendChild(campo);
+        var b = el('button', '', 'Copia');
+        b.type = 'button';
+        b.addEventListener('click', function () { copia(campo, b); });
+        riga.appendChild(b);
+        box.appendChild(riga);
+      });
+    });
+  });
+  $('dTelefonoChiudi').addEventListener('click', function () { $('dTelefono').close(); });
+
+  // Il service worker tiene una copia della pagina, così l'app installata si apre anche senza rete
+  // (gli appuntamenti però arrivano solo dal Worker, quindi senza rete la pagina lo dice e basta).
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () { });
+
   // ---------- la porta ----------
   $('formEntra').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -602,6 +714,7 @@
   function mostra() {
     var dentro = !!st.gettone, so = dentro && st.persone.some(function (f) { return f.id === st.io; });
     if ($('scheda').open) $('scheda').close();
+    if ($('dTelefono').open) $('dTelefono').close();
     $('entra').hidden = dentro;
     $('chisei').hidden = !dentro || so;
     $('app').hidden = !so;
