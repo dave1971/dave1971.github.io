@@ -287,7 +287,8 @@
       aggiorna da sola con la frequenza che scegli e ha un tasto per aggiornare subito. Scaricala,
       aprila (Android chiede di consentire l'installazione da questa fonte: è normale per le app che
       non vengono dal Play Store) e inserisci la parola d'ordine.</p>
-    <a class="scarica" href="agenda.apk">Scarica Agenda per Android</a>
+    <a class="scarica" id="scarica" href="agenda.apk">Scarica Agenda per Android</a>
+    <p class="tenue" id="scaricaInfo"></p>
 
     <h3>In alternativa: gli appuntamenti nel calendario del telefono</h3>
     <ol>
@@ -665,7 +666,22 @@
     }
   }
 
+  // Versione e dimensione dell'app si leggono da agenda.json (lo scrive la compilazione accanto
+  // all'apk), cosi' si vede cosa si scarica prima di scaricarlo. Il numero di versione va anche
+  // nell'indirizzo: browser e GitHub non possono ridare la copia vecchia che tengono in memoria.
+  function infoApp() {
+    fetch('agenda.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (a) {
+      var kb = Math.round(a.byte / 1024);
+      $('scarica').href = 'agenda.apk?v=' + a.codice;
+      $('scarica').textContent = 'Scarica Agenda ' + a.versione + ' · ' + kb + ' KB';
+      var d = a.data.split('-');
+      $('scaricaInfo').textContent = 'Versione ' + a.versione + ' del ' + d[2] + '/' + d[1] + '/' + d[0] + ', ' + kb + ' KB. ' +
+        'Quella installata si vede nell\'app, in fondo alla schermata.';
+    }).catch(function () { $('scaricaInfo').textContent = ''; });
+  }
+
   $('telefono').addEventListener('click', function () {
+    infoApp();
     var box = $('indirizzi');
     box.textContent = '';
     box.appendChild(el('p', 'tenue', 'Un momento…'));
