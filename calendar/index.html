@@ -157,10 +157,22 @@
   #modulo .perchi label.scelta { position: relative; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 46px; padding: 6px;
     border: 2px solid var(--linea); border-radius: 10px; background: var(--carta); color: var(--testo); font-size: 15px; cursor: pointer; }
   .perchi input { position: absolute; opacity: 0; width: 100%; height: 100%; left: 0; top: 0; margin: 0; cursor: pointer; }
-  .perchi label.scelta:has(input:checked) { border-color: var(--c); background: var(--s); font-weight: bold; }
-  .perchi label.scelta:has(input:focus-visible) { outline: 3px solid var(--accento); outline-offset: 2px; }
+  #modulo .perchi label.scelta:has(input:checked) { border-color: var(--c); background: var(--s); font-weight: bold; }
+  #modulo .perchi label.scelta:has(input:focus-visible) { outline: 3px solid var(--accento); outline-offset: 2px; }
   .due { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
   .storia { margin: 0; font-size: 12.5px; color: var(--tenue); }
+  fieldset.ripeti { display: grid; gap: 8px; }
+  fieldset.ripeti select { margin-top: 5px; }
+  .giorni { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  #modulo .giorni label { position: relative; display: flex; align-items: center; justify-content: center; min-height: 40px;
+    border: 2px solid var(--linea); border-radius: 10px; background: var(--carta); color: var(--testo); font-size: 15px; cursor: pointer; }
+  .giorni input { position: absolute; opacity: 0; width: 100%; height: 100%; left: 0; top: 0; margin: 0; cursor: pointer; }
+  #modulo .giorni label:has(input:checked) { background: var(--accento); border-color: var(--accento); color: var(--su-accento); font-weight: bold; }
+  #modulo .giorni label:has(input:focus-visible) { outline: 3px solid var(--accento); outline-offset: 2px; }
+  .ev .giro { display: block; margin-top: 4px; font-size: 12.5px; color: var(--tenue); }
+  #dScelta .dentro { padding: 18px; display: grid; gap: 10px; }
+  #dScelta p { margin: 0 0 4px; font-size: 16px; }
+  #sceltaBottoni { display: grid; gap: 8px; }
   .piede { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   #fErrore { margin: 0; color: var(--pericolo); font-size: 14px; }
 
@@ -225,7 +237,7 @@
     <div class="legenda">
       <span class="p1"><i></i><b class="nome-p1"></b></span>
       <span class="p2"><i></i><b class="nome-p2"></b></span>
-      <span class="insieme"><i></i>Insieme</span>
+      <span class="insieme"><i></i><b class="nome-insieme"></b></span>
       <button type="button" id="telefono" class="piano">Sul telefono…</button>
     </div>
   </header>
@@ -252,7 +264,7 @@
       <div>
         <label class="scelta p1"><input type="radio" name="chi" value="p1" required><span class="nome-p1"></span></label>
         <label class="scelta p2"><input type="radio" name="chi" value="p2"><span class="nome-p2"></span></label>
-        <label class="scelta insieme"><input type="radio" name="chi" value="insieme">Insieme</label>
+        <label class="scelta insieme"><input type="radio" name="chi" value="insieme"><span class="nome-insieme"></span></label>
       </div>
     </fieldset>
     <div class="due">
@@ -261,6 +273,27 @@
     </div>
     <label>Descrizione <input type="text" id="fDescr" maxlength="120" required autocomplete="off"></label>
     <label>Note <textarea id="fNote" maxlength="2000" rows="4"></textarea></label>
+    <fieldset class="ripeti">
+      <legend>Si ripete</legend>
+      <select id="fRipeti" aria-label="Si ripete">
+        <option value="">No, una volta sola</option>
+        <option value="giorno">Ogni giorno</option>
+        <option value="settimana">Ogni settimana</option>
+        <option value="mese">Ogni mese</option>
+        <option value="anno">Ogni anno</option>
+      </select>
+      <div class="giorni" id="fGiorni" hidden>
+        <label title="lunedì"><input type="checkbox" value="1">L</label>
+        <label title="martedì"><input type="checkbox" value="2">M</label>
+        <label title="mercoledì"><input type="checkbox" value="3">M</label>
+        <label title="giovedì"><input type="checkbox" value="4">G</label>
+        <label title="venerdì"><input type="checkbox" value="5">V</label>
+        <label title="sabato"><input type="checkbox" value="6">S</label>
+        <label title="domenica"><input type="checkbox" value="7">D</label>
+      </div>
+      <p class="storia" id="fRegola"></p>
+      <label id="fFinoRiga" hidden>Fino al (vuoto = per sempre) <input type="date" id="fFino" min="2000-01-01" max="2100-12-31"></label>
+    </fieldset>
     <p class="storia" id="fStoria"></p>
     <p id="fErrore" role="alert" hidden></p>
     <div class="piede">
@@ -270,6 +303,14 @@
       <button type="submit" id="fSalva" class="primario">Salva</button>
     </div>
   </form>
+</dialog>
+
+<!-- la domanda "solo questo o tutte?" per gli appuntamenti che si ripetono -->
+<dialog id="dScelta">
+  <div class="dentro">
+    <p id="sceltaTesto"></p>
+    <div id="sceltaBottoni"></div>
+  </div>
 </dialog>
 
 <dialog id="dTelefono">
@@ -419,7 +460,43 @@
     for (var i = 0; i < st.persone.length; i++) if (st.persone[i].id === id) return st.persone[i].nome;
     return id;
   }
-  function per(chi) { return chi === 'insieme' ? 'Insieme' : nome(chi); }
+  // gli appuntamenti di tutti e due si chiamano "D+F": corto, sta anche nelle righe del widget
+  function per(chi) { return chi === 'insieme' ? nome('p1') + '+' + nome('p2') : nome(chi); }
+
+  var CORTI = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
+  function dataBreve(s) { return s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4); }
+
+  /** "ogni lun e gio fino al 30/06/2031", "ogni mese il 31", ... per un appuntamento che si ripete. */
+  function descriviRegola(ev) {
+    var g = +ev.inizio.slice(8, 10), s;
+    if (ev.ripeti === 'giorno') s = 'ogni giorno';
+    else if (ev.ripeti === 'settimana') {
+      var n = ev.giorni.split(',').map(function (x) { return CORTI[x - 1]; });
+      s = 'ogni ' + (n.length > 1 ? n.slice(0, -1).join(', ') + ' e ' + n[n.length - 1] : n[0]);
+    } else if (ev.ripeti === 'mese') s = 'ogni mese il ' + g;
+    else s = 'ogni anno il ' + g + ' ' + MESI[+ev.inizio.slice(5, 7) - 1];
+    return s + (ev.fino ? ' fino al ' + dataBreve(ev.fino) : '');
+  }
+
+  /**
+   * Una domanda con piu' risposte (confirm ne ha due sole): torna una Promise col valore del bottone
+   * scelto, o null se si chiude la finestra.
+   */
+  function scegli(domanda, risposte) {
+    return new Promise(function (fatto) {
+      var d = $('dScelta'), box = $('sceltaBottoni'), scelta = null;
+      $('sceltaTesto').textContent = domanda;
+      box.textContent = '';
+      risposte.forEach(function (r) {
+        var b = el('button', r.classe || '', r.testo);
+        b.type = 'button';
+        b.addEventListener('click', function () { scelta = r.valore; d.close(); });
+        box.appendChild(b);
+      });
+      d.addEventListener('close', function chiusa() { d.removeEventListener('close', chiusa); fatto(scelta); });
+      d.showModal();
+    });
+  }
   function delGiorno(s) {
     return eventi.filter(function (e) { return e.quando.slice(0, 10) === s; })
       .sort(function (a, b) { return a.quando < b.quando ? -1 : a.quando > b.quando ? 1 : 0; });
@@ -434,6 +511,7 @@
     a.appendChild(r1);
     a.appendChild(el('p', 'descr', ev.descr));
     if (ev.note) a.appendChild(el('p', 'note', ev.note));
+    if (ev.ripeti) a.appendChild(el('span', 'giro', '↻ ' + descriviRegola(ev)));
     var az = el('div', 'azioni');
     var m = el('button', '', 'Apri e modifica');
     m.type = 'button';
@@ -465,7 +543,7 @@
       evs.slice(0, MAX_CHIP).forEach(function (ev) {
         var b = el('button', 'chip ' + ev.chi + (ev.quando < ora ? ' passato' : ''));
         b.type = 'button';
-        b.title = per(ev.chi);
+        b.title = per(ev.chi) + (ev.ripeti ? ' · ↻ ' + descriviRegola(ev) : '');
         b.appendChild(el('b', '', ev.quando.slice(11)));
         b.appendChild(document.createTextNode(ev.descr));
         b.addEventListener('click', function (e) { e.stopPropagation(); scelto = s; disegna(); apri(ev); });
@@ -525,8 +603,8 @@
     });
     io.value = st.io;
     // i nomi arrivano dal Worker: si scrivono nella legenda e nella finestra dell'appuntamento
-    ['p1', 'p2'].forEach(function (id) {
-      Array.prototype.forEach.call(document.querySelectorAll('.nome-' + id), function (e) { e.textContent = nome(id); });
+    ['p1', 'p2', 'insieme'].forEach(function (id) {
+      Array.prototype.forEach.call(document.querySelectorAll('.nome-' + id), function (e) { e.textContent = per(id); });
     });
   }
 
@@ -556,7 +634,12 @@
     $('fOra').value = ev ? ev.quando.slice(11) : '09:00';
     $('fDescr').value = ev ? ev.descr : '';
     $('fNote').value = ev ? ev.note : '';
-
+    // la ripetizione e' della serie: si mostra quella, anche aprendo una volta qualsiasi
+    $('fRipeti').value = ev && ev.ripeti ? ev.ripeti : '';
+    var quali = ev && ev.giorni ? ev.giorni.split(',') : [];
+    caselleGiorni().forEach(function (c) { c.checked = quali.indexOf(c.value) >= 0; });
+    $('fFino').value = ev && ev.fino ? ev.fino : '';
+    aggiornaRipeti();
 
     var quando = function (t) { return new Date(t).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }); };
     $('fStoria').textContent = !ev ? '' : 'Scritto da ' + nome(ev.creato_da) + ' il ' + quando(ev.creato_il) +
@@ -574,45 +657,111 @@
   }
   function chiudi() { $('scheda').close(); inScheda = null; }
 
+  // ---------- la ripetizione, nella finestra ----------
+  function caselleGiorni() { return Array.prototype.slice.call($('fGiorni').querySelectorAll('input')); }
+
+  /** Mostra quello che serve per la ripetizione scelta, e la spiega a parole. */
+  function aggiornaRipeti() {
+    var r = $('fRipeti').value, giorno = $('fGiorno').value || scelto;
+    var d = daIso(giorno), g = d.getDate();
+    if (r === 'settimana' && !caselleGiorni().some(function (c) { return c.checked; })) {
+      // appena scelto "ogni settimana": il giorno dell'appuntamento, poi se ne aggiungono altri
+      caselleGiorni()[(d.getDay() + 6) % 7].checked = true;
+    }
+    $('fGiorni').hidden = r !== 'settimana';
+    $('fFinoRiga').hidden = !r;
+    $('fRegola').hidden = !r || r === 'settimana';
+    $('fRegola').textContent = r === 'giorno' ? 'Tutti i giorni, da ' + nomeGiorno(d) + ' ' + g + ' ' + MESI[d.getMonth()] + '.'
+      : r === 'mese' ? 'Il ' + g + ' di ogni mese' + (g > 28 ? ': nei mesi che non hanno il ' + g + ', l\'ultimo giorno.' : '.')
+      : r === 'anno' ? 'Ogni anno il ' + g + ' ' + MESI[d.getMonth()] + (g === 29 && d.getMonth() === 1 ? ': negli anni normali il 28.' : '.')
+      : '';
+  }
+  $('fRipeti').addEventListener('change', aggiornaRipeti);
+  $('fGiorno').addEventListener('change', aggiornaRipeti);
+
+  var PERCHE = { fino: 'la data di fine viene prima dell\'appuntamento', giorni: 'scegli almeno un giorno della settimana',
+    descr: 'la descrizione è vuota o troppo lunga', quando: 'giorno o ora non validi', chi: 'scegli per chi è' };
+
+  /** Mostra l'errore nella finestra, che resta aperta: quello che e' stato scritto non va perso. */
+  function erroreScheda(r) {
+    $('fErrore').textContent = r.stato === 0 ? 'Non riesco a collegarmi: controlla la connessione e riprova.'
+      : r.stato >= 500 ? 'Non sono riuscito a salvare. Riprova fra un momento.'
+      : 'C\'è qualcosa che non va: ' + (PERCHE[r.perche] || r.perche || '?') + '.';
+    $('fErrore').hidden = false;
+  }
+
   $('modulo').addEventListener('submit', function (e) {
     e.preventDefault();
     var chi = document.querySelector('input[name="chi"]:checked');
     var dati = {
       chi: chi ? chi.value : '', quando: $('fGiorno').value + 'T' + $('fOra').value.slice(0, 5),
       descr: $('fDescr').value, note: $('fNote').value, da: st.io,
+      ripeti: $('fRipeti').value,
+      giorni: caselleGiorni().filter(function (c) { return c.checked; }).map(function (c) { return c.value; }).join(','),
+      fino: $('fRipeti').value ? $('fFino').value : '',
     };
     if (!dati.descr.trim()) {
       $('fErrore').textContent = 'Scrivi una descrizione.';
       $('fErrore').hidden = false;
       return;
     }
+    if (dati.ripeti === 'settimana' && !dati.giorni) return erroreScheda({ stato: 400, perche: 'giorni' });
     var ev = inScheda;
-    if (ev) dati.rev = ev.rev;
-    occupato(true);
-    chiama(ev ? 'PUT' : 'POST', ev ? '/eventi/' + ev.id : '/eventi', dati).then(function (r) {
-      occupato(false);
-      if (r.stato === 0 || r.stato >= 500 || r.stato === 400 || r.stato === 413) {
-        // la finestra resta aperta: quello che è stato scritto non va perso
-        $('fErrore').textContent = r.stato === 0 ? 'Non riesco a collegarmi: controlla la connessione e riprova.'
-          : r.stato >= 500 ? 'Non sono riuscito a salvare. Riprova fra un momento.'
-          : 'C\'è qualcosa che non va in quello che hai scritto (' + (r.perche || '?') + ').';
-        $('fErrore').hidden = false;
-        return;
+    if (!ev || !ev.ripeti || !dati.ripeti) {
+      // un appuntamento nuovo, uno singolo, o una serie che smette di ripetersi (resta la volta aperta)
+      if (ev) dati.rev = ev.rev;
+      return salva(ev ? 'PUT' : 'POST', ev ? '/eventi/' + ev.id : '/eventi', dati);
+    }
+    var giorno = ev.quando.slice(0, 10);
+    scegli('«' + ev.descr + '» si ripete (' + descriviRegola(ev) + '). Cosa cambio?', [
+      { testo: 'Solo questo, del ' + dataBreve(giorno), valore: 'solo' },
+      { testo: 'Tutte le ripetizioni', valore: 'tutte', classe: 'primario' },
+      { testo: 'Annulla', valore: null },
+    ]).then(function (s) {
+      if (s === 'solo') {
+        // diventa un appuntamento a se', con giorno e ora scritti nella finestra; la serie salta quel giorno
+        salva('POST', '/eventi/' + ev.id + '/stacca', { data: giorno, rev: ev.rev, da: st.io, chi: dati.chi, quando: dati.quando, descr: dati.descr, note: dati.note });
+      } else if (s === 'tutte') {
+        // se nella finestra si e' spostato il giorno, si sposta di altrettanto l'inizio della serie
+        var spostamento = Math.round((daIso(dati.quando.slice(0, 10)) - daIso(giorno)) / 864e5);
+        dati.quando = iso(piu(daIso(ev.inizio.slice(0, 10)), spostamento)) + dati.quando.slice(10);
+        dati.rev = ev.rev;
+        salva('PUT', '/eventi/' + ev.id, dati, iso(piu(daIso(giorno), spostamento)));
       }
-      chiudi();
-      if (esito(r)) return vai(dati.quando.slice(0, 10)), carica();
-      carica();
     });
   });
 
+  /** Manda al Worker; se va bene chiude la finestra e va al giorno dell'appuntamento. */
+  function salva(come, via, dati, vaiA) {
+    occupato(true);
+    chiama(come, via, dati).then(function (r) {
+      occupato(false);
+      if (r.stato === 0 || r.stato >= 500 || r.stato === 400 || r.stato === 413) return erroreScheda(r);
+      chiudi();
+      if (esito(r)) vai(vaiA || dati.quando.slice(0, 10));
+      carica();
+    });
+  }
+
   $('fTogli').addEventListener('click', function () {
     var ev = inScheda;
-    if (!ev || !confirm('Elimino "' + ev.descr + '" del ' + ev.quando.slice(8, 10) + '/' + ev.quando.slice(5, 7) + '?')) return;
-    occupato(true);
-    chiama('DELETE', '/eventi/' + ev.id + '?da=' + st.io).then(function (r) {
-      chiudi();
-      esito(r);
-      carica();
+    if (!ev) return;
+    var giorno = ev.quando.slice(0, 10);
+    var domanda = ev.ripeti
+      ? scegli('«' + ev.descr + '» si ripete (' + descriviRegola(ev) + '). Cosa elimino?', [
+        { testo: 'Solo questo, del ' + dataBreve(giorno), valore: '&solo=' + giorno },
+        { testo: 'Tutte le ripetizioni', valore: '', classe: 'pericolo' },
+        { testo: 'Annulla', valore: null },
+      ])
+      : Promise.resolve(confirm('Elimino «' + ev.descr + '» del ' + dataBreve(giorno) + '?') ? '' : null);
+    domanda.then(function (quale) {
+      if (quale === null) return;
+      occupato(true);
+      chiama('DELETE', '/eventi/' + ev.id + '?da=' + st.io + quale).then(function (r) {
+        chiudi();
+        esito(r);
+        carica();
+      });
     });
   });
   $('fAnnulla').addEventListener('click', chiudi);

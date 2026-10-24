@@ -159,8 +159,8 @@
   #modulo .perchi label.scelta { position: relative; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 46px; padding: 6px;
     border: 2px solid var(--linea); border-radius: 10px; background: var(--carta); color: var(--testo); font-size: 15px; cursor: pointer; }
   .perchi input { position: absolute; opacity: 0; width: 100%; height: 100%; left: 0; top: 0; margin: 0; cursor: pointer; }
-  .perchi label.scelta:has(input:checked) { border-color: var(--c); background: var(--s); font-weight: bold; }
-  .perchi label.scelta:has(input:focus-visible) { outline: 3px solid var(--accento); outline-offset: 2px; }
+  #modulo .perchi label.scelta:has(input:checked) { border-color: var(--c); background: var(--s); font-weight: bold; }
+  #modulo .perchi label.scelta:has(input:focus-visible) { outline: 3px solid var(--accento); outline-offset: 2px; }
   .due { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
   .con-bottone { display: flex; gap: 8px; }
   .con-bottone button { white-space: nowrap; }
