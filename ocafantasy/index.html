@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Goose Game — Web</title>
+    <base href="/ocafantasy/" />
+    <link rel="stylesheet" href="css/app.css?v=1.59.1" /> <!-- ?v= = AppInfo.Version: a ogni rilascio, cosi il browser non tiene il CSS vecchio -->
+    <!-- If you add any scoped CSS files, uncomment the following to load them
+    <link href="GooseGame.Web.styles.css" rel="stylesheet" /> -->
+</head>
+
+<body>
+    <div id="app">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        // Schermo intero (come F11): i browser lo permettono solo dopo un clic dell'utente.
+        window.ggFullscreen = function (on) {
+            try {
+                if (on && !document.fullscreenElement) return document.documentElement.requestFullscreen().catch(function () { });
+                if (!on && document.fullscreenElement) return document.exitFullscreen().catch(function () { });
+            } catch (e) { }
+        };
+        window.ggIsFullscreen = function () { return !!document.fullscreenElement; };
+        // Firefox avvia un trascinamento solo se c'e' un dato: lo aggiungiamo per l'inventario.
+        document.addEventListener('dragstart', function (e) {
+            if (e.target && e.target.closest && e.target.closest('.gg-inv') && e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', 'goosegame-item');
+            }
+        });
+    </script>
+</body>
+
+</html>
