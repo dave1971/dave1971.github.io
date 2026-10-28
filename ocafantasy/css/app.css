@@ -569,10 +569,21 @@ code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-si
    schede orizzontali (icona | nome e pulsante), sempre due per riga; due righe visibili, poi scorre. */
 .gg-book-text { display: contents; }
 .gg-book-spell .gg-btn:disabled { width: 100%; font-size: 12px; }
-.gg-inv-menu .gg-book { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 148px; overflow: auto; margin-bottom: 0; }
+.gg-inv-menu .gg-book { grid-template-columns: repeat(2, minmax(0, 1fr)); flex: 1 1 auto; min-height: 0; overflow: auto; margin-bottom: 0; align-content: start; }
 .gg-inv-menu .gg-book-spell { background: var(--panel); flex-direction: row; text-align: left; align-items: center; gap: 8px; padding: 6px; }
 .gg-inv-menu .gg-book-spell img { width: 40px; height: 40px; flex: none; }
 .gg-inv-menu .gg-book-glyph { font-size: 28px; line-height: 40px; flex: none; }
 .gg-inv-menu .gg-book-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
 .gg-inv-menu .gg-book-name { font-size: 12px; -webkit-line-clamp: 1; }
 .gg-inv-menu .gg-book-spell .gg-btn { width: 100%; padding: 4px 6px; font-size: 12px; }
+
+/* Il pannello dei dettagli dell'oggetto (e del libro) nell'inventario: occupa la colonna dello zaino fino
+   in fondo, cosi' il bordo in basso e' allineato a quello della cintura. Il posto e' un contenitore che
+   non allunga la finestra (il pannello dentro e' assoluto); il contenuto lungo scorre nel pannello. */
+.gg-inv-body > section:last-child { display: flex; flex-direction: column; }
+.gg-inv-menu-slot { flex: 1 1 auto; position: relative; min-height: 110px; margin-top: 14px; }
+.gg-inv-menu-slot > .gg-inv-menu { position: absolute; inset: 0; margin-top: 0; display: flex; flex-direction: column; overflow: auto; }
+@media (max-width: 760px) {
+  .gg-inv-menu-slot { min-height: 0; }
+  .gg-inv-menu-slot > .gg-inv-menu { position: static; }
+}
