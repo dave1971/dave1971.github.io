@@ -565,19 +565,7 @@ code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-si
 .gg-book-glyph { font-size: 40px; line-height: 56px; }
 .gg-book-name { font-size: 13px; font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .gg-book-spell .gg-btn-main { padding: 6px 10px; font-size: 13px; width: 100%; }
-/* Lo stesso libro nel menu dell'inventario, in versione compatta (la finestra deve stare nello schermo):
-   schede orizzontali (icona | nome e pulsante), sempre due per riga; due righe visibili, poi scorre. */
-.gg-book-text { display: contents; }
-.gg-book-spell .gg-btn:disabled { width: 100%; font-size: 12px; }
-.gg-inv-menu .gg-book { grid-template-columns: repeat(2, minmax(0, 1fr)); flex: 1 1 auto; min-height: 0; overflow: auto; margin-bottom: 0; align-content: start; }
-.gg-inv-menu .gg-book-spell { background: var(--panel); flex-direction: row; text-align: left; align-items: center; gap: 8px; padding: 6px; }
-.gg-inv-menu .gg-book-spell img { width: 40px; height: 40px; flex: none; }
-.gg-inv-menu .gg-book-glyph { font-size: 28px; line-height: 40px; flex: none; }
-.gg-inv-menu .gg-book-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
-.gg-inv-menu .gg-book-name { font-size: 12px; -webkit-line-clamp: 1; }
-.gg-inv-menu .gg-book-spell .gg-btn { width: 100%; padding: 4px 6px; font-size: 12px; }
-
-/* Il pannello dei dettagli dell'oggetto (e del libro) nell'inventario: occupa la colonna dello zaino fino
+/* Il pannello dei dettagli dell'oggetto nell'inventario: occupa la colonna dello zaino fino
    in fondo, cosi' il bordo in basso e' allineato a quello della cintura. Il posto e' un contenitore che
    non allunga la finestra (il pannello dentro e' assoluto); il contenuto lungo scorre nel pannello. */
 .gg-inv-body > section:last-child { display: flex; flex-direction: column; }
@@ -586,4 +574,26 @@ code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-si
 @media (max-width: 760px) {
   .gg-inv-menu-slot { min-height: 0; }
   .gg-inv-menu-slot > .gg-inv-menu { position: static; }
+}
+
+/* La finestra del libro degli incantesimi (1.61.8): sopra l'inventario e grande quanto lui. Una pagina con
+   un posto per ogni incantesimo del gioco (--cols x --rows, 5 x 3 con i 15 di serie): le schede si
+   adattano allo spazio, nessuno scorrimento. Sul telefono 3 colonne e si scorre. */
+.gg-inv { position: relative; }
+.gg-book-form { position: absolute; inset: 0; z-index: 3; background: var(--panel); border-radius: 14px; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; }
+.gg-book-form .gg-inv-head h2 { color: var(--gold); }
+.gg-book-form > p { margin: 0; }
+.gg-book-pages { flex: 1 1 auto; min-height: 0; display: grid; gap: 10px;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr)); }
+.gg-book-page { min-height: 0; min-width: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; text-align: center;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+.gg-book-page > img { flex: 1 1 auto; min-height: 24px; max-height: 84px; width: 100%; object-fit: contain; }
+.gg-book-page > .gg-book-glyph { flex: 1 1 auto; font-size: 40px; display: flex; align-items: center; }
+.gg-book-page .gg-book-name { flex: none; font-size: 13px; }
+.gg-book-page .gg-book-desc { flex: none; font-size: 11px; color: var(--muted); line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.gg-book-page .gg-btn { flex: none; width: 100%; padding: 5px 8px; font-size: 12px; }
+.gg-book-page-empty { justify-content: center; font-size: 28px; color: var(--line); border-style: dashed; background: transparent; }
+@media (max-width: 760px) {
+  .gg-book-form { overflow: auto; }
+  .gg-book-pages { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: 150px; flex: none; }
 }
