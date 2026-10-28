@@ -357,15 +357,17 @@ code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-si
 
 /* ---- disposizione secondo lo schermo
    Base (da 1000 punti): tabellone | eroi in breve + turno + diario.
-   Schermi larghi (da 1700 punti e almeno 16:10, es. 1920x1080): tabellone | schede complete degli eroi
-   (due colonne se c'e' posto) | turno + diario. Le schede in breve spariscono. */
+   Schermi larghi (da 1300 punti e almeno 16:10, es. 1366x768, 1440x900, 1920x1080): tabellone | schede
+   complete degli eroi (due colonne se c'e' posto) | turno + diario. Le schede in breve spariscono.
+   Il tabellone e' alto quanto la finestra ma largo al massimo 35vw + 248px: a 1920 resta 920 (come
+   prima), a 1366 e' limitato dall'altezza (664) e lascia ~350 punti alle schede. */
 .gg-hero-cards-wrap { display: none; }
-@media (min-width: 1700px) and (min-aspect-ratio: 16/10) {
+@media (min-width: 1300px) and (min-aspect-ratio: 16/10) {
   /* tabellone | schede complete degli eroi, sotto l'evento | turno + diario contro il bordo destro */
-  .gg-center { grid-template-columns: auto minmax(0, 1fr) 320px; grid-template-rows: auto minmax(0, 1fr); justify-content: stretch; }
+  .gg-center { grid-template-columns: auto minmax(0, 1fr) clamp(260px, 17vw, 320px); grid-template-rows: auto minmax(0, 1fr); justify-content: stretch; }
   .gg-center > .gg-board-card { grid-column: 1; grid-row: 1 / 3; }
   .gg-center > .gg-right { grid-column: 3; grid-row: 1 / 3; }
-  .gg-wide .gg-board { width: min(calc(100vh - 104px), calc(100vw - 1000px)); }
+  .gg-wide .gg-board { width: min(calc(100vh - 104px), calc(35vw + 248px)); }
   .gg-hero-cards-wrap { display: block; grid-column: 2; grid-row: 1; }
   .gg-hero-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; align-content: start; }
   .gg-hero-chips { display: none; }
@@ -380,6 +382,16 @@ code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-si
   .gg-hero-cards .gg-hero > .gg-inv-open .gg-inv-full { display: none; }   /* qui "Zaino x/12", su una riga */
   .gg-hero-cards .gg-hero > .gg-inv-open .gg-inv-short { display: inline; }
   .gg-hero-cards .gg-hero > h3, .gg-hero-cards .gg-hero > .gg-effects { grid-column: 1 / -1; }
+}
+/* Larghi ma non abbastanza (es. 1366x768, 1440x900, 1680x1050): sotto le schede non c'e' posto per
+   l'evento (troppo bassi, o le schede stanno su una colonna sola e la riempiono). L'evento torna sopra il
+   tabellone e la colonna di mezzo e' tutta per le schede, alta quanto il tabellone (scorre). */
+@media (min-width: 1300px) and (min-aspect-ratio: 16/10) and (max-height: 949px),
+       (min-width: 1300px) and (min-aspect-ratio: 16/10) and (max-width: 1799px) {
+  .gg-hero-cards-wrap { grid-row: 1 / 3; position: relative; min-height: 0; }
+  .gg-hero-cards { position: absolute; inset: 0; overflow: auto; padding-right: 4px; }
+  .gg-ev-slot { grid-column: 1; grid-row: 1 / 3; }
+  .gg-ev-slot .gg-board-event { inset: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
 }
 .gg-inv-short { display: none; }
 
