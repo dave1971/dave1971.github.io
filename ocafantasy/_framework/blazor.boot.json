@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "GooseGame.Web",
   "resources": {
-    "hash": "sha256-iKfRfqz0mRYRpkoLicPRW+peAGTxYpSF7jABuskSK1c=",
+    "hash": "sha256-1kesMP3rYxkGZRgzb9fk85PtWQHYkFME4wQ+pEdDbmI=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-6mDkQm8wcqsePLieS1uDjmZJGTlxyzuaoKrjt7Rlztk="
     },
@@ -18,8 +18,8 @@
     },
     "coreAssembly": {},
     "assembly": {
-      "GooseGame.Core.wasm": "sha256-WenwabHDM4ftFzUqx6nW3tAtf/AUohBNF8gKy4msdlo=",
-      "GooseGame.Web.wasm": "sha256-Pxppa0gBM5VBoQJQCgor6CurxvSy7lDH/PVwNWBO1y0=",
+      "GooseGame.Core.wasm": "sha256-HbHgt2fm67KyOSK9T5lNPg7EtNZWaXbdkdBasihSzZM=",
+      "GooseGame.Web.wasm": "sha256-OhfIUimbDesMM884Mr9y8ZY2Z55wFQCyhqT3RmuI9jo=",
       "Microsoft.AspNetCore.Components.Web.wasm": "sha256-ZxF0UTnStcCNYDJUC3EHbWCpJRjiiHRQ0xAkbJeLDUI=",
       "Microsoft.AspNetCore.Components.WebAssembly.wasm": "sha256-7i3+BtLSIP/4UtDHyC5FVROlQFMGA5CJRxqaRxLT+dM=",
       "Microsoft.AspNetCore.Components.wasm": "sha256-Cu0pVb8m5ABeMGcLxAnfy1rkbGuORM7oD2bJImbudCo=",
