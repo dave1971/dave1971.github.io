@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RD Cast</title>
+<meta name="description" content="Lo schermo del telefono Android sulla TV, anche dove manca Chromecast: un'app sul telefono e una sulla TV.">
+<style>
+  :root { --bg: #10141f; --panel: rgba(255,255,255,0.06); --line: rgba(255,255,255,0.16); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: #fff; min-height: 100vh;
+    font-family: "Trebuchet MS", Arial, sans-serif; display: flex; justify-content: center; }
+  main { width: 100%; max-width: 680px; padding: 28px 16px 60px; }
+  .su { font-size: 14px; }
+  h1 { font-size: 40px; margin: 18px 0 2px; color: #ff4fd8; font-style: italic; letter-spacing: 1px; }
+  .sub { color: #b0bec5; margin: 10px 0 22px; font-size: 15px; }
+  /* l'anteprima ha margini larghi perche' la scheda della pagina d'ingresso ne ritaglia i lati:
+     qui la ritagliamo a nostra volta, piu' stretta, cosi' il soggetto riempie il banner */
+  img.banner { width: 100%; aspect-ratio: 5 / 4; object-fit: cover; height: auto;
+    border-radius: 12px; border: 2px solid var(--line); display: block; }
+  a.dl { display: block; text-align: center; margin: 26px 0 10px; padding: 18px;
+    background: #43a047; color: #fff; text-decoration: none; font-size: 22px; font-weight: bold;
+    border-radius: 14px; border: 3px solid rgba(0,0,0,0.45); box-shadow: 0 5px 0 rgba(0,0,0,0.4); }
+  a.dl + a.dl { margin-top: 14px; }
+  a.dl.tv { background: #1565c0; }
+  a.dl:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+  a.dl small { display: block; font-size: 13px; font-weight: normal; opacity: 0.85; margin-top: 4px; }
+  .ver { text-align: center; color: #7CFC00; font-size: 14px; min-height: 20px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 18px; margin: 18px 0; }
+  h2 { font-size: 17px; margin: 0 0 8px; color: #ffd600; }
+  p, li { font-size: 15px; line-height: 1.5; color: #e0e0e0; margin: 6px 0; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  code { background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 4px; word-break: break-all; }
+  footer { color: #78909c; font-size: 13px; text-align: center; margin-top: 30px; }
+  a { color: #90caf9; }
+</style>
+</head>
+<body>
+<main>
+  <a class="su" href="../">‹ dave1971 · giochi e strumenti</a>
+  <h1>RD CAST</h1>
+  <div class="sub">Lo schermo del telefono Android sulla TV, con l'audio, anche sulle TV che accettano solo AirPlay dall'iPhone. Due app: una sul telefono che trasmette, una sulla TV che riceve.</div>
+  <img class="banner" src="anteprima.jpg" alt="RD Cast: il telefono trasmette lo schermo alla TV" width="1280" height="720">
+
+  <a class="dl" href="RDCast.apk">TELEFONO: RD CAST<small>trasmette · Android 10 o più recente · .apk</small></a>
+  <a class="dl tv" href="RDCast-TV.apk">TV: RD CAST TV<small>riceve · Android TV / Google TV 8.0 o più recente · .apk</small></a>
+  <div class="ver" id="ver"></div>
+
+  <section>
+    <h2>A cosa serve</h2>
+    <p>Mostra sulla TV tutto quello che c'è sullo schermo del telefono: foto, video, app, giochi, una presentazione. Il telefono può stare in verticale o in orizzontale: la TV si adatta da sola. Arriva anche l'audio delle app.</p>
+    <p>Funziona in casa, sulla tua rete: telefono e TV devono essere collegati alla stessa rete (la TV può essere via cavo e il telefono in Wi-Fi). Non passa niente da Internet.</p>
+  </section>
+
+  <section>
+    <h2>Come si installa sul telefono</h2>
+    <ul>
+      <li>Scarica <i>RDCast.apk</i> direttamente sul telefono e aprilo.</li>
+      <li>La prima volta Android chiede di consentire l'installazione di app da quella fonte (il browser o il gestore dei file): <i>Impostazioni</i> → <i>Consenti da questa fonte</i>, poi torna indietro e tocca <i>Installa</i>.</li>
+      <li>Play Protect può avvisare che non conosce l'app: <i>Installa comunque</i>. Succede a tutte le app che non arrivano dal Play Store.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Come si installa sulla TV</h2>
+    <p>Serve una TV con Android TV o Google TV (per esempio le Sony Bravia). Il modo più semplice:</p>
+    <ol>
+      <li>Sulla TV, dal Play Store, installa l'app <b>Downloader</b> (quella con l'icona arancione).</li>
+      <li>Aprila e scrivi l'indirizzo <code>dave1971.github.io/rd-cast/RDCast-TV.apk</code>, poi <i>Go</i>.</li>
+      <li>Alla fine del download la TV chiede di consentire le app da <i>Downloader</i>: consenti, torna indietro e scegli <i>Installa</i>.</li>
+    </ol>
+    <p>Se la TV non mostra la voce per consentire le app di origine sconosciuta, va prima attivata la modalità sviluppatore: <i>Impostazioni</i> → <i>Sistema</i> → <i>Informazioni</i>, poi premi 7 volte su <i>Build del sistema operativo Android TV</i>. Dopo la trovi in <i>Impostazioni</i> → <i>App</i> → <i>Sicurezza e limitazioni</i> → <i>Origini sconosciute</i>. I nomi delle voci possono cambiare un po' da un modello all'altro.</p>
+    <p>In alternativa puoi copiare <i>RDCast-TV.apk</i> su una chiavetta USB e aprirlo sulla TV con un gestore di file.</p>
+  </section>
+
+  <section>
+    <h2>Come si usa</h2>
+    <ol>
+      <li>Sulla TV apri <b>RD Cast TV</b>: compare "Pronta a ricevere", con il nome e l'indirizzo della TV.</li>
+      <li>Sul telefono apri <b>RD Cast</b>: la TV compare da sola nell'elenco. Se non compare, scrivi l'indirizzo che vedi sulla TV.</li>
+      <li>Tocca la TV e conferma la richiesta di Android di trasmettere lo schermo. Dopo un attimo lo schermo del telefono è sulla TV.</li>
+      <li>Per smettere tocca <b>Interrompi</b> nell'app o nella notifica, oppure premi <i>Indietro</i> sul telecomando.</li>
+    </ol>
+    <p>Puoi scegliere la qualità: 720p, 1080p (quella di partenza) o massima. Se la rete rallenta l'immagine salta qualche fotogramma ma non accumula ritardo.</p>
+  </section>
+
+  <section>
+    <h2>Da sapere</h2>
+    <ul>
+      <li>Netflix e le altre app con contenuti protetti appaiono nere sulla TV, e alcune app di streaming restano senza audio: è una regola di Android, non si può aggirare. Per quelle usa l'app sulla TV.</li>
+      <li>Una sola trasmissione alla volta: se un secondo telefono si collega, prende il posto del primo.</li>
+      <li>Se il telefono non trova la TV, controlla che siano sulla stessa rete. Alcune reti Wi-Fi per gli ospiti isolano i dispositivi fra loro.</li>
+    </ul>
+  </section>
+
+  <footer>RD Cast · <span id="v2"></span></footer>
+</main>
+<script>
+  fetch('version.json', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      document.getElementById('ver').textContent = 'versione ' + d.versionName + (d.note ? ' — ' + d.note : '');
+      document.getElementById('v2').textContent = 'versione ' + d.versionName;
+    })
+    .catch(function () { });
+</script>
+<script src="/conta.js" defer></script>
+</body>
+</html>
