@@ -67,7 +67,12 @@
   .nav button:last-child, .viste button:last-child { border-radius: 0 10px 10px 0; }
   .nav button { min-width: 44px; }
   .viste button[aria-pressed="true"] { background: var(--accento); color: var(--su-accento); border-color: var(--accento); }
-  #periodo { font-size: 20px; margin: 0; text-transform: capitalize; }
+  /* la barra del periodo: il mese (o la settimana) in grande, e le frecce col nome di quello prima e dopo */
+  .mesebar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px;
+    margin: 12px 0 2px; padding: 6px; background: var(--carta); border: 1px solid var(--linea); border-radius: 14px; }
+  #periodo { margin: 0; text-align: center; font-size: 26px; text-transform: capitalize; }
+  .freccia { min-height: 48px; min-width: 48px; padding: 6px 14px; font-size: 15px; white-space: nowrap; }
+  .freccia .segno { font-size: 30px; font-weight: bold; line-height: 1; vertical-align: -4px; }
   .legenda { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0 10px; font-size: 13px; color: var(--tenue); }
   .legenda span { display: inline-flex; align-items: center; gap: 6px; }
   .legenda i { width: 12px; height: 12px; border-radius: 50%; background: var(--c); display: inline-block; }
@@ -137,7 +142,9 @@
   @media (max-width: 699px) {
     #app { padding: 10px 10px 50px; }
     .testa h1 { font-size: 19px; }
-    #periodo { font-size: 17px; order: -1; width: 100%; }
+    #periodo { font-size: 20px; }
+    .freccia { padding: 6px 8px; font-size: 13px; }
+    .freccia .nome { display: none; }
     .cella { min-height: 58px; padding: 3px 1px; text-align: center; }
     .chips { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 3px; }
     .chip { width: 9px; height: 9px; padding: 0; border: 0; border-radius: 50%; background: var(--c); font-size: 0; pointer-events: none; }
@@ -161,7 +168,22 @@
   .perchi input { position: absolute; opacity: 0; width: 100%; height: 100%; left: 0; top: 0; margin: 0; cursor: pointer; }
   #modulo .perchi label.scelta:has(input:checked) { border-color: var(--c); background: var(--s); font-weight: bold; }
   #modulo .perchi label.scelta:has(input:focus-visible) { outline: 3px solid var(--accento); outline-offset: 2px; }
-  .due { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
+  .due { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .durata { margin: -6px 0 0; font-size: 12.5px; color: var(--tenue); }
+  fieldset.ripeti { display: grid; gap: 8px; }
+  fieldset.ripeti select { margin-top: 5px; }
+  .giorni { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  #modulo .giorni label { position: relative; display: flex; align-items: center; justify-content: center; min-height: 40px;
+    border: 2px solid var(--linea); border-radius: 10px; background: var(--carta); color: var(--testo); font-size: 15px; cursor: pointer; }
+  .giorni input { position: absolute; opacity: 0; width: 100%; height: 100%; left: 0; top: 0; margin: 0; cursor: pointer; }
+  #modulo .giorni label:has(input:checked) { background: var(--accento); border-color: var(--accento); color: var(--su-accento); font-weight: bold; }
+  #modulo .giorni label:has(input:focus-visible) { outline: 3px solid var(--accento); outline-offset: 2px; }
+  .mesesett { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mesesett select { margin-top: 0 !important; }
+  .ev .giro { display: block; margin-top: 4px; font-size: 12.5px; color: var(--tenue); }
+  #dScelta .dentro { padding: 18px; display: grid; gap: 10px; }
+  #dScelta p { margin: 0 0 4px; font-size: 16px; }
+  #sceltaBottoni { display: grid; gap: 8px; }
   .con-bottone { display: flex; gap: 8px; }
   .con-bottone button { white-space: nowrap; }
   .storia { margin: 0; font-size: 12.5px; color: var(--tenue); }
@@ -196,12 +218,7 @@
       <button type="button" id="esci" class="piano">Esci</button>
     </div>
     <div class="riga comandi">
-      <div class="nav">
-        <button type="button" id="prima" aria-label="Indietro">‹</button>
-        <button type="button" id="oggi">Oggi</button>
-        <button type="button" id="dopo" aria-label="Avanti">›</button>
-      </div>
-      <h2 id="periodo"></h2>
+      <button type="button" id="oggi">Oggi</button>
       <span class="spazio"></span>
       <div class="viste" role="group" aria-label="Vista">
         <button type="button" id="vMese">Mese</button>
@@ -209,6 +226,11 @@
       </div>
       <button type="button" id="nuovo" class="primario">+ Nuovo</button>
     </div>
+    <nav class="mesebar" aria-label="Cambia periodo">
+      <button type="button" id="prima" class="freccia"><span class="segno" aria-hidden="true">‹</span> <span class="nome" id="primaNome"></span></button>
+      <h2 id="periodo" aria-live="polite"></h2>
+      <button type="button" id="dopo" class="freccia"><span class="nome" id="dopoNome"></span> <span class="segno" aria-hidden="true">›</span></button>
+    </nav>
     <div class="legenda">
       <span class="mamma"><i></i>Mamma</span>
       <span class="papa"><i></i>Papà</span>
@@ -242,12 +264,54 @@
         <label class="scelta entrambi"><input type="radio" name="chi" value="entrambi">Mamma e papà</label>
       </div>
     </fieldset>
+    <label>Giorno <input type="date" id="fGiorno" min="2000-01-01" max="2100-12-31" required></label>
     <div class="due">
-      <label>Giorno <input type="date" id="fGiorno" min="2000-01-01" max="2100-12-31" required></label>
-      <label>Ora <input type="time" id="fOra" required></label>
+      <label>Inizio <input type="time" id="fOra" required></label>
+      <label>Fine <input type="time" id="fFine" required></label>
     </div>
+    <p class="durata" id="fDurata"></p>
     <label>Descrizione <input type="text" id="fDescr" maxlength="120" required autocomplete="off"></label>
     <label>Note <textarea id="fNote" maxlength="2000" rows="4"></textarea></label>
+    <fieldset class="ripeti">
+      <legend>Si ripete</legend>
+      <select id="fRipeti" aria-label="Si ripete">
+        <option value="">No, una volta sola</option>
+        <option value="giorno">Ogni giorno</option>
+        <option value="settimana">Ogni settimana</option>
+        <option value="mese">Ogni mese, lo stesso giorno</option>
+        <option value="mese-sett">Ogni mese, un giorno della settimana</option>
+        <option value="anno">Ogni anno</option>
+      </select>
+      <div class="giorni" id="fGiorni" hidden>
+        <label title="lunedì"><input type="checkbox" value="1">L</label>
+        <label title="martedì"><input type="checkbox" value="2">M</label>
+        <label title="mercoledì"><input type="checkbox" value="3">M</label>
+        <label title="giovedì"><input type="checkbox" value="4">G</label>
+        <label title="venerdì"><input type="checkbox" value="5">V</label>
+        <label title="sabato"><input type="checkbox" value="6">S</label>
+        <label title="domenica"><input type="checkbox" value="7">D</label>
+      </div>
+      <div class="mesesett" id="fMeseSett" hidden>
+        <select id="fPos" aria-label="Quale nel mese">
+          <option value="1">il primo</option>
+          <option value="2">il secondo</option>
+          <option value="3">il terzo</option>
+          <option value="4">il quarto</option>
+          <option value="-1">l'ultimo</option>
+        </select>
+        <select id="fSett" aria-label="Giorno della settimana">
+          <option value="1">lunedì</option>
+          <option value="2">martedì</option>
+          <option value="3">mercoledì</option>
+          <option value="4">giovedì</option>
+          <option value="5">venerdì</option>
+          <option value="6">sabato</option>
+          <option value="7">domenica</option>
+        </select>
+      </div>
+      <p class="storia" id="fRegola"></p>
+      <label id="fFinoRiga" hidden>Fino al (vuoto = per sempre) <input type="date" id="fFino" min="2000-01-01" max="2100-12-31"></label>
+    </fieldset>
     <label>Se ne occupa
       <span class="con-bottone"><select id="fFiglio"></select><button type="button" id="fIo">Me ne occupo io</button></span>
     </label>
@@ -262,6 +326,14 @@
   </form>
 </dialog>
 
+<!-- la domanda "solo questo o tutte?" per gli appuntamenti che si ripetono -->
+<dialog id="dScelta">
+  <div class="dentro">
+    <p id="sceltaTesto"></p>
+    <div id="sceltaBottoni"></div>
+  </div>
+</dialog>
+
 <script>
 (function () {
   'use strict';
@@ -269,7 +341,7 @@
   // La pagina è pubblica e non contiene niente: appuntamenti e nomi arrivano dal Worker, e solo
   // dopo la parola d'ordine. In locale (python -m http.server) parla col Worker di `wrangler dev`.
   var LOCALE = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  var API = LOCALE ? 'http://127.0.0.1:8787' : 'https://calendario-famiglia.olimpiadi-dave1971.workers.dev';
+  var API = LOCALE ? 'http://127.0.0.1:8789' : 'https://calendario-famiglia.olimpiadi-dave1971.workers.dev';
   var CHIAVE = 'calendario-famiglia';
   var MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
   var GIORNI = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
@@ -377,11 +449,85 @@
       .sort(function (a, b) { return a.quando < b.quando ? -1 : a.quando > b.quando ? 1 : 0; });
   }
 
+  // ---------- durata, ripetizioni e domande ----------
+  var DURATA = 60;                 // minuti: quella degli appuntamenti nuovi, e di quelli scritti prima che ci fosse
+  function minuti(hm) { var p = hm.split(':'); return +p[0] * 60 + +p[1]; }
+  function hm(m) { m = ((m % 1440) + 1440) % 1440; return due(Math.floor(m / 60)) + ':' + due(m % 60); }
+  function testoDurata(m) {
+    var h = Math.floor(m / 60), r = m % 60;
+    return (h ? h + (h === 1 ? ' ora' : ' ore') : '') + (h && r ? ' e ' : '') + (r ? r + ' minuti' : '');
+  }
+  /** "09:30–10:30" */
+  function orario(ev) {
+    var i = ev.quando.slice(11);
+    return i + '–' + hm(minuti(i) + (ev.durata || DURATA));
+  }
+
+  var CORTI = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
+  var ORDINALI = { '1': 'il primo', '2': 'il secondo', '3': 'il terzo', '4': 'il quarto', '-1': 'l\'ultimo' };
+  function dataBreve(s) { return s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4); }
+  /** '2:4' -> "il secondo giovedì", '-1:2' -> "l'ultimo martedì" */
+  function nelMese(nw) {
+    var p = String(nw).split(':');
+    return ORDINALI[p[0]] + ' ' + GIORNI[+p[1] - 1];
+  }
+  /** Il giorno 'AAAA-MM-GG' come 'N:G' (il quinto della settimana nel mese diventa l'ultimo). */
+  function posizioneNelMese(giorno) {
+    var d = daIso(giorno), n = Math.ceil(d.getDate() / 7);
+    return (n > 4 ? -1 : n) + ':' + ((d.getDay() + 6) % 7 + 1);
+  }
+  /** "ogni lun e gio fino al 30/06/2027", "l'ultimo martedì del mese", ... per un appuntamento che si ripete. */
+  function descriviRegola(ev) {
+    var g = +ev.inizio.slice(8, 10), s;
+    if (ev.ripeti === 'giorno') s = 'ogni giorno';
+    else if (ev.ripeti === 'settimana') {
+      var n = ev.giorni.split(',').map(function (x) { return CORTI[x - 1]; });
+      s = 'ogni ' + (n.length > 1 ? n.slice(0, -1).join(', ') + ' e ' + n[n.length - 1] : n[0]);
+    } else if (ev.ripeti === 'mese') s = 'ogni mese il ' + g;
+    else if (ev.ripeti === 'mese-sett') s = nelMese(ev.giorni) + ' del mese';
+    else s = 'ogni anno il ' + g + ' ' + MESI[+ev.inizio.slice(5, 7) - 1];
+    return s + (ev.fino ? ' fino al ' + dataBreve(ev.fino) : '');
+  }
+
+  /** Una domanda con piu' risposte (confirm ne ha due sole): una Promise col valore scelto, o null. */
+  function scegli(domanda, risposte) {
+    return new Promise(function (fatto) {
+      var d = $('dScelta'), box = $('sceltaBottoni'), scelta = null;
+      $('sceltaTesto').textContent = domanda;
+      box.textContent = '';
+      risposte.forEach(function (r) {
+        var b = el('button', r.classe || '', r.testo);
+        b.type = 'button';
+        b.addEventListener('click', function () { scelta = r.valore; d.close(); });
+        box.appendChild(b);
+      });
+      d.addEventListener('close', function chiusa() { d.removeEventListener('close', chiusa); fatto(scelta); });
+      d.showModal();
+    });
+  }
+  function rispostaSerie(ev, cosa) {
+    return [
+      { testo: 'Solo ' + cosa + ', del ' + dataBreve(ev.quando.slice(0, 10)), valore: 'solo' },
+      { testo: 'Tutte le ripetizioni', valore: 'tutte', classe: 'primario' },
+      { testo: 'Annulla', valore: null },
+    ];
+  }
+
   function prendi(ev) {
-    if (ev.figlio && ev.figlio !== st.io && !confirm('Adesso se ne occupa ' + nomeFiglio(ev.figlio) + '. Lo prendi tu?')) return;
-    chiama('PUT', '/eventi/' + ev.id, { figlio: st.io, rev: ev.rev, da: st.io }).then(function (r) {
-      esito(r);
-      carica();
+    var gia = ev.figlio && ev.figlio !== st.io ? 'Adesso se ne occupa ' + nomeFiglio(ev.figlio) + '. ' : '';
+    var fatto = function (r) { esito(r); carica(); };
+    if (!ev.ripeti) {
+      if (gia && !confirm(gia + 'Lo prendi tu?')) return;
+      return chiama('PUT', '/eventi/' + ev.id, { figlio: st.io, rev: ev.rev, da: st.io }).then(fatto);
+    }
+    // si ripete: te ne occupi di questa volta, o di tutte?
+    scegli(gia + '«' + ev.descr + '» si ripete (' + descriviRegola(ev) + '). Te ne occupi tu:', [
+      { testo: 'Solo questa volta, del ' + dataBreve(ev.quando.slice(0, 10)), valore: 'solo' },
+      { testo: 'Tutte le volte', valore: 'tutte', classe: 'primario' },
+      { testo: 'Annulla', valore: null },
+    ]).then(function (s) {
+      if (s === 'solo') chiama('POST', '/eventi/' + ev.id + '/stacca', { data: ev.quando.slice(0, 10), rev: ev.rev, da: st.io, figlio: st.io }).then(fatto);
+      else if (s === 'tutte') chiama('PUT', '/eventi/' + ev.id, { figlio: st.io, rev: ev.rev, da: st.io }).then(fatto);
     });
   }
 
@@ -389,11 +535,12 @@
   function scheda(ev, ora) {
     var a = el('article', 'ev ' + ev.chi + (ev.quando < ora ? ' passato' : ''));
     var r1 = el('div');
-    r1.appendChild(el('span', 'ora', ev.quando.slice(11)));
+    r1.appendChild(el('span', 'ora', orario(ev)));
     r1.appendChild(el('span', 'per', PER[ev.chi]));
     a.appendChild(r1);
     a.appendChild(el('p', 'descr', ev.descr));
     if (ev.note) a.appendChild(el('p', 'note', ev.note));
+    if (ev.ripeti) a.appendChild(el('span', 'giro', '↻ ' + descriviRegola(ev)));
     a.appendChild(ev.figlio
       ? el('span', 'incarico' + (ev.figlio === st.io ? ' mio' : ''), ev.figlio === st.io ? '✓ Te ne occupi tu' : 'Se ne occupa ' + nomeFiglio(ev.figlio))
       : el('span', 'incarico libero', 'Da assegnare'));
@@ -434,7 +581,7 @@
       evs.slice(0, MAX_CHIP).forEach(function (ev) {
         var b = el('button', 'chip ' + ev.chi + (ev.figlio ? '' : ' libero') + (ev.quando < ora ? ' passato' : ''));
         b.type = 'button';
-        b.title = PER[ev.chi] + ' · ' + (ev.figlio ? nomeFiglio(ev.figlio) : 'da assegnare');
+        b.title = orario(ev) + ' · ' + PER[ev.chi] + ' · ' + (ev.figlio ? nomeFiglio(ev.figlio) : 'da assegnare') + (ev.ripeti ? ' · ↻ ' + descriviRegola(ev) : '');
         b.appendChild(el('b', '', ev.quando.slice(11)));
         b.appendChild(document.createTextNode(ev.descr));
         b.addEventListener('click', function (e) { e.stopPropagation(); scelto = s; disegna(); apri(ev); });
@@ -479,6 +626,12 @@
     } else {
       $('periodo').textContent = MESI[d.getMonth()] + ' ' + d.getFullYear();
     }
+    // le frecce dicono dove portano: il nome del mese prima e dopo, o "settimana"
+    var mp = new Date(d.getFullYear(), d.getMonth() - 1, 1), ms = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    $('primaNome').textContent = sett ? 'settimana prima' : MESI[mp.getMonth()];
+    $('dopoNome').textContent = sett ? 'settimana dopo' : MESI[ms.getMonth()];
+    $('prima').setAttribute('aria-label', sett ? 'Settimana prima' : 'Mese prima: ' + MESI[mp.getMonth()] + ' ' + mp.getFullYear());
+    $('dopo').setAttribute('aria-label', sett ? 'Settimana dopo' : 'Mese dopo: ' + MESI[ms.getMonth()] + ' ' + ms.getFullYear());
     $('vMese').setAttribute('aria-pressed', String(!sett));
     $('vSettimana').setAttribute('aria-pressed', String(sett));
     $('mese').hidden = sett;
@@ -519,8 +672,20 @@
     Array.prototype.forEach.call(document.getElementsByName('chi'), function (r) { r.checked = !!ev && r.value === ev.chi; });
     $('fGiorno').value = ev ? ev.quando.slice(0, 10) : (giorno || scelto);
     $('fOra').value = ev ? ev.quando.slice(11) : '09:00';
+    durata = ev && ev.durata ? ev.durata : DURATA;
+    $('fFine').value = hm(minuti($('fOra').value) + durata);
+    scriviDurata();
     $('fDescr').value = ev ? ev.descr : '';
     $('fNote').value = ev ? ev.note : '';
+    // la ripetizione e' della serie: si mostra quella, anche aprendo una volta qualsiasi
+    $('fRipeti').value = ev && ev.ripeti ? ev.ripeti : '';
+    var quali = ev && ev.ripeti === 'settimana' ? ev.giorni.split(',') : [];
+    caselleGiorni().forEach(function (c) { c.checked = quali.indexOf(c.value) >= 0; });
+    var nw = ev && ev.ripeti === 'mese-sett' ? ev.giorni : '';
+    $('fMeseSett').dataset.scelto = nw ? '1' : '';
+    if (nw) { $('fPos').value = nw.split(':')[0]; $('fSett').value = nw.split(':')[1]; }
+    $('fFino').value = ev && ev.fino ? ev.fino : '';
+    aggiornaRipeti();
 
     var sel = $('fFiglio');
     sel.textContent = '';
@@ -550,45 +715,139 @@
   }
   function chiudi() { $('scheda').close(); inScheda = null; }
 
+  // ---------- inizio, fine e durata ----------
+  // Si sceglie l'inizio e la fine si sposta da sola, tenendo la durata (un'ora per i nuovi); se si
+  // cambia la fine, cambia la durata. Una fine prima dell'inizio vuol dire il giorno dopo.
+  var durata = DURATA;
+  function scriviDurata() {
+    $('fDurata').textContent = 'Dura ' + testoDurata(durata) + (minuti($('fOra').value || '00:00') + durata >= 1440 ? ', finisce il giorno dopo.' : '.');
+  }
+  $('fOra').addEventListener('change', function () {
+    if (!$('fOra').value) return;
+    $('fFine').value = hm(minuti($('fOra').value) + durata);
+    scriviDurata();
+  });
+  $('fFine').addEventListener('change', function () {
+    if (!$('fOra').value || !$('fFine').value) return;
+    var d = (minuti($('fFine').value) - minuti($('fOra').value) + 1440) % 1440;
+    if (d < 5) { $('fFine').value = hm(minuti($('fOra').value) + durata); return; }   // fine uguale all'inizio: si rimette com'era
+    durata = d;
+    scriviDurata();
+  });
+
+  // ---------- la ripetizione, nella finestra ----------
+  function caselleGiorni() { return Array.prototype.slice.call($('fGiorni').querySelectorAll('input')); }
+
+  /** Mostra quello che serve per la ripetizione scelta, e la spiega a parole. */
+  function aggiornaRipeti() {
+    var r = $('fRipeti').value, giorno = $('fGiorno').value || scelto;
+    var d = daIso(giorno), g = d.getDate();
+    if (r === 'settimana' && !caselleGiorni().some(function (c) { return c.checked; })) {
+      caselleGiorni()[(d.getDay() + 6) % 7].checked = true;        // il giorno dell'appuntamento, poi se ne aggiungono altri
+    }
+    if (r === 'mese-sett' && !$('fMeseSett').dataset.scelto) {
+      var nw = posizioneNelMese(giorno);                            // finche' non lo si cambia a mano, segue il giorno
+      $('fPos').value = nw.split(':')[0];
+      $('fSett').value = nw.split(':')[1];
+    }
+    $('fGiorni').hidden = r !== 'settimana';
+    $('fMeseSett').hidden = r !== 'mese-sett';
+    $('fFinoRiga').hidden = !r;
+    $('fRegola').hidden = !r || r === 'settimana';
+    $('fRegola').textContent = r === 'giorno' ? 'Tutti i giorni, da ' + nomeGiorno(d) + ' ' + g + ' ' + MESI[d.getMonth()] + '.'
+      : r === 'mese' ? 'Il ' + g + ' di ogni mese' + (g > 28 ? ': nei mesi che non hanno il ' + g + ', l\'ultimo giorno.' : '.')
+      : r === 'mese-sett' ? 'Ogni mese, ' + nelMese($('fPos').value + ':' + $('fSett').value) + '.'
+      : r === 'anno' ? 'Ogni anno il ' + g + ' ' + MESI[d.getMonth()] + (g === 29 && d.getMonth() === 1 ? ': negli anni normali il 28.' : '.')
+      : '';
+  }
+  $('fRipeti').addEventListener('change', aggiornaRipeti);
+  $('fGiorno').addEventListener('change', aggiornaRipeti);
+  ['fPos', 'fSett'].forEach(function (id) {
+    $(id).addEventListener('change', function () { $('fMeseSett').dataset.scelto = '1'; aggiornaRipeti(); });
+  });
+
+  var PERCHE = { fino: 'la data di fine viene prima dell\'appuntamento', giorni: 'scegli almeno un giorno della settimana',
+    descr: 'la descrizione è vuota o troppo lunga', quando: 'giorno o ora non validi', chi: 'scegli per chi è',
+    durata: 'la durata va da 5 minuti a 24 ore' };
+
+  /** Mostra l'errore nella finestra, che resta aperta: quello che e' stato scritto non va perso. */
+  function erroreScheda(r) {
+    $('fErrore').textContent = r.stato === 0 ? 'Non riesco a collegarmi: controlla la connessione e riprova.'
+      : r.stato >= 500 ? 'Non sono riuscito a salvare. Riprova fra un momento.'
+      : 'C\'è qualcosa che non va: ' + (PERCHE[r.perche] || r.perche || '?') + '.';
+    $('fErrore').hidden = false;
+  }
+
   $('modulo').addEventListener('submit', function (e) {
     e.preventDefault();
-    var chi = document.querySelector('input[name="chi"]:checked');
+    var chi = document.querySelector('input[name="chi"]:checked'), rip = $('fRipeti').value;
     var dati = {
       chi: chi ? chi.value : '', quando: $('fGiorno').value + 'T' + $('fOra').value.slice(0, 5),
       descr: $('fDescr').value, note: $('fNote').value, figlio: $('fFiglio').value, da: st.io,
+      durata: durata, ripeti: rip,
+      giorni: rip === 'mese-sett' ? $('fPos').value + ':' + $('fSett').value
+        : rip === 'settimana' ? caselleGiorni().filter(function (c) { return c.checked; }).map(function (c) { return c.value; }).join(',') : '',
+      fino: rip ? $('fFino').value : '',
     };
     if (!dati.descr.trim()) {
       $('fErrore').textContent = 'Scrivi una descrizione.';
       $('fErrore').hidden = false;
       return;
     }
+    if (rip === 'settimana' && !dati.giorni) return erroreScheda({ stato: 400, perche: 'giorni' });
     var ev = inScheda;
-    if (ev) dati.rev = ev.rev;
-    occupato(true);
-    chiama(ev ? 'PUT' : 'POST', ev ? '/eventi/' + ev.id : '/eventi', dati).then(function (r) {
-      occupato(false);
-      if (r.stato === 0 || r.stato >= 500 || r.stato === 400 || r.stato === 413) {
-        // la finestra resta aperta: quello che è stato scritto non va perso
-        $('fErrore').textContent = r.stato === 0 ? 'Non riesco a collegarmi: controlla la connessione e riprova.'
-          : r.stato >= 500 ? 'Non sono riuscito a salvare. Riprova fra un momento.'
-          : 'C\'è qualcosa che non va in quello che hai scritto (' + (r.perche || '?') + ').';
-        $('fErrore').hidden = false;
-        return;
+    if (!ev || !ev.ripeti || !rip) {
+      // un appuntamento nuovo, uno singolo, o una serie che smette di ripetersi (resta la volta aperta)
+      if (ev) dati.rev = ev.rev;
+      return invia(ev ? 'PUT' : 'POST', ev ? '/eventi/' + ev.id : '/eventi', dati);
+    }
+    var giorno = ev.quando.slice(0, 10);
+    scegli('«' + ev.descr + '» si ripete (' + descriviRegola(ev) + '). Cosa cambio?', rispostaSerie(ev, 'questo')).then(function (s) {
+      if (s === 'solo') {
+        // diventa un appuntamento a se', con quello che c'e' scritto nella finestra; la serie salta quel giorno
+        invia('POST', '/eventi/' + ev.id + '/stacca', { data: giorno, rev: ev.rev, da: st.io, chi: dati.chi, quando: dati.quando,
+          descr: dati.descr, note: dati.note, figlio: dati.figlio, durata: dati.durata });
+      } else if (s === 'tutte') {
+        // se nella finestra si e' spostato il giorno, si sposta di altrettanto l'inizio della serie
+        var spostamento = Math.round((daIso(dati.quando.slice(0, 10)) - daIso(giorno)) / 864e5);
+        dati.quando = iso(piu(daIso(ev.inizio.slice(0, 10)), spostamento)) + dati.quando.slice(10);
+        dati.rev = ev.rev;
+        invia('PUT', '/eventi/' + ev.id, dati, iso(piu(daIso(giorno), spostamento)));
       }
-      chiudi();
-      if (esito(r)) return vai(dati.quando.slice(0, 10)), carica();
-      carica();
     });
   });
 
+  /** Manda al Worker; se va bene chiude la finestra e va al giorno dell'appuntamento. */
+  function invia(come, via, dati, vaiA) {
+    occupato(true);
+    chiama(come, via, dati).then(function (r) {
+      occupato(false);
+      if (r.stato === 0 || r.stato >= 500 || r.stato === 400 || r.stato === 413) return erroreScheda(r);
+      chiudi();
+      if (esito(r)) vai(vaiA || dati.quando.slice(0, 10));
+      carica();
+    });
+  }
+
   $('fTogli').addEventListener('click', function () {
     var ev = inScheda;
-    if (!ev || !confirm('Elimino "' + ev.descr + '" del ' + ev.quando.slice(8, 10) + '/' + ev.quando.slice(5, 7) + '?')) return;
-    occupato(true);
-    chiama('DELETE', '/eventi/' + ev.id + '?da=' + st.io).then(function (r) {
-      chiudi();
-      esito(r);
-      carica();
+    if (!ev) return;
+    var giorno = ev.quando.slice(0, 10);
+    var domanda = ev.ripeti
+      ? scegli('«' + ev.descr + '» si ripete (' + descriviRegola(ev) + '). Cosa elimino?', [
+        { testo: 'Solo questo, del ' + dataBreve(giorno), valore: '&solo=' + giorno },
+        { testo: 'Tutte le ripetizioni', valore: '', classe: 'pericolo' },
+        { testo: 'Annulla', valore: null },
+      ])
+      : Promise.resolve(confirm('Elimino «' + ev.descr + '» del ' + dataBreve(giorno) + '?') ? '' : null);
+    domanda.then(function (quale) {
+      if (quale === null) return;
+      occupato(true);
+      chiama('DELETE', '/eventi/' + ev.id + '?da=' + st.io + quale).then(function (r) {
+        chiudi();
+        esito(r);
+        carica();
+      });
     });
   });
   $('fAnnulla').addEventListener('click', chiudi);
@@ -598,6 +857,15 @@
   // ---------- i comandi della testata ----------
   $('prima').addEventListener('click', function () { sposta(-1); });
   $('dopo').addEventListener('click', function () { sposta(1); });
+  // sul telefono si cambia periodo anche trascinando il calendario a destra o a sinistra
+  ['mese', 'settimana'].forEach(function (id) {
+    var x0 = 0, y0 = 0;
+    $(id).addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    $(id).addEventListener('touchend', function (e) {
+      var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > 70 && Math.abs(dx) > 2 * Math.abs(dy)) sposta(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  });
   $('oggi').addEventListener('click', function () { vai(iso(new Date())); });
   $('nuovo').addEventListener('click', function () { apri(null); });
   $('nuovoGiorno').addEventListener('click', function () { apri(null); });
