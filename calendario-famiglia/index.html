@@ -189,6 +189,12 @@
   .storia { margin: 0; font-size: 12.5px; color: var(--tenue); }
   .piede { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   #fErrore { margin: 0; color: var(--pericolo); font-size: 14px; }
+
+  /* MAM, il dispositivo della mamma: vede e aggiunge. Niente cambio di utente, niente modifiche,
+     niente "me ne occupo io", niente assegnazioni o ripetizioni (il Worker le rifiuta comunque) */
+  body.ospite .sono, body.ospite #esci, body.ospite .ev .azioni, body.ospite #fFiglioRiga,
+  body.ospite fieldset.ripeti, body.ospite #fTogli { display: none !important; }
+  #bottoniChi .nota { display: block; font-size: 12px; font-weight: normal; color: var(--tenue); }
 </style>
 </head>
 <body>
@@ -312,7 +318,7 @@
       <p class="storia" id="fRegola"></p>
       <label id="fFinoRiga" hidden>Fino al (vuoto = per sempre) <input type="date" id="fFino" min="2000-01-01" max="2100-12-31"></label>
     </fieldset>
-    <label>Se ne occupa
+    <label id="fFiglioRiga">Se ne occupa
       <span class="con-bottone"><select id="fFiglio"></select><button type="button" id="fIo">Me ne occupo io</button></span>
     </label>
     <p class="storia" id="fStoria"></p>
@@ -358,7 +364,7 @@
   }
 
   // ---------- quello che il telefono ricorda ----------
-  var st = { gettone: '', io: '', figli: [], vista: 'mese' };
+  var st = { gettone: '', io: '', figli: [], ospite: null, vista: 'mese' };
   try {
     var salvato = JSON.parse(localStorage.getItem(CHIAVE) || '{}');
     Object.keys(st).forEach(function (k) { if (salvato[k] != null) st[k] = salvato[k]; });
@@ -429,7 +435,7 @@
       if (n !== giro) return;                    // nel frattempo si è cambiato mese: questa risposta è vecchia
       if (r.ok) {
         eventi = r.eventi;
-        st.figli = r.figli; salva();
+        st.figli = r.figli; st.ospite = r.ospite || st.ospite; salva();
         if ($('avviso').dataset.rete) { delete $('avviso').dataset.rete; avviso(''); }
         disegna();
       } else if (r.stato !== 401) {
@@ -442,8 +448,11 @@
   // ---------- chi è chi ----------
   function nomeFiglio(id) {
     for (var i = 0; i < st.figli.length; i++) if (st.figli[i].id === id) return st.figli[i].nome;
+    if (st.ospite && st.ospite.id === id) return st.ospite.nome;
     return id;
   }
+  /** Vero sul dispositivo della mamma (MAM): vede e aggiunge, non modifica. */
+  function ospite() { return !!st.ospite && st.io === st.ospite.id; }
   function delGiorno(s) {
     return eventi.filter(function (e) { return e.quando.slice(0, 10) === s; })
       .sort(function (a, b) { return a.quando < b.quando ? -1 : a.quando > b.quando ? 1 : 0; });
@@ -514,6 +523,7 @@
   }
 
   function prendi(ev) {
+    if (ospite()) return;
     var gia = ev.figlio && ev.figlio !== st.io ? 'Adesso se ne occupa ' + nomeFiglio(ev.figlio) + '. ' : '';
     var fatto = function (r) { esito(r); carica(); };
     if (!ev.ripeti) {
@@ -584,7 +594,11 @@
         b.title = orario(ev) + ' · ' + PER[ev.chi] + ' · ' + (ev.figlio ? nomeFiglio(ev.figlio) : 'da assegnare') + (ev.ripeti ? ' · ↻ ' + descriviRegola(ev) : '');
         b.appendChild(el('b', '', ev.quando.slice(11)));
         b.appendChild(document.createTextNode(ev.descr));
-        b.addEventListener('click', function (e) { e.stopPropagation(); scelto = s; disegna(); apri(ev); });
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          if (ospite()) return vai(s);         // MAM non apre per modificare: si mostra il giorno
+          scelto = s; disegna(); apri(ev);
+        });
         ch.appendChild(b);
       });
       if (evs.length > MAX_CHIP) ch.appendChild(el('span', 'altri', '+' + (evs.length - MAX_CHIP)));
@@ -667,6 +681,7 @@
 
   // ---------- la finestra dell'appuntamento ----------
   function apri(ev, giorno) {
+    if (ev && ospite()) return;
     inScheda = ev || null;
     $('schedaTitolo').textContent = ev ? 'Appuntamento' : 'Nuovo appuntamento';
     Array.prototype.forEach.call(document.getElementsByName('chi'), function (r) { r.checked = !!ev && r.value === ev.chi; });
@@ -794,6 +809,7 @@
       $('fErrore').hidden = false;
       return;
     }
+    if (ospite()) { dati.figlio = ''; dati.ripeti = ''; dati.giorni = ''; dati.fino = ''; rip = ''; }
     if (rip === 'settimana' && !dati.giorni) return erroreScheda({ stato: 400, perche: 'giorni' });
     var ev = inScheda;
     if (!ev || !ev.ripeti || !rip) {
@@ -893,7 +909,7 @@
       b.disabled = false;
       if (r.ok) {
         $('parola').value = '';
-        st.gettone = r.gettone; st.figli = r.figli; salva();
+        st.gettone = r.gettone; st.figli = r.figli; st.ospite = r.ospite || null; salva();
         return mostra();
       }
       $('erroreEntra').textContent = r.stato === 403 ? 'La parola d\'ordine non è giusta.'
@@ -904,7 +920,8 @@
   });
 
   function mostra() {
-    var dentro = !!st.gettone, so = dentro && st.figli.some(function (f) { return f.id === st.io; });
+    var dentro = !!st.gettone, so = dentro && (st.figli.some(function (f) { return f.id === st.io; }) || ospite());
+    document.body.classList.toggle('ospite', so && ospite());
     if ($('scheda').open) $('scheda').close();
     $('entra').hidden = dentro;
     $('chisei').hidden = !dentro || so;
@@ -919,8 +936,16 @@
         b.addEventListener('click', function () { st.io = f.id; salva(); mostra(); });
         box.appendChild(b);
       });
+      if (st.ospite) {
+        var m = el('button', '', st.ospite.nome);
+        m.type = 'button';
+        m.appendChild(el('span', 'nota', 'solo vedere e aggiungere, per il dispositivo della mamma'));
+        m.addEventListener('click', function () { st.io = st.ospite.id; st.vista = 'settimana'; salva(); mostra(); });
+        box.appendChild(m);
+      }
       return;
     }
+    if (ospite()) st.vista = 'settimana';     // MAM parte sempre dalla settimana
     disegna();
     carica();
   }
@@ -932,6 +957,13 @@
   }
   setInterval(rinfresca, OGNI);
   document.addEventListener('visibilitychange', rinfresca);
+
+  // `?cambia` nell'indirizzo fa ricomparire "Chi sei?": e' l'unico modo di cambiare utente sul
+  // dispositivo di MAM, dove "Sono" ed "Esci" non ci sono
+  if (/[?&]cambia\b/.test(location.search)) {
+    st.io = ''; salva();
+    try { history.replaceState(null, '', location.pathname); } catch (e) { /* pazienza */ }
+  }
 
   scelto = iso(new Date());
   mostra();
