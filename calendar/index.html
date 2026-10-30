@@ -163,6 +163,8 @@
   .storia { margin: 0; font-size: 12.5px; color: var(--tenue); }
   fieldset.ripeti { display: grid; gap: 8px; }
   fieldset.ripeti select { margin-top: 5px; }
+  .mesesett { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mesesett select { margin-top: 0 !important; }
   .giorni { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
   #modulo .giorni label { position: relative; display: flex; align-items: center; justify-content: center; min-height: 40px;
     border: 2px solid var(--linea); border-radius: 10px; background: var(--carta); color: var(--testo); font-size: 15px; cursor: pointer; }
@@ -279,7 +281,8 @@
         <option value="">No, una volta sola</option>
         <option value="giorno">Ogni giorno</option>
         <option value="settimana">Ogni settimana</option>
-        <option value="mese">Ogni mese</option>
+        <option value="mese">Ogni mese, lo stesso giorno</option>
+        <option value="mese-sett">Ogni mese, un giorno della settimana</option>
         <option value="anno">Ogni anno</option>
       </select>
       <div class="giorni" id="fGiorni" hidden>
@@ -290,6 +293,24 @@
         <label title="venerdì"><input type="checkbox" value="5">V</label>
         <label title="sabato"><input type="checkbox" value="6">S</label>
         <label title="domenica"><input type="checkbox" value="7">D</label>
+      </div>
+      <div class="mesesett" id="fMeseSett" hidden>
+        <select id="fPos" aria-label="Quale nel mese">
+          <option value="1">il primo</option>
+          <option value="2">il secondo</option>
+          <option value="3">il terzo</option>
+          <option value="4">il quarto</option>
+          <option value="-1">l'ultimo</option>
+        </select>
+        <select id="fSett" aria-label="Giorno della settimana">
+          <option value="1">lunedì</option>
+          <option value="2">martedì</option>
+          <option value="3">mercoledì</option>
+          <option value="4">giovedì</option>
+          <option value="5">venerdì</option>
+          <option value="6">sabato</option>
+          <option value="7">domenica</option>
+        </select>
       </div>
       <p class="storia" id="fRegola"></p>
       <label id="fFinoRiga" hidden>Fino al (vuoto = per sempre) <input type="date" id="fFino" min="2000-01-01" max="2100-12-31"></label>
@@ -466,6 +487,18 @@
   var CORTI = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
   function dataBreve(s) { return s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4); }
 
+  var ORDINALI = { '1': 'il primo', '2': 'il secondo', '3': 'il terzo', '4': 'il quarto', '-1': 'l\'ultimo' };
+  /** '2:4' -> "il secondo giovedì", '-1:2' -> "l'ultimo martedì" */
+  function nelMese(nw) {
+    var p = String(nw).split(':');
+    return ORDINALI[p[0]] + ' ' + GIORNI[+p[1] - 1];
+  }
+  /** Il giorno 'AAAA-MM-GG' come 'N:G' (il quinto della settimana nel mese diventa l'ultimo). */
+  function posizioneNelMese(giorno) {
+    var d = daIso(giorno), n = Math.ceil(d.getDate() / 7);
+    return (n > 4 ? -1 : n) + ':' + ((d.getDay() + 6) % 7 + 1);
+  }
+
   /** "ogni lun e gio fino al 30/06/2031", "ogni mese il 31", ... per un appuntamento che si ripete. */
   function descriviRegola(ev) {
     var g = +ev.inizio.slice(8, 10), s;
@@ -474,6 +507,7 @@
       var n = ev.giorni.split(',').map(function (x) { return CORTI[x - 1]; });
       s = 'ogni ' + (n.length > 1 ? n.slice(0, -1).join(', ') + ' e ' + n[n.length - 1] : n[0]);
     } else if (ev.ripeti === 'mese') s = 'ogni mese il ' + g;
+    else if (ev.ripeti === 'mese-sett') s = nelMese(ev.giorni) + ' del mese';
     else s = 'ogni anno il ' + g + ' ' + MESI[+ev.inizio.slice(5, 7) - 1];
     return s + (ev.fino ? ' fino al ' + dataBreve(ev.fino) : '');
   }
@@ -639,6 +673,10 @@
     var quali = ev && ev.giorni ? ev.giorni.split(',') : [];
     caselleGiorni().forEach(function (c) { c.checked = quali.indexOf(c.value) >= 0; });
     $('fFino').value = ev && ev.fino ? ev.fino : '';
+    // "il secondo giovedì": se la serie lo dice si mostra quello, se no lo si ricava dal giorno scelto
+    var nw = ev && ev.ripeti === 'mese-sett' ? ev.giorni : '';
+    $('fMeseSett').dataset.scelto = nw ? '1' : '';
+    if (nw) { $('fPos').value = nw.split(':')[0]; $('fSett').value = nw.split(':')[1]; }
     aggiornaRipeti();
 
     var quando = function (t) { return new Date(t).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }); };
@@ -668,16 +706,27 @@
       // appena scelto "ogni settimana": il giorno dell'appuntamento, poi se ne aggiungono altri
       caselleGiorni()[(d.getDay() + 6) % 7].checked = true;
     }
+    if (r === 'mese-sett' && !$('fMeseSett').dataset.scelto) {
+      // finche' non lo si cambia a mano, segue il giorno dell'appuntamento
+      var nw = posizioneNelMese(giorno);
+      $('fPos').value = nw.split(':')[0];
+      $('fSett').value = nw.split(':')[1];
+    }
     $('fGiorni').hidden = r !== 'settimana';
+    $('fMeseSett').hidden = r !== 'mese-sett';
     $('fFinoRiga').hidden = !r;
     $('fRegola').hidden = !r || r === 'settimana';
     $('fRegola').textContent = r === 'giorno' ? 'Tutti i giorni, da ' + nomeGiorno(d) + ' ' + g + ' ' + MESI[d.getMonth()] + '.'
       : r === 'mese' ? 'Il ' + g + ' di ogni mese' + (g > 28 ? ': nei mesi che non hanno il ' + g + ', l\'ultimo giorno.' : '.')
+      : r === 'mese-sett' ? 'Ogni mese, ' + nelMese($('fPos').value + ':' + $('fSett').value) + '.'
       : r === 'anno' ? 'Ogni anno il ' + g + ' ' + MESI[d.getMonth()] + (g === 29 && d.getMonth() === 1 ? ': negli anni normali il 28.' : '.')
       : '';
   }
   $('fRipeti').addEventListener('change', aggiornaRipeti);
   $('fGiorno').addEventListener('change', aggiornaRipeti);
+  ['fPos', 'fSett'].forEach(function (id) {
+    $(id).addEventListener('change', function () { $('fMeseSett').dataset.scelto = '1'; aggiornaRipeti(); });
+  });
 
   var PERCHE = { fino: 'la data di fine viene prima dell\'appuntamento', giorni: 'scegli almeno un giorno della settimana',
     descr: 'la descrizione è vuota o troppo lunga', quando: 'giorno o ora non validi', chi: 'scegli per chi è' };
@@ -697,7 +746,8 @@
       chi: chi ? chi.value : '', quando: $('fGiorno').value + 'T' + $('fOra').value.slice(0, 5),
       descr: $('fDescr').value, note: $('fNote').value, da: st.io,
       ripeti: $('fRipeti').value,
-      giorni: caselleGiorni().filter(function (c) { return c.checked; }).map(function (c) { return c.value; }).join(','),
+      giorni: $('fRipeti').value === 'mese-sett' ? $('fPos').value + ':' + $('fSett').value
+        : caselleGiorni().filter(function (c) { return c.checked; }).map(function (c) { return c.value; }).join(','),
       fino: $('fRipeti').value ? $('fFino').value : '',
     };
     if (!dati.descr.trim()) {
@@ -710,7 +760,7 @@
     if (!ev || !ev.ripeti || !dati.ripeti) {
       // un appuntamento nuovo, uno singolo, o una serie che smette di ripetersi (resta la volta aperta)
       if (ev) dati.rev = ev.rev;
-      return salva(ev ? 'PUT' : 'POST', ev ? '/eventi/' + ev.id : '/eventi', dati);
+      return invia(ev ? 'PUT' : 'POST', ev ? '/eventi/' + ev.id : '/eventi', dati);
     }
     var giorno = ev.quando.slice(0, 10);
     scegli('«' + ev.descr + '» si ripete (' + descriviRegola(ev) + '). Cosa cambio?', [
@@ -720,19 +770,19 @@
     ]).then(function (s) {
       if (s === 'solo') {
         // diventa un appuntamento a se', con giorno e ora scritti nella finestra; la serie salta quel giorno
-        salva('POST', '/eventi/' + ev.id + '/stacca', { data: giorno, rev: ev.rev, da: st.io, chi: dati.chi, quando: dati.quando, descr: dati.descr, note: dati.note });
+        invia('POST', '/eventi/' + ev.id + '/stacca', { data: giorno, rev: ev.rev, da: st.io, chi: dati.chi, quando: dati.quando, descr: dati.descr, note: dati.note });
       } else if (s === 'tutte') {
         // se nella finestra si e' spostato il giorno, si sposta di altrettanto l'inizio della serie
         var spostamento = Math.round((daIso(dati.quando.slice(0, 10)) - daIso(giorno)) / 864e5);
         dati.quando = iso(piu(daIso(ev.inizio.slice(0, 10)), spostamento)) + dati.quando.slice(10);
         dati.rev = ev.rev;
-        salva('PUT', '/eventi/' + ev.id, dati, iso(piu(daIso(giorno), spostamento)));
+        invia('PUT', '/eventi/' + ev.id, dati, iso(piu(daIso(giorno), spostamento)));
       }
     });
   });
 
   /** Manda al Worker; se va bene chiude la finestra e va al giorno dell'appuntamento. */
-  function salva(come, via, dati, vaiA) {
+  function invia(come, via, dati, vaiA) {
     occupato(true);
     chiama(come, via, dati).then(function (r) {
       occupato(false);
