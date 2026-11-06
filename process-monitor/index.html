@@ -14,11 +14,9 @@
   .su { font-size: 14px; }
   h1 { font-size: 40px; margin: 18px 0 2px; color: #ff4fd8; font-style: italic; letter-spacing: 1px; }
   .sub { color: #b0bec5; margin: 10px 0 22px; font-size: 15px; }
-  /* l'immagine e' 16:9 con la finestra al centro e margini larghi, perche' la scheda
-     della pagina d'ingresso ne ritaglia i lati: qui la ritagliamo a nostra volta, piu'
-     stretta, cosi' la finestra riempie il banner invece di galleggiare nel vuoto */
-  img.banner { width: 100%; aspect-ratio: 5 / 4; object-fit: cover; height: auto;
-    border-radius: 12px; border: 2px solid var(--line); display: block; }
+  /* l'anteprima e' la finestra a 2x che riempie la tela: qui si mostra intera.
+     Sulla scheda della pagina d'ingresso se ne vede solo il centro, ed e' voluto */
+  img.banner { width: 100%; height: auto; border-radius: 12px; border: 2px solid var(--line); display: block; }
   a.dl { display: block; text-align: center; margin: 26px 0 10px; padding: 18px;
     background: #43a047; color: #fff; text-decoration: none; font-size: 22px; font-weight: bold;
     border-radius: 14px; border: 3px solid rgba(0,0,0,0.45); box-shadow: 0 5px 0 rgba(0,0,0,0.4); }
@@ -55,6 +53,12 @@
   </section>
 
   <section>
+    <h2>Dov'e' finita la RAM</h2>
+    <p>Il caso classico: il computer e' sempre al 90% di memoria e Gestione attivita' non mostra niente che lo giustifichi. Il pulsante <b>RAM</b> fotografa tutti i processi di tutti gli utenti e mette accanto il bilancio della memoria di sistema, compresa quella del kernel e dei driver, che nessun elenco di processi puo' mostrare.</p>
+    <p>La riga da guardare e' <b>Non attribuita</b>: la RAM occupata che nessun processo dichiara. Sotto, il programma spiega le cause piu' probabili leggendo i numeri: un driver che perde memoria, SQL Server che si e' preso tutto, memoria compressa, macchine virtuali. Il report si salva in un file di testo che si apre in Excel.</p>
+  </section>
+
+  <section>
     <h2>Come si installa</h2>
     <ul>
       <li>Scarica <b>ProcessMonitor.exe</b> e mettilo in una cartella qualsiasi: non c'e' niente da installare.</li>
@@ -72,6 +76,7 @@
       <li><b>Refr (s)</b> regola ogni quanti secondi aggiorna, da 1 a 60.</li>
       <li><b>Sess: ON</b> apre sotto ogni programma il dettaglio per sessione: quante istanze, di quale utente, con CPU e memoria di quella sessione.</li>
       <li><b>Log: ON</b> scrive gli eventi in un file <code>procmonitor_AAAAMMGG.log</code> accanto al programma, uno al giorno.</li>
+      <li><b>RAM</b> apre la scansione di tutti i processi: raggruppati per programma oppure uno per riga, ordinati per memoria. <b>Salva report</b> la scrive su file.</li>
       <li>Il pulsante <b>&#9650;</b> riduce la finestra a una riga sola, da lasciare in un angolo dello schermo. La finestra sta sempre davanti alle altre.</li>
       <li>In fondo, sempre visibili: CPU, memoria, disco e rete di tutto il sistema.</li>
     </ul>
@@ -88,6 +93,5 @@
     })
     .catch(function () { });
 </script>
-<script src="/conta.js" defer></script>
 </body>
 </html>
