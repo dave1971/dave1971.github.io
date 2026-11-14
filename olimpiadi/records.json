@@ -1,5 +1,5 @@
 {
-  "rev": 62,
+  "rev": 63,
   "aggiornato": "2026-11-14",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -201,7 +201,7 @@
     ],
     "asta": [
       {
-        "v": 6.1,
+        "v": 6.2,
         "who": "LUPIN3",
         "nat": "FRA",
         "il": "2026-11-14",
@@ -251,17 +251,17 @@
     ],
     "110h": [
       {
+        "v": 12.831536845950458,
+        "who": "LUPIN3",
+        "nat": "FRA",
+        "il": "2026-11-14",
+        "lv": "W"
+      },
+      {
         "v": 12.860247572674268,
         "who": "LAMBO",
         "nat": "ITA",
         "il": "2026-10-16",
-        "lv": "W"
-      },
-      {
-        "v": 13.091188996966682,
-        "who": "LUPIN3",
-        "nat": "FRA",
-        "il": "2026-11-14",
         "lv": "W"
       },
       {
@@ -727,7 +727,7 @@
     ],
     "50sl": [
       {
-        "v": 21.341666666666097,
+        "v": 21.224999999999437,
         "who": "LUPIN3",
         "nat": "FRA",
         "il": "2026-11-14",
@@ -998,5 +998,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 269
+  "postRev": 272
 }
