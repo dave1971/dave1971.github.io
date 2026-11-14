@@ -1,5 +1,5 @@
 {
-  "rev": 61,
+  "rev": 62,
   "aggiornato": "2026-11-14",
   "nota": "I record veri degli atleti e i migliori risultati dei giocatori. Alza rev a ogni modifica: il gioco lo guarda per accendere la stellina sul pulsante RECORD.",
   "wr": {
@@ -474,11 +474,11 @@
     ],
     "volteggio": [
       {
-        "v": 194.4,
+        "v": 209.3,
         "who": "LUPIN3",
         "nat": "FRA",
-        "il": "2026-11-01",
-        "lv": "T"
+        "il": "2026-11-14",
+        "lv": "W"
       },
       {
         "v": 170.5,
@@ -530,11 +530,11 @@
     ],
     "trampolino": [
       {
-        "v": 208,
+        "v": 244.5,
         "who": "LUPIN3",
         "nat": "FRA",
-        "il": "2026-11-01",
-        "lv": "T"
+        "il": "2026-11-14",
+        "lv": "W"
       },
       {
         "v": 172.7,
@@ -683,11 +683,11 @@
         "lv": "W"
       },
       {
-        "v": 190,
+        "v": 250,
         "who": "LUPIN3",
         "nat": "FRA",
-        "il": "2026-11-01",
-        "lv": "T"
+        "il": "2026-11-14",
+        "lv": "W"
       },
       {
         "v": 150,
@@ -727,11 +727,11 @@
     ],
     "50sl": [
       {
-        "v": 22.999999999999336,
+        "v": 21.341666666666097,
         "who": "LUPIN3",
         "nat": "FRA",
-        "il": "2026-11-01",
-        "lv": "T"
+        "il": "2026-11-14",
+        "lv": "W"
       },
       {
         "v": 26.066666666665828,
@@ -910,11 +910,11 @@
         "lv": "W"
       },
       {
-        "v": 77.58451475970384,
+        "v": 94.67806182984268,
         "who": "LUPIN3",
         "nat": "FRA",
-        "il": "2026-11-01",
-        "lv": "T"
+        "il": "2026-11-14",
+        "lv": "W"
       },
       {
         "v": 56.1212326802039,
@@ -954,11 +954,11 @@
     ],
     "arco": [
       {
-        "v": 56,
+        "v": 58,
         "who": "LUPIN3",
         "nat": "FRA",
-        "il": "2026-11-01",
-        "lv": "T"
+        "il": "2026-11-14",
+        "lv": "W"
       },
       {
         "v": 54,
@@ -998,5 +998,5 @@
     ]
   },
   "post": "https://olimpiadi-record.olimpiadi-dave1971.workers.dev/r",
-  "postRev": 263
+  "postRev": 269
 }
